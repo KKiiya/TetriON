@@ -130,15 +130,15 @@ public class Settings : IDisposable
     
     private void InitializeDefaultKeyBindings()
     {
-        // === MOVEMENT ===
-        _defaultKeyBindings[KeyBind.MoveLeft] = Keys.A;
-        _defaultKeyBindings[KeyBind.MoveRight] = Keys.D;
-        _defaultKeyBindings[KeyBind.SoftDrop] = Keys.S;
-        _defaultKeyBindings[KeyBind.HardDrop] = Keys.W;
+        // === MOVEMENT === (Classic Tetris controls)
+        _defaultKeyBindings[KeyBind.MoveLeft] = Keys.Left;
+        _defaultKeyBindings[KeyBind.MoveRight] = Keys.Right;
+        _defaultKeyBindings[KeyBind.SoftDrop] = Keys.Down;
+        _defaultKeyBindings[KeyBind.HardDrop] = Keys.Space;
         
-        // === ROTATION ===
-        _defaultKeyBindings[KeyBind.RotateClockwise] = Keys.Up;
-        _defaultKeyBindings[KeyBind.RotateCounterClockwise] = Keys.Q;
+        // === ROTATION === (Classic Tetris controls)
+        _defaultKeyBindings[KeyBind.RotateClockwise] = Keys.X;
+        _defaultKeyBindings[KeyBind.RotateCounterClockwise] = Keys.Z;
         _defaultKeyBindings[KeyBind.Rotate180] = Keys.E;
         
         // === GAME ACTIONS ===

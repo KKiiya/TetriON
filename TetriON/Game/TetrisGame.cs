@@ -52,9 +52,9 @@ public class TetrisGame {
         _spriteBatch = TetriON.Instance.SpriteBatch;
         _point = point;
         _tiles = tiles;
-        _grid = new Grid(point, width, height, 0.8f);
+        _grid = new Grid(point, width, height, 1.2f); // Reasonable size for proper Tetris gameplay
         _moveSound = new SoundWrapper("assets/sfx/move");
-        _tetrominoPoint = new Point(4, 0);
+        _tetrominoPoint = new Point(4, 0); // Start at column 4 (center of 10-wide grid), row 0 (top)
         _timingManager = new TimingManager();
         _random = new Random();
         
@@ -338,16 +338,8 @@ public class TetrisGame {
     }
     
     private bool CanMoveCurrentTo(int deltaX, int deltaY) {
-        // Use cached cells for better performance
-        foreach (var cell in _cachedTetrominoCells) {
-            var newX = cell.X + deltaX;
-            var newY = cell.Y + deltaY;
-            
-            if (!_grid.IsCellEmpty(newX, newY)) {
-                return false;
-            }
-        }
-        return true;
+        var newPosition = new Point(_tetrominoPoint.X + deltaX, _tetrominoPoint.Y + deltaY);
+        return _grid.CanPlaceTetromino(newPosition, _currentTetromino.GetMatrix());
     }
     
     private List<Point> GetCurrentTetrominoCells() {
@@ -384,6 +376,8 @@ public class TetrisGame {
         }
         
         // Handle single-press actions
+        // Classic Tetris controls: Z for rotate left, X for rotate right, C for hold, Space for hard drop
+        // Movement: Arrow keys for left/right/down
         if (_keyPressed[KeyBind.RotateCounterClockwise]) RotateLeft();
         if (_keyPressed[KeyBind.RotateClockwise]) RotateRight();
         if (_keyPressed[KeyBind.Hold]) Hold();
@@ -394,7 +388,7 @@ public class TetrisGame {
     }
     
     private void HandleMovementInput() {
-        // Left movement
+        // Left movement with proper DAS/ARR
         if (_keyHeld[KeyBind.MoveLeft] && !_keyHeld[KeyBind.MoveRight]) {
             if (_keyPressed[KeyBind.MoveLeft]) {
                 MoveLeft();
@@ -402,12 +396,9 @@ public class TetrisGame {
             } else if (_timingManager.ShouldAutoRepeat()) {
                 MoveLeft();
             }
-        } else {
-            _timingManager.StopAutoRepeat();
         }
-        
-        // Right movement  
-        if (_keyHeld[KeyBind.MoveRight] && !_keyHeld[KeyBind.MoveLeft]) {
+        // Right movement with proper DAS/ARR
+        else if (_keyHeld[KeyBind.MoveRight] && !_keyHeld[KeyBind.MoveLeft]) {
             if (_keyPressed[KeyBind.MoveRight]) {
                 MoveRight();
                 _timingManager.StartAutoRepeat();
@@ -415,10 +406,14 @@ public class TetrisGame {
                 MoveRight();
             }
         }
+        // Stop auto-repeat when no horizontal movement keys are held
+        else {
+            _timingManager.StopAutoRepeat();
+        }
         
-        // Soft drop
+        // Soft drop - immediate and continuous
         if (_keyHeld[KeyBind.SoftDrop]) {
-            if (_timingManager.ShouldSoftDrop()) {
+            if (_keyPressed[KeyBind.SoftDrop] || _timingManager.ShouldSoftDrop()) {
                 MoveDown();
             }
         }
@@ -426,7 +421,19 @@ public class TetrisGame {
     
     public void Draw() {
         _grid.Draw(_spriteBatch, _point, _tiles);
-        _currentTetromino.Draw(_spriteBatch, _point + _tetrominoPoint, _tiles, _grid.GetSizeMultiplier());
-        _currentTetromino.DrawGhost(_spriteBatch, _point + GetGhostPosition(), _tiles, _grid.GetSizeMultiplier());
+        
+        // Calculate proper pixel positions for tetrominos based on grid scaling
+        var scaledTileSize = (int)(Grid.TILE_SIZE * _grid.GetSizeMultiplier());
+        var tetrominoPixelPos = new Point(
+            _point.X + _tetrominoPoint.X * scaledTileSize,
+            _point.Y + _tetrominoPoint.Y * scaledTileSize
+        );
+        var ghostPixelPos = new Point(
+            _point.X + GetGhostPosition().X * scaledTileSize,
+            _point.Y + GetGhostPosition().Y * scaledTileSize
+        );
+        
+        _currentTetromino.Draw(_spriteBatch, tetrominoPixelPos, _tiles, _grid.GetSizeMultiplier());
+        _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, _tiles, _grid.GetSizeMultiplier());
     }
 }

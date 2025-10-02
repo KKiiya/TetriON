@@ -12,10 +12,10 @@ public static class GameTiming
     
     // === INPUT TIMING ===
     /// <summary>DAS (Delayed Auto Shift) - Initial delay before auto-repeat starts</summary>
-    public const float AutoRepeatDelay = 0.167f; // ~10 frames at 60fps
+    public const float AutoRepeatDelay = 0.133f; // ~8 frames at 60fps (more responsive)
     
     /// <summary>ARR (Auto Repeat Rate) - Time between auto-repeat actions</summary>
-    public const float AutoRepeatRate = 0.033f; // ~2 frames at 60fps
+    public const float AutoRepeatRate = 0.050f; // ~3 frames at 60fps (smoother movement)
     
     /// <summary>Soft drop multiplier - How much faster pieces fall during soft drop</summary>
     public const float SoftDropMultiplier = 20.0f;
@@ -34,22 +34,22 @@ public static class GameTiming
     public const int MaxLockResets = 15;
     
     // === LEVEL PROGRESSION ===
-    /// <summary>Base gravity values per level (pieces per second)</summary>
+    /// <summary>Base gravity values per level (cells per second)</summary>
     private static readonly float[] LevelGravity = 
     {
-        0.01667f,  // Level 0-8: 1 cell per second
-        0.021017f, // Level 9
-        0.026977f, // Level 10
-        0.035256f, // Level 11
-        0.04693f,  // Level 12
-        0.06361f,  // Level 13
-        0.0879f,   // Level 14
-        0.1236f,   // Level 15
-        0.1775f,   // Level 16
-        0.2598f,   // Level 17
-        0.388f,    // Level 18
-        0.59f,     // Level 19
-        0.92f,     // Level 20+
+        1.0f,     // Level 0-8: 1 cell per second (much more reasonable)
+        1.2f,     // Level 9
+        1.5f,     // Level 10
+        2.0f,     // Level 11
+        2.5f,     // Level 12
+        3.0f,     // Level 13
+        4.0f,     // Level 14
+        5.0f,     // Level 15
+        6.0f,     // Level 16
+        8.0f,     // Level 17
+        10.0f,    // Level 18
+        15.0f,    // Level 19
+        20.0f,    // Level 20+
     };
     
     #endregion

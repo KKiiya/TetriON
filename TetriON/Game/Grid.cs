@@ -70,6 +70,7 @@ public class Grid {
     private readonly float _sizeMultiplier;
     
     private readonly byte[][] _grid;
+    private static Texture2D _pixelTexture;
     
     
     public Grid(Point point, int width, int height, float sizeMultiplier = 2) {
@@ -235,6 +236,55 @@ public class Grid {
     public void Draw(SpriteBatch spriteBatch, Point location, Texture2D tiles) {
         var scaledTileSize = (int)(TILE_SIZE * _sizeMultiplier);
         
+        // Initialize pixel texture if needed
+        if (_pixelTexture == null) {
+            _pixelTexture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
+            _pixelTexture.SetData(new[] { Color.White });
+        }
+        
+        // Draw grid background/border with thicker border for better visibility
+        var borderThickness = 3;
+        var gridRect = new Rectangle(
+            location.X - borderThickness,
+            location.Y - borderThickness,
+            _width * scaledTileSize + (borderThickness * 2),
+            _height * scaledTileSize + (borderThickness * 2)
+        );
+        
+        // Draw thick black border
+        spriteBatch.Draw(_pixelTexture, gridRect, Color.Black);
+        
+        // Draw inner background with darker color for better contrast
+        var innerRect = new Rectangle(
+            location.X,
+            location.Y,
+            _width * scaledTileSize,
+            _height * scaledTileSize
+        );
+        spriteBatch.Draw(_pixelTexture, innerRect, Color.Gray * 0.2f);
+        
+        // Draw grid lines with better visibility
+        for (var x = 0; x <= _width; x++) {
+            var lineRect = new Rectangle(
+                location.X + x * scaledTileSize,
+                location.Y,
+                1,
+                _height * scaledTileSize
+            );
+            spriteBatch.Draw(_pixelTexture, lineRect, Color.Gray * 0.5f);
+        }
+        
+        for (var y = 0; y <= _height; y++) {
+            var lineRect = new Rectangle(
+                location.X,
+                location.Y + y * scaledTileSize,
+                _width * scaledTileSize,
+                1
+            );
+            spriteBatch.Draw(_pixelTexture, lineRect, Color.Gray * 0.5f);
+        }
+        
+        // Draw filled cells
         for (var x = 0; x < _width; x++) {
             for (var y = 0; y < _height; y++) {
                 var color = _grid[x][y];

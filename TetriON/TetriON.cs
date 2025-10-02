@@ -6,6 +6,7 @@ using TetriON.game.tetromino;
 using TetriON.Input;
 using TetriON.Input.Support;
 using TetriON.session;
+using TetriON.Account;
 using KeyBoard = TetriON.Input.Support.KeyBoard;
 using Mouse = TetriON.Input.Mouse;
 
@@ -25,6 +26,7 @@ public class TetriON : Microsoft.Xna.Framework.Game {
     
     private TetrisGame _tetrisGame;
     private Point _position;
+    private KeyboardState _previousKeyboardState;
 
     public TetriON() {
         _graphics = new GraphicsDeviceManager(this);
@@ -54,8 +56,26 @@ public class TetriON : Microsoft.Xna.Framework.Game {
         // TODO: use this.Content to load your game content here
         
         Instance = this;
+        
+        // Initialize settings and key bindings
+        var credentials = new Credentials("DefaultUser"); // Create default credentials
+        var settings = new Settings(credentials);
+        KeyBindHelper.Initialize(settings);
+        
         //_session = new GameSession(this);
-        _tetrisGame = new TetrisGame(new Point(20, 10), Content.Load<Texture2D>("tiles"), "normal", 1, 10, 20);
+        // Center the grid better on a 1366x768 screen with reasonable sizing
+        var gridWidth = 10;
+        var gridHeight = 20; 
+        var tileSize = 30;
+        var sizeMultiplier = 1.2f; // Smaller, more reasonable size
+        var scaledTileSize = (int)(tileSize * sizeMultiplier);
+        var gridPixelWidth = gridWidth * scaledTileSize;
+        var gridPixelHeight = gridHeight * scaledTileSize;
+        
+        var centerX = (1366 - gridPixelWidth) / 2;
+        var centerY = (768 - gridPixelHeight) / 2;
+        
+        _tetrisGame = new TetrisGame(new Point(centerX, centerY), Content.Load<Texture2D>("tiles"), "normal", 1, gridWidth, gridHeight);
     }
 
     protected override void Update(GameTime gameTime) {
@@ -69,11 +89,17 @@ public class TetriON : Microsoft.Xna.Framework.Game {
         Mouse?.Update(gameTime);
         
         _session?.Update();
+        
+        // Update TetrisGame
+        var currentKeyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+        _tetrisGame?.Update(gameTime, currentKeyboard, _previousKeyboardState);
+        _previousKeyboardState = currentKeyboard;
+        
         base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime) {
-        GraphicsDevice.Clear(Color.White);
+        GraphicsDevice.Clear(Color.CornflowerBlue); // Changed to blue to see if game is running
         SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
         _session?.Draw();
         _tetrisGame?.Draw();
