@@ -1,0 +1,51 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+[Bb]uild/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# JetBrains Rider / IntelliJ IDEA
+.idea/
+*.iml
+
+# NuGet packages
+*.nupkg
+*.snupkg
+# NuGet restore results
+packages/
+*.nuget.props
+*.nuget.targets
+
+# MonoGame cache
+*.mgcb.mgcontent/
+*.mgcontent/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Publish outputs
+[Tt]etriON/publish/
+publish/
