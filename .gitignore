@@ -46,6 +46,20 @@ packages/
 Thumbs.db
 desktop.ini
 
-# Publish outputs
-[Tt]etriON/publish/
+# TetriON Game Build Artifacts
+TetriON/bin/
+TetriON/obj/
+TetriON/publish/
+TetriON/*.zip
+
+# TetriON Installer Build Artifacts
+TetriONInstaller/bin/
+TetriONInstaller/obj/
+TetriONInstaller/dist/
+TetriONInstaller/game_files.zip
+TetriONInstaller/installer_icon.ico
+TetriONInstaller/Uninstaller.csproj
+
+# Publish outputs (general)
+**/publish/
 publish/

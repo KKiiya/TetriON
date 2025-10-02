@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TetriON")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca869d960317cbb49cd5c5ba678a2011b7b752be")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5e35ef69d81be85e9648fc0adf775128a06e4664")]
 [assembly: System.Reflection.AssemblyProductAttribute("TetriON")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TetriON")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
