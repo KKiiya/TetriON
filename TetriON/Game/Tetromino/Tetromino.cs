@@ -47,8 +47,8 @@ public abstract class Tetromino {
     }
 
     public static Tetromino GetRandom(Random random, Tetromino previous) {
-        if (random == null) throw new ArgumentNullException(nameof(random));
-        
+        ArgumentNullException.ThrowIfNull(random);
+
         Tetromino next;
         do next = Bag[random.Next(Bag.Count)];
         while (next == previous && Bag.Count > 1); // Avoid infinite loop if only one piece type
@@ -56,13 +56,13 @@ public abstract class Tetromino {
     }
     
     public static Tetromino GetRandom(Random random) {
-        if (random == null) throw new ArgumentNullException(nameof(random));
+        ArgumentNullException.ThrowIfNull(random);
         return Bag[random.Next(Bag.Count)];
     }
     
     public static Tetromino[] GetRandom(Random random, Tetromino previous, int count) {
-        if (random == null) throw new ArgumentNullException(nameof(random));
-        
+        ArgumentNullException.ThrowIfNull(random);
+
         var tetrominos = new Tetromino[count];
         for (var i = 0; i < count; i++) {
             if (i == 0) tetrominos[i] = GetRandom(random, previous);
@@ -72,8 +72,8 @@ public abstract class Tetromino {
     }
 
     public static Tetromino[] GetRandom(Random random, int count) {
-        if (random == null) throw new ArgumentNullException(nameof(random));
-        
+        ArgumentNullException.ThrowIfNull(random);
+
         var tetrominos = new Tetromino[count];
         for (var i = 0; i < count; i++) {
             if (i == 0) tetrominos[i] = GetRandom(random);
@@ -87,8 +87,8 @@ public abstract class Tetromino {
     private static int _bagIndex = 0;
     
     public static Tetromino GetNext7Bag(Random random) {
-        if (random == null) throw new ArgumentNullException(nameof(random));
-        
+        ArgumentNullException.ThrowIfNull(random);
+
         // Refill bag when empty
         if (SevenBag.Count == 0 || _bagIndex >= SevenBag.Count) {
             RefillSevenBag(random);
