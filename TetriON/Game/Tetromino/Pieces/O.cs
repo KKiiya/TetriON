@@ -9,16 +9,16 @@ public class O : Tetromino {
     private readonly Color _color = Color.Yellow;
     private const string Shape = "O";
     private byte _id = 0x04;
-    private bool[][] _matrix = new bool[][] {
+    private bool[][] _matrix = [
         [true, true],
         [true, true]
-    };
+    ];
     
     private Dictionary<int, bool[][]> _rotations = new() {
-        [0] = new bool[][] {
+        [0] = [
             [true, true],
             [true, true]
-        }
+        ]
     };
 
 

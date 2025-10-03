@@ -6,8 +6,7 @@ namespace TetriON.Game;
 /// Manages all timing-related game mechanics to ensure consistent gameplay
 /// across different refresh rates. All timing values are frame-rate independent.
 /// </summary>
-public static class GameTiming
-{
+public static class GameTiming {
     #region Core Timing Constants (in seconds)
     
     // === INPUT TIMING ===
@@ -35,8 +34,7 @@ public static class GameTiming
     
     // === LEVEL PROGRESSION ===
     /// <summary>Base gravity values per level (cells per second)</summary>
-    private static readonly float[] LevelGravity = 
-    {
+    private static readonly float[] LevelGravity = [
         1.0f,     // Level 0-8: 1 cell per second (much more reasonable)
         1.2f,     // Level 9
         1.5f,     // Level 10
@@ -50,7 +48,7 @@ public static class GameTiming
         10.0f,    // Level 18
         15.0f,    // Level 19
         20.0f,    // Level 20+
-    };
+    ];
     
     #endregion
     
@@ -59,8 +57,7 @@ public static class GameTiming
     /// <summary>
     /// Get gravity speed for a specific level (cells per second).
     /// </summary>
-    public static float GetGravitySpeed(int level)
-    {
+    public static float GetGravitySpeed(int level) {
         if (level < 0) return LevelGravity[0];
         if (level >= LevelGravity.Length) return LevelGravity[^1];
         return LevelGravity[level];
@@ -69,32 +66,28 @@ public static class GameTiming
     /// <summary>
     /// Convert time-based value to frame-based for consistent timing.
     /// </summary>
-    public static float TimeToFrames(float timeInSeconds, float targetFPS = 60.0f)
-    {
+    public static float TimeToFrames(float timeInSeconds, float targetFPS = 60.0f) {
         return timeInSeconds * targetFPS;
     }
     
     /// <summary>
     /// Convert frame-based value to time-based for frame-rate independence.
     /// </summary>
-    public static float FramesToTime(float frames, float targetFPS = 60.0f)
-    {
+    public static float FramesToTime(float frames, float targetFPS = 60.0f) {
         return frames / targetFPS;
     }
     
     /// <summary>
     /// Check if enough time has passed for an action (frame-rate independent).
     /// </summary>
-    public static bool HasElapsed(float startTime, float duration, float currentTime)
-    {
+    public static bool HasElapsed(float startTime, float duration, float currentTime) {
         return (currentTime - startTime) >= duration;
     }
     
     /// <summary>
     /// Get interpolation factor for smooth animations (0.0 to 1.0).
     /// </summary>
-    public static float GetInterpolationFactor(float startTime, float duration, float currentTime)
-    {
+    public static float GetInterpolationFactor(float startTime, float duration, float currentTime) {
         if (duration <= 0) return 1.0f;
         return Math.Clamp((currentTime - startTime) / duration, 0.0f, 1.0f);
     }
@@ -106,18 +99,15 @@ public static class GameTiming
     /// <summary>
     /// Calculate the time interval for natural piece falling based on level.
     /// </summary>
-    public static float GetFallInterval(int level)
-    {
+    public static float GetFallInterval(int level) {
         return 1.0f / GetGravitySpeed(level);
     }
     
     /// <summary>
     /// Calculate lines required to advance to next level.
     /// </summary>
-    public static int GetLinesForNextLevel(int currentLevel)
-    {
-        return currentLevel switch
-        {
+    public static int GetLinesForNextLevel(int currentLevel) {
+        return currentLevel switch {
             < 9 => (currentLevel + 1) * 10,     // Levels 0-8: 10, 20, 30... lines
             < 16 => 100 + (currentLevel - 9) * 10, // Levels 9-15: 100, 110, 120... lines
             _ => 200 + (currentLevel - 16) * 20     // Levels 16+: 200, 220, 240... lines
@@ -127,8 +117,7 @@ public static class GameTiming
     /// <summary>
     /// Calculate score multiplier based on level.
     /// </summary>
-    public static int GetScoreMultiplier(int level)
-    {
+    public static int GetScoreMultiplier(int level) {
         return Math.Max(1, level + 1);
     }
     
@@ -137,8 +126,7 @@ public static class GameTiming
     #region Animation Timing
     
     /// <summary>Common animation durations for consistent UI feel</summary>
-    public static class Animation
-    {
+    public static class Animation {
         public const float FastTransition = 0.15f;     // Quick UI transitions
         public const float MediumTransition = 0.25f;   // Standard UI animations
         public const float SlowTransition = 0.4f;      // Emphasis animations
@@ -160,8 +148,7 @@ public static class GameTiming
     /// <summary>
     /// Validate that timing values are reasonable for gameplay.
     /// </summary>
-    public static bool ValidateTimingValues()
-    {
+    public static bool ValidateTimingValues() {
         // Ensure core timing values are positive and reasonable
         if (AutoRepeatDelay <= 0 || AutoRepeatDelay > 1.0f) return false;
         if (AutoRepeatRate <= 0 || AutoRepeatRate > 0.5f) return false;
@@ -174,8 +161,7 @@ public static class GameTiming
     /// <summary>
     /// Get timing information for debugging/display purposes.
     /// </summary>
-    public static string GetTimingInfo(int level)
-    {
+    public static string GetTimingInfo(int level) {
         var gravity = GetGravitySpeed(level);
         var fallInterval = GetFallInterval(level);
         var linesForNext = GetLinesForNextLevel(level);

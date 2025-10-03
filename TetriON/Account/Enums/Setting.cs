@@ -1,7 +1,6 @@
 namespace TetriON.Account.Enums;
 
-public enum Setting
-{
+public enum Setting {
     // === AUDIO SETTINGS ===
     MasterVolume,
     MusicVolume,

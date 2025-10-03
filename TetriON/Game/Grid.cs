@@ -270,7 +270,7 @@ public class Grid {
         // Initialize pixel texture if needed
         if (_pixelTexture == null) {
             _pixelTexture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
-            _pixelTexture.SetData(new[] { Color.White });
+            _pixelTexture.SetData([Color.White]);
         }
         
         // Draw grid background/border with thicker border for better visibility

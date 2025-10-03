@@ -25,8 +25,7 @@ public class Settings : IDisposable
     public event Action OnSettingsLoaded;
     public event Action OnSettingsSaved;
     
-    public Settings(Credentials credentials)
-    {
+    public Settings(Credentials credentials) {
         _credentials = credentials ?? throw new ArgumentNullException(nameof(credentials));
         _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
                                        "TetriON", "settings.json");
@@ -37,8 +36,7 @@ public class Settings : IDisposable
     
     #region Default Values Initialization
     
-    private void InitializeDefaults()
-    {
+    private void InitializeDefaults() {
         // === AUDIO SETTINGS ===
         _defaultValues[Setting.MasterVolume] = 0.8f;
         _defaultValues[Setting.MusicVolume] = 0.7f;
@@ -128,8 +126,7 @@ public class Settings : IDisposable
         _defaultValues[Setting.MarathonEndless] = 0; // Highest level
     }
     
-    private void InitializeDefaultKeyBindings()
-    {
+    private void InitializeDefaultKeyBindings() {
         // === MOVEMENT === (Classic Tetris controls)
         _defaultKeyBindings[KeyBind.MoveLeft] = Keys.Left;
         _defaultKeyBindings[KeyBind.MoveRight] = Keys.Right;
@@ -168,10 +165,8 @@ public class Settings : IDisposable
         _defaultKeyBindings[KeyBind.QuickLoad] = Keys.F9;
     }
     
-    private void LoadDefaults()
-    {
-        foreach (var kvp in _defaultValues)
-        {
+    private void LoadDefaults(){
+        foreach (var kvp in _defaultValues) {
             _settings[kvp.Key] = kvp.Value;
         }
     }
@@ -180,38 +175,30 @@ public class Settings : IDisposable
     
     #region Generic Get/Set Methods
     
-    public T Get<T>(Setting setting)
-    {
+    public T Get<T>(Setting setting) {
         if (_disposed) throw new ObjectDisposedException(nameof(Settings));
         
-        if (_settings.TryGetValue(setting, out var value))
-        {
-            try
-            {
+        if (_settings.TryGetValue(setting, out var value)) {
+            try {
                 return (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine($"Settings: Failed to convert {setting} value '{value}' to {typeof(T).Name}: {ex.Message}");
                 // Return default value if conversion fails
-                if (_defaultValues.TryGetValue(setting, out var defaultValue))
-                {
+                if (_defaultValues.TryGetValue(setting, out var defaultValue)) {
                     return (T)Convert.ChangeType(defaultValue, typeof(T), CultureInfo.InvariantCulture);
                 }
             }
         }
         
         // Return default value if setting not found
-        if (_defaultValues.TryGetValue(setting, out var def))
-        {
+        if (_defaultValues.TryGetValue(setting, out var def)) {
             return (T)Convert.ChangeType(def, typeof(T), CultureInfo.InvariantCulture);
         }
         
         return default(T);
     }
     
-    public void Set<T>(Setting setting, T value)
-    {
+    public void Set<T>(Setting setting, T value) {
         if (_disposed) throw new ObjectDisposedException(nameof(Settings));
         
         var oldValue = _settings.TryGetValue(setting, out var existing) ? existing : _defaultValues.GetValueOrDefault(setting);
@@ -256,46 +243,38 @@ public class Settings : IDisposable
     // Note: Timing-related methods removed - managed by GameSession
     
     // Controls - Key Bindings
-    public Keys GetKey(KeyBind keyBind)
-    {
+    public Keys GetKey(KeyBind keyBind) {
         var keyBindings = Get<Dictionary<KeyBind, Keys>>(Setting.KeyBindings);
         return keyBindings?.GetValueOrDefault(keyBind) ?? _defaultKeyBindings.GetValueOrDefault(keyBind, Keys.None);
     }
     
-    public void SetKey(KeyBind keyBind, Keys key)
-    {
+    public void SetKey(KeyBind keyBind, Keys key) {
         var keyBindings = Get<Dictionary<KeyBind, Keys>>(Setting.KeyBindings) ?? new Dictionary<KeyBind, Keys>(_defaultKeyBindings);
         keyBindings[keyBind] = key;
         Set(Setting.KeyBindings, keyBindings);
     }
     
-    public Dictionary<KeyBind, Keys> GetAllKeyBindings()
-    {
+    public Dictionary<KeyBind, Keys> GetAllKeyBindings() {
         var keyBindings = Get<Dictionary<KeyBind, Keys>>(Setting.KeyBindings);
         return keyBindings != null ? new Dictionary<KeyBind, Keys>(keyBindings) : new Dictionary<KeyBind, Keys>(_defaultKeyBindings);
     }
     
-    public void SetAllKeyBindings(Dictionary<KeyBind, Keys> keyBindings)
-    {
+    public void SetAllKeyBindings(Dictionary<KeyBind, Keys> keyBindings) {
         Set(Setting.KeyBindings, new Dictionary<KeyBind, Keys>(keyBindings ?? _defaultKeyBindings));
     }
     
-    public void ResetKeyBindings()
-    {
+    public void ResetKeyBindings() {
         Set(Setting.KeyBindings, new Dictionary<KeyBind, Keys>(_defaultKeyBindings));
     }
     
-    public bool IsKeyBound(Keys key)
-    {
+    public bool IsKeyBound(Keys key) {
         var keyBindings = GetAllKeyBindings();
         return keyBindings.ContainsValue(key);
     }
     
-    public KeyBind? GetKeyBindForKey(Keys key)
-    {
+    public KeyBind? GetKeyBindForKey(Keys key) {
         var keyBindings = GetAllKeyBindings();
-        foreach (var kvp in keyBindings)
-        {
+        foreach (var kvp in keyBindings) {
             if (kvp.Value == key)
                 return kvp.Key;
         }
@@ -313,10 +292,8 @@ public class Settings : IDisposable
     
     #region Validation
     
-    private bool ValidateSetting<T>(Setting setting, T value)
-    {
-        return setting switch
-        {
+    private static bool ValidateSetting<T>(Setting setting, T value) {
+        return setting switch {
             // Volume settings should be 0-1
             Setting.MasterVolume or Setting.MusicVolume or Setting.SFXVolume or Setting.VoiceVolume 
                 => value is float f && f >= 0f && f <= 1f,
@@ -328,14 +305,7 @@ public class Settings : IDisposable
             Setting.NextPieceCount => value is int count && count >= 1 && count <= 6,
             
             // Player name shouldn't be empty
-            Setting.PlayerName => value is string name && !string.IsNullOrWhiteSpace(name),
-            
-
-            
-
-            
-            // Default validation - most settings are valid
-            _ => true
+            Setting.PlayerName => value is string name && !string.IsNullOrWhiteSpace(name), _ => true
         };
     }
     
@@ -343,26 +313,19 @@ public class Settings : IDisposable
     
     #region File Operations
     
-    public async Task LoadAsync()
-    {
+    public async Task LoadAsync() {
         if (_disposed) throw new ObjectDisposedException(nameof(Settings));
         
-        try
-        {
-            if (File.Exists(_settingsFilePath))
-            {
+        try {
+            if (File.Exists(_settingsFilePath)) {
                 var json = await File.ReadAllTextAsync(_settingsFilePath);
                 var settingsDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
                 
-                foreach (var kvp in settingsDict)
-                {
-                    if (Enum.TryParse<Setting>(kvp.Key, out var setting))
-                    {
-                        try
-                        {
+                foreach (var kvp in settingsDict) {
+                    if (Enum.TryParse<Setting>(kvp.Key, out var setting)) {
+                        try {
                             var targetType = _defaultValues[setting].GetType();
-                            object value = targetType switch
-                            {
+                            object value = targetType switch {
                                 Type t when t == typeof(bool) => kvp.Value.GetBoolean(),
                                 Type t when t == typeof(int) => kvp.Value.GetInt32(),
                                 Type t when t == typeof(float) => kvp.Value.GetSingle(),
@@ -372,13 +335,10 @@ public class Settings : IDisposable
                                 _ => kvp.Value.GetString()
                             };
                             
-                            if (ValidateSetting(setting, value))
-                            {
+                            if (ValidateSetting(setting, value)) {
                                 _settings[setting] = value;
                             }
-                        }
-                        catch (Exception ex)
-                        {
+                        } catch (Exception ex) {
                             System.Diagnostics.Debug.WriteLine($"Settings: Failed to parse {setting}: {ex.Message}");
                         }
                     }
@@ -388,58 +348,44 @@ public class Settings : IDisposable
                 OnSettingsLoaded?.Invoke();
             }
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             System.Diagnostics.Debug.WriteLine($"Settings: Failed to load settings: {ex.Message}");
             // Keep default values on load failure
         }
     }
     
-    public async Task SaveAsync()
-    {
+    public async Task SaveAsync() {
         if (_disposed) throw new ObjectDisposedException(nameof(Settings));
         
-        try
-        {
+        try {
             // Create directory if it doesn't exist
             var directory = Path.GetDirectoryName(_settingsFilePath);
-            if (!Directory.Exists(directory))
-            {
+            if (!Directory.Exists(directory)) {
                 Directory.CreateDirectory(directory);
             }
             
             // Convert settings to serializable dictionary
             var settingsDict = new Dictionary<string, object>();
-            foreach (var kvp in _settings)
-            {
-                if (kvp.Key == Setting.KeyBindings && kvp.Value is Dictionary<KeyBind, Keys> keyBindings)
-                {
+            foreach (var kvp in _settings) {
+                if (kvp.Key == Setting.KeyBindings && kvp.Value is Dictionary<KeyBind, Keys> keyBindings) {
                     settingsDict[kvp.Key.ToString()] = SerializeKeyBindings(keyBindings);
-                }
-                else
-                {
-                    settingsDict[kvp.Key.ToString()] = kvp.Value;
-                }
+                } else settingsDict[kvp.Key.ToString()] = kvp.Value;
             }
-            
-            var json = JsonSerializer.Serialize(settingsDict, new JsonSerializerOptions 
-            { 
+
+            var json = JsonSerializer.Serialize(settingsDict, new JsonSerializerOptions {
                 WriteIndented = true 
             });
             
             await File.WriteAllTextAsync(_settingsFilePath, json);
             _isDirty = false;
             OnSettingsSaved?.Invoke();
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             System.Diagnostics.Debug.WriteLine($"Settings: Failed to save settings: {ex.Message}");
             throw;
         }
     }
     
-    public async Task ResetAsync()
-    {
+    public async Task ResetAsync() {
         if (_disposed) throw new ObjectDisposedException(nameof(Settings));
         
         var oldSettings = new Dictionary<Setting, object>(_settings);
@@ -447,10 +393,8 @@ public class Settings : IDisposable
         _isDirty = true;
         
         // Fire change events for all reset settings
-        foreach (var kvp in _settings)
-        {
-            if (oldSettings.TryGetValue(kvp.Key, out var oldValue) && !Equals(oldValue, kvp.Value))
-            {
+        foreach (var kvp in _settings) {
+            if (oldSettings.TryGetValue(kvp.Key, out var oldValue) && !Equals(oldValue, kvp.Value)) {
                 OnSettingChanged?.Invoke(kvp.Key, oldValue, kvp.Value);
             }
         }
@@ -458,12 +402,10 @@ public class Settings : IDisposable
         await SaveAsync();
     }
     
-    public async Task ResetToDefaultAsync(Setting setting)
-    {
+    public async Task ResetToDefaultAsync(Setting setting) {
         if (_disposed) throw new ObjectDisposedException(nameof(Settings));
         
-        if (_defaultValues.TryGetValue(setting, out var defaultValue))
-        {
+        if (_defaultValues.TryGetValue(setting, out var defaultValue)) {
             var oldValue = _settings.GetValueOrDefault(setting);
             _settings[setting] = defaultValue;
             _isDirty = true;
@@ -477,34 +419,25 @@ public class Settings : IDisposable
     
     #region KeyBind Serialization Helpers
     
-    private Dictionary<KeyBind, Keys> DeserializeKeyBindings(JsonElement jsonElement)
-    {
+    private Dictionary<KeyBind, Keys> DeserializeKeyBindings(JsonElement jsonElement) {
         var result = new Dictionary<KeyBind, Keys>();
         
-        try
-        {
-            if (jsonElement.ValueKind == JsonValueKind.Object)
-            {
-                foreach (var property in jsonElement.EnumerateObject())
-                {
+        try {
+            if (jsonElement.ValueKind == JsonValueKind.Object) {
+                foreach (var property in jsonElement.EnumerateObject()) {
                     if (Enum.TryParse<KeyBind>(property.Name, out var keyBind) && 
-                        Enum.TryParse<Keys>(property.Value.GetString(), out var key))
-                    {
+                        Enum.TryParse<Keys>(property.Value.GetString(), out var key)) {
                         result[keyBind] = key;
                     }
                 }
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             System.Diagnostics.Debug.WriteLine($"Settings: Failed to deserialize key bindings: {ex.Message}");
         }
         
         // Fill in missing bindings with defaults
-        foreach (var defaultBinding in _defaultKeyBindings)
-        {
-            if (!result.ContainsKey(defaultBinding.Key))
-            {
+        foreach (var defaultBinding in _defaultKeyBindings) {
+            if (!result.ContainsKey(defaultBinding.Key)) {
                 result[defaultBinding.Key] = defaultBinding.Value;
             }
         }
@@ -512,11 +445,9 @@ public class Settings : IDisposable
         return result;
     }
     
-    private object SerializeKeyBindings(Dictionary<KeyBind, Keys> keyBindings)
-    {
+    private object SerializeKeyBindings(Dictionary<KeyBind, Keys> keyBindings) {
         var result = new Dictionary<string, string>();
-        foreach (var kvp in keyBindings)
-        {
+        foreach (var kvp in keyBindings) {
             result[kvp.Key.ToString()] = kvp.Value.ToString();
         }
         return result;
@@ -526,29 +457,24 @@ public class Settings : IDisposable
     
     #region Utility Methods
     
-    public Dictionary<Setting, object> GetAllSettings()
-    {
+    public Dictionary<Setting, object> GetAllSettings() {
         if (_disposed) throw new ObjectDisposedException(nameof(Settings));
         return new Dictionary<Setting, object>(_settings);
     }
     
     public bool HasUnsavedChanges => _isDirty;
     
-    public bool IsDefaultValue(Setting setting)
-    {
+    public bool IsDefaultValue(Setting setting) {
         if (!_settings.TryGetValue(setting, out var currentValue) || 
-            !_defaultValues.TryGetValue(setting, out var defaultValue))
-        {
+            !_defaultValues.TryGetValue(setting, out var defaultValue)) {
             return false;
         }
         
         return Equals(currentValue, defaultValue);
     }
     
-    public async Task SaveIfDirtyAsync()
-    {
-        if (_isDirty)
-        {
+    public async Task SaveIfDirtyAsync() {
+        if (_isDirty) {
             await SaveAsync();
         }
     }
@@ -557,27 +483,19 @@ public class Settings : IDisposable
     
     #region IDisposable Implementation
     
-    public void Dispose()
-    {
+    public void Dispose() {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
     
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
+    protected virtual void Dispose(bool disposing) {
+        if (!_disposed) {
+            if (disposing) {
                 // Save any unsaved changes
-                if (_isDirty)
-                {
-                    try
-                    {
+                if (_isDirty) {
+                    try {
                         SaveAsync().Wait(TimeSpan.FromSeconds(5));
-                    }
-                    catch (Exception ex)
-                    {
+                    } catch (Exception ex) {
                         System.Diagnostics.Debug.WriteLine($"Settings: Failed to save during disposal: {ex.Message}");
                     }
                 }
@@ -592,8 +510,7 @@ public class Settings : IDisposable
         }
     }
     
-    ~Settings()
-    {
+    ~Settings() {
         Dispose(false);
     }
     

@@ -4,8 +4,7 @@ namespace TetriON.Account.Enums;
 /// Enumeration of all key bindings available in the game.
 /// The actual Keys values are retrieved from the Settings class.
 /// </summary>
-public enum KeyBind
-{
+public enum KeyBind {
     // === MOVEMENT ===
     MoveLeft,
     MoveRight,

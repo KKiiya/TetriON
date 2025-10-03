@@ -14,9 +14,9 @@ public class SevenBagRandomizer {
     private readonly Queue<Type> _bag = new();
     
     // All 7 standard Tetris piece types
-    private static readonly Type[] PieceTypes =  {
+    private static readonly Type[] PieceTypes =  [
         typeof(I), typeof(J), typeof(L), typeof(O), typeof(S), typeof(T), typeof(Z)
-    };
+    ];
     
     public SevenBagRandomizer(Random random = null) {
         _random = random ?? new Random();
@@ -39,7 +39,7 @@ public class SevenBagRandomizer {
     /// Peek at the next N piece types without consuming them.
     /// Useful for displaying upcoming pieces.
     /// </summary>
-    public Type[] PeekNextPieceTypes(int count){
+    public Type[] PeekNextPieceTypes(int count) {
         if (count <= 0) return Array.Empty<Type>();
         
         var result = new Type[count];
@@ -50,8 +50,7 @@ public class SevenBagRandomizer {
             if (tempBag.Count == 0) {
                 // Simulate refilling the bag
                 var shuffledBag = CreateShuffledBag();
-                foreach (var pieceType in shuffledBag)
-                {
+                foreach (var pieceType in shuffledBag) {
                     tempBag.Enqueue(pieceType);
                 }
             }

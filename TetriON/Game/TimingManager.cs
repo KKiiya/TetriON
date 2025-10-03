@@ -32,8 +32,7 @@ public class TimingManager
     private int _resetCounterLimit;       // usually 15
     private bool _isGrounded;             // true if piece is in contact with the stack/floor
     
-    public TimingManager()
-    {
+    public TimingManager() {
         Reset();
         // Initialize modern lock delay system
         _lockDelayLimit = GameTiming.LockDelay;
@@ -60,8 +59,7 @@ public class TimingManager
     /// Update timing manager with current game time.
     /// Call this once per frame in your game session update.
     /// </summary>
-    public void Update(GameTime gameTime)
-    {
+    public void Update(GameTime gameTime) {
         _deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _totalTime = (float)gameTime.TotalGameTime.TotalSeconds;
         
@@ -69,20 +67,12 @@ public class TimingManager
         UpdateTimers();
     }
     
-    private void UpdateTimers()
-    {
+    private void UpdateTimers() {
         // Modern lock delay system - timer counts DOWN
-        if (_isGrounded)
-            _lockDelayTimer -= _deltaTime;
-            
-        if (_lineClearActive)
-            _lineClearTimer += _deltaTime;
-            
-        if (_autoRepeatActive)
-            _autoRepeatTimer += _deltaTime;
-            
-        if (_areActive)
-            _areTimer += _deltaTime;
+        if (_isGrounded) _lockDelayTimer -= _deltaTime;
+        if (_lineClearActive) _lineClearTimer += _deltaTime;
+        if (_autoRepeatActive)  _autoRepeatTimer += _deltaTime;
+        if (_areActive) _areTimer += _deltaTime;
             
         _pieceDropTimer += _deltaTime;
         _inputDelayTimer += _deltaTime;
@@ -95,11 +85,9 @@ public class TimingManager
     /// <summary>
     /// Check if enough time has passed for natural piece drop based on level.
     /// </summary>
-    public bool ShouldDropPiece(int level)
-    {
+    public bool ShouldDropPiece(int level) {
         var fallInterval = GameTiming.GetFallInterval(level);
-        if (_pieceDropTimer >= fallInterval)
-        {
+        if (_pieceDropTimer >= fallInterval) {
             _pieceDropTimer -= fallInterval; // Maintain precision
             return true;
         }
@@ -109,19 +97,16 @@ public class TimingManager
     /// <summary>
     /// Force immediate piece drop (for hard drop).
     /// </summary>
-    public void ForcePieceDrop()
-    {
+    public void ForcePieceDrop() {
         _pieceDropTimer = 0;
     }
     
     /// <summary>
     /// Get soft drop interval (much faster than normal).
     /// </summary>
-    public bool ShouldSoftDrop()
-    {
+    public bool ShouldSoftDrop() {
         var softDropInterval = 1.0f / GameTiming.SoftDropMultiplier;
-        if (_pieceDropTimer >= softDropInterval)
-        {
+        if (_pieceDropTimer >= softDropInterval) {
             _pieceDropTimer -= softDropInterval;
             return true;
         }
@@ -135,8 +120,7 @@ public class TimingManager
     /// <summary>
     /// Initialize piece state - called when new piece spawns.
     /// </summary>
-    public void InitializePiece()
-    {
+    public void InitializePiece() {
         _lockDelayTimer = _lockDelayLimit;
         _resetCounter = 0;
         _isGrounded = false;
@@ -145,15 +129,12 @@ public class TimingManager
     /// <summary>
     /// Called after gravity step - determines if piece is grounded.
     /// </summary>
-    public void OnGravityStep(bool pieceCollidesWithGround)
-    {
-        if (pieceCollidesWithGround)
-        {
+    public void OnGravityStep(bool pieceCollidesWithGround)  {
+        if (pieceCollidesWithGround) {
             _isGrounded = true;
             // Lock timer starts running (counts down in UpdateTimers)
         }
-        else
-        {
+        else {
             _isGrounded = false;
             // Reset lock timer/counter because piece is airborne again
             _lockDelayTimer = _lockDelayLimit;
@@ -165,18 +146,13 @@ public class TimingManager
     /// Called on player input (move or rotate) - handles reset logic.
     /// Returns true if reset was successful, false if limit reached.
     /// </summary>
-    public bool OnPlayerInput()
-    {
-        if (_isGrounded)
-        {
-            if (_resetCounter < _resetCounterLimit)
-            {
+    public bool OnPlayerInput() {
+        if (_isGrounded) {
+            if (_resetCounter < _resetCounterLimit) {
                 _lockDelayTimer = _lockDelayLimit;
                 _resetCounter++;
                 return true;
-            }
-            else
-            {
+            } else {
                 // No reset allowed; timer continues counting down
                 return false;
             }
@@ -187,32 +163,28 @@ public class TimingManager
     /// <summary>
     /// Check if piece should lock (lock delay expired).
     /// </summary>
-    public bool ShouldLockPiece()
-    {
+    public bool ShouldLockPiece() {
         return _isGrounded && _lockDelayTimer <= 0;
     }
     
     /// <summary>
     /// Check if movement limit has been reached.
     /// </summary>
-    public bool HasReachedMovementLimit()
-    {
+    public bool HasReachedMovementLimit() {
         return _isGrounded && _resetCounter >= _resetCounterLimit;
     }
     
     /// <summary>
     /// Get current lock reset count for UI display.
     /// </summary>
-    public int GetLockResetCount()
-    {
+    public int GetLockResetCount() {
         return _resetCounter;
     }
     
     /// <summary>
     /// Get lock delay progress (0.0 to 1.0).
     /// </summary>
-    public float GetLockDelayProgress()
-    {
+    public float GetLockDelayProgress() {
         if (!_isGrounded) return 0;
         return Math.Clamp(1.0f - (_lockDelayTimer / _lockDelayLimit), 0, 1);
     }
@@ -220,8 +192,7 @@ public class TimingManager
     /// <summary>
     /// Check if piece is currently grounded.
     /// </summary>
-    public bool IsGrounded()
-    {
+    public bool IsGrounded() {
         return _isGrounded;
     }
     
@@ -232,8 +203,7 @@ public class TimingManager
     /// <summary>
     /// Start line clear animation delay.
     /// </summary>
-    public void StartLineClear()
-    {
+    public void StartLineClear() {
         _lineClearActive = true;
         _lineClearTimer = 0;
     }
@@ -241,16 +211,14 @@ public class TimingManager
     /// <summary>
     /// Check if line clear animation is complete.
     /// </summary>
-    public bool IsLineClearComplete()
-    {
+    public bool IsLineClearComplete() {
         return _lineClearActive && _lineClearTimer >= GameTiming.LineClearDelay;
     }
     
     /// <summary>
     /// Stop line clear timing.
     /// </summary>
-    public void StopLineClear()
-    {
+    public void StopLineClear() {
         _lineClearActive = false;
         _lineClearTimer = 0;
     }
@@ -258,8 +226,7 @@ public class TimingManager
     /// <summary>
     /// Get line clear animation progress (0.0 to 1.0).
     /// </summary>
-    public float GetLineClearProgress()
-    {
+    public float GetLineClearProgress() {
         if (!_lineClearActive) return 0;
         return Math.Clamp(_lineClearTimer / GameTiming.LineClearDelay, 0, 1);
     }
@@ -271,8 +238,7 @@ public class TimingManager
     /// <summary>
     /// Start auto-repeat delay for continuous input.
     /// </summary>
-    public void StartAutoRepeat()
-    {
+    public void StartAutoRepeat() {
         _autoRepeatActive = true;
         _autoRepeatTimer = 0;
     }
@@ -280,21 +246,18 @@ public class TimingManager
     /// <summary>
     /// Check if initial auto-repeat delay has passed.
     /// </summary>
-    public bool HasAutoRepeatDelayPassed()
-    {
+    public bool HasAutoRepeatDelayPassed() {
         return _autoRepeatActive && _autoRepeatTimer >= GameTiming.AutoRepeatDelay;
     }
     
     /// <summary>
     /// Check if enough time has passed for next auto-repeat action.
     /// </summary>
-    public bool ShouldAutoRepeat()
-    {
+    public bool ShouldAutoRepeat() {
         if (!HasAutoRepeatDelayPassed()) return false;
         
         var timeSinceDelay = _autoRepeatTimer - GameTiming.AutoRepeatDelay;
-        if (timeSinceDelay >= GameTiming.AutoRepeatRate)
-        {
+        if (timeSinceDelay >= GameTiming.AutoRepeatRate) {
             // Reset timer to maintain consistent intervals
             _autoRepeatTimer = GameTiming.AutoRepeatDelay;
             return true;
@@ -305,8 +268,7 @@ public class TimingManager
     /// <summary>
     /// Stop auto-repeat timing.
     /// </summary>
-    public void StopAutoRepeat()
-    {
+    public void StopAutoRepeat() {
         _autoRepeatActive = false;
         _autoRepeatTimer = 0;
     }
@@ -318,8 +280,7 @@ public class TimingManager
     /// <summary>
     /// Start ARE (Entry Delay) after piece lock.
     /// </summary>
-    public void StartAREDelay()
-    {
+    public void StartAREDelay() {
         _areActive = true;
         _areTimer = 0;
     }
@@ -327,16 +288,14 @@ public class TimingManager
     /// <summary>
     /// Check if ARE delay is complete.
     /// </summary>
-    public bool IsAREComplete()
-    {
+    public bool IsAREComplete() {
         return _areActive && _areTimer >= GameTiming.EntryDelay;
     }
     
     /// <summary>
     /// Stop ARE timing.
     /// </summary>
-    public void StopAREDelay()
-    {
+    public void StopAREDelay() {
         _areActive = false;
         _areTimer = 0;
     }
@@ -344,8 +303,7 @@ public class TimingManager
     /// <summary>
     /// Get ARE delay progress (0.0 to 1.0).
     /// </summary>
-    public float GetAREProgress()
-    {
+    public float GetAREProgress() {
         if (!_areActive) return 0;
         return Math.Clamp(_areTimer / GameTiming.EntryDelay, 0, 1);
     }
@@ -353,8 +311,7 @@ public class TimingManager
     /// <summary>
     /// Check if ARE is currently active.
     /// </summary>
-    public bool IsAREActive()
-    {
+    public bool IsAREActive() {
         return _areActive;
     }
     
@@ -365,8 +322,7 @@ public class TimingManager
     /// <summary>
     /// Reset all timing states.
     /// </summary>
-    public void Reset()
-    {
+    public void Reset() {
         _totalTime = 0;
         _deltaTime = 0;
         _pieceDropTimer = 0;
@@ -385,24 +341,21 @@ public class TimingManager
     /// <summary>
     /// Check if a specific duration has elapsed since a start time.
     /// </summary>
-    public bool HasElapsed(float startTime, float duration)
-    {
+    public bool HasElapsed(float startTime, float duration) {
         return GameTiming.HasElapsed(startTime, duration, _totalTime);
     }
     
     /// <summary>
     /// Get interpolation factor for animations.
     /// </summary>
-    public float GetInterpolation(float startTime, float duration)
-    {
+    public float GetInterpolation(float startTime, float duration) {
         return GameTiming.GetInterpolationFactor(startTime, duration, _totalTime);
     }
     
     /// <summary>
     /// Get timing debug information.
     /// </summary>
-    public string GetDebugInfo()
-    {
+    public string GetDebugInfo() {
         return $"FPS: {FPS:F1}, " +
                $"DropTimer: {_pieceDropTimer:F3}, " +
                $"LockDelay: {(_isGrounded ? _lockDelayTimer.ToString("F3") : "OFF")}, " +

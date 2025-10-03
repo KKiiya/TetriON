@@ -124,9 +124,7 @@ public class TetrisGame {
                 _nextTetrominos[i] = _nextTetrominos[i + 1];
             }
             _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
-        } else {
-            (_holdTetromino, _currentTetromino) = (_currentTetromino, _holdTetromino);
-        }
+        } else (_holdTetromino, _currentTetromino) = (_currentTetromino, _holdTetromino);
     
         _canHold = false;
         _tetrominoPoint = new Point(4, 0);
@@ -207,10 +205,7 @@ public class TetrisGame {
             _softDropDistance++;
             // Handle modern lock delay on player input (soft drop)
             _timingManager.OnPlayerInput();
-        } else {
-            // Piece hit ground due to soft drop - immediate lock for soft drop
-            Lock();
-        }
+        } else Lock();
     }
 
     private void Lock() {
@@ -250,9 +245,7 @@ public class TetrisGame {
         UpdateCachedValues();
         
         // Check if new piece can be placed (game over condition)
-        if (IsGameOver()) {
-            _gameOver = true;
-        }
+        if (IsGameOver()) _gameOver = true;
     }
 
     public void Drop() {
@@ -423,14 +416,10 @@ public class TetrisGame {
         
         // Update Back-to-Back state
         _lastClearWasDifficult = scoreResult.wasDifficult;
-        
+
         // Update combo counter
-        if (linesCleared > 0) {
-            _comboCount++;
-        } else {
-            _comboCount = 0; // Reset combo on empty drop
-        }
-        
+        if (linesCleared > 0) _comboCount++;
+        else  _comboCount = 0; // Reset combo on empty drop
         // Reset T-spin flag after line clear
         _lastMoveWasTSpin = false;
     }
@@ -498,11 +487,7 @@ public class TetrisGame {
     private void UpdateLevelProgression() {
         // Variable goal mode: lines required = 5 × current level
         var linesForNextLevel = 5 * (int)_level;
-        
-        if (_lines >= linesForNextLevel) {
-            _level++;
-            // Gravity speed is automatically handled by GameTiming.GetGravitySpeed()
-        }
+        if (_lines >= linesForNextLevel) _level++;
     }
     
     private bool IsGridEmpty() {
@@ -516,17 +501,11 @@ public class TetrisGame {
         var hold = currentKeyboard.IsKeyDown(Keys.C) && !previousKeyboard.IsKeyDown(Keys.C);
         
         // Handle IRS rotation
-        if (leftRotate) {
-            _irsRotation = (_irsRotation + 3) % 4; // Counter-clockwise
-        }
-        if (rightRotate) {
-            _irsRotation = (_irsRotation + 1) % 4; // Clockwise
-        }
+        if (leftRotate) _irsRotation = (_irsRotation + 3) % 4; // Counter-clockwise
+        if (rightRotate) _irsRotation = (_irsRotation + 1) % 4; // Clockwise
         
         // Handle IRS hold (IHS - Initial Hold System)
-        if (hold) {
-            _irsHoldRequested = true;
-        }
+        if (hold) _irsHoldRequested = true;
         
         // Update key states for seamless transition when piece spawns
         UpdateKeyStatesFromKeyboard(currentKeyboard, previousKeyboard);
@@ -534,8 +513,7 @@ public class TetrisGame {
     
     private void UpdateKeyStatesFromKeyboard(KeyboardState currentKeyboard, KeyboardState previousKeyboard) {
         // Direct key mapping - same as HandleInput
-        var directKeyMap = new Dictionary<Keys, KeyBind>
-        {
+        var directKeyMap = new Dictionary<Keys, KeyBind> {
             [Keys.Left] = KeyBind.MoveLeft,
             [Keys.Right] = KeyBind.MoveRight,
             [Keys.Down] = KeyBind.SoftDrop,
@@ -582,21 +560,15 @@ public class TetrisGame {
         _irsHoldRequested = false;
         
         // Initialize DAS/ARR for any held movement keys
-        if (_keyHeld[KeyBind.MoveLeft] || _keyHeld[KeyBind.MoveRight]) {
-            _timingManager.StartAutoRepeat();
-        }
-        
+        if (_keyHeld[KeyBind.MoveLeft] || _keyHeld[KeyBind.MoveRight]) _timingManager.StartAutoRepeat();
         UpdateCachedValues();
         
         // Apply IRS hold if requested
-        if (holdRequested && _canHold) {
-            Hold();
-        }
+        if (holdRequested && _canHold) Hold();
+        
         
         // Check if new piece can be placed (game over condition)
-        if (IsGameOver()) {
-            _gameOver = true;
-        }
+        if (IsGameOver()) _gameOver = true;
     }
 
     
@@ -671,8 +643,7 @@ public class TetrisGame {
     
     private void HandleInput(KeyboardState currentKeyboard, KeyboardState previousKeyboard) {
         // Direct key mapping - Original TetriON key bindings restored
-        var directKeyMap = new Dictionary<Keys, KeyBind>
-        {
+        var directKeyMap = new Dictionary<Keys, KeyBind> {
             // Classic Tetris movement controls
             [Keys.Left] = KeyBind.MoveLeft,
             [Keys.Right] = KeyBind.MoveRight,

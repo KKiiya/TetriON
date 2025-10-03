@@ -132,10 +132,7 @@ public abstract class MenuWrapper : IDisposable {
             if (_selectedButtonIndex == index) {
                 _selectedButtonIndex = _buttons.Count > 0 ? Math.Min(_selectedButtonIndex, _buttons.Count - 1) : -1;
                 UpdateButtonSelection();
-            } else if (_selectedButtonIndex > index) {
-                _selectedButtonIndex--;
-            }
-            
+            } else if (_selectedButtonIndex > index) _selectedButtonIndex--;
             return true;
         }
         

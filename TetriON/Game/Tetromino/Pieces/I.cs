@@ -10,38 +10,38 @@ public class I : Tetromino {
     private const string Shape = "I";
     private byte _id = 0x07;
     private int _rotation;
-    private bool[][] _matrix = new bool[][] {
+    private bool[][] _matrix = [
         [false, false, false, false],
         [true, true, true, true],
         [false, false, false, false],
         [false, false, false, false]
-    };
+    ];
     
     private readonly Dictionary<int, bool[][]> _rotations = new() {
-        [0] = new bool[][] {
+        [0] = [
             [false, false, false, false],
             [true, true, true, true],
             [false, false, false, false],
             [false, false, false, false]
-        },
-        [1] = new bool[][] {
+        ],
+        [1] = [
             [false, false, true, false],
             [false, false, true, false],
             [false, false, true, false],
             [false, false, true, false]
-        },
-        [2] = new bool[][] {
+        ],
+        [2] = [
             [false, false, false, false],
             [false, false, false, false],
             [true, true, true, true],
             [false, false, false, false]
-        },
-        [3] = new bool[][] {
+        ],
+        [3] = [
             [false, true, false, false],
             [false, true, false, false],
             [false, true, false, false],
             [false, true, false, false]
-        }
+        ]
     };
 
 
