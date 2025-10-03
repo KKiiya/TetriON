@@ -126,6 +126,37 @@ public class Grid {
         return cleared;
     }
     
+    /// <summary>
+    /// Detect full lines without removing them (for line clear animation)
+    /// </summary>
+    public int DetectFullLines() {
+        var count = 0;
+        
+        for (var i = 0; i < _height; i++) {
+            if (IsLineFull(i)) {
+                count++;
+            }
+        }
+        return count;
+    }
+    
+    /// <summary>
+    /// Actually remove all full lines (called after animation)
+    /// </summary>
+    public int ClearFullLines() {
+        var cleared = 0;
+        
+        // Check from bottom to top to handle multiple line clears correctly
+        for (var i = _height - 1; i >= 0; i--) {
+            if (IsLineFull(i)) {
+                RemoveLine(i);
+                cleared++;
+                i++; // Check the same line again since rows have shifted down
+            }
+        }
+        return cleared;
+    }
+    
     private bool IsLineFull(int row) {
         if (row < 0 || row >= _height) return false;
         

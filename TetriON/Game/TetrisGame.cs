@@ -48,6 +48,15 @@ public class TetrisGame {
     // Line clear animation state
     private bool _lineClearInProgress;    // True during line clear animation
     private int _pendingLinesCleared;     // Lines to clear after animation
+    private bool _hidePieceForLineClear;  // Hide current piece during line clear animation
+    
+    // ARE (Entry Delay) state
+    private bool _areInProgress;          // True during ARE delay
+    private bool _nextPieceReady;         // True when next piece is ready to spawn
+    
+    // IRS (Initial Rotation System) state
+    private int _irsRotation;             // Rotation to apply when piece spawns
+    private bool _irsHoldRequested;       // Hold requested during ARE
     
     // Cached values for performance
     private Point _cachedGhostPosition;
@@ -93,6 +102,11 @@ public class TetrisGame {
         _softDropDistance = 0;
         _lineClearInProgress = false;
         _pendingLinesCleared = 0;
+        _hidePieceForLineClear = false;
+        _areInProgress = false;
+        _nextPieceReady = true;
+        _irsRotation = 0;
+        _irsHoldRequested = false;
         
         InitializeKeyStates();
         _cachedTetrominoCells = [];
@@ -202,6 +216,23 @@ public class TetrisGame {
     private void Lock() {
         _grid.PlaceTetromino(_currentTetromino, _tetrominoPoint);
         
+        // Detect line clears without removing them yet
+        var linesCleared = _grid.DetectFullLines();
+        if (linesCleared > 0) {
+            // Start line clear animation - lines will be removed after animation
+            _lineClearInProgress = true;
+            _pendingLinesCleared = linesCleared;
+            _hidePieceForLineClear = true; // Hide the current piece during line clear
+            _timingManager.StartLineClear();
+        } else {
+            // No line clears - start ARE immediately
+            _areInProgress = true;
+            _nextPieceReady = false;
+            _timingManager.StartAREDelay();
+        }
+    }
+    
+    private void SpawnNextPiece() {
         // Get next piece
         _currentTetromino = _nextTetrominos[0];
         for (var i = 0; i < _nextTetrominos.Length - 1; i++) {
@@ -213,6 +244,8 @@ public class TetrisGame {
         _tetrominoPoint = new Point(4, 0);
         _timingManager.Reset();
         _canHold = true;
+        _areInProgress = false;
+        _nextPieceReady = true;
         
         UpdateCachedValues();
         
@@ -301,6 +334,22 @@ public class TetrisGame {
     public float GetLineClearProgress() {
         return _timingManager.GetLineClearProgress();
     }
+    
+    public bool IsAREActive() {
+        return _areInProgress;
+    }
+    
+    public float GetAREProgress() {
+        return _timingManager.GetAREProgress();
+    }
+    
+    public int GetIRSRotation() {
+        return _irsRotation;
+    }
+    
+    public bool IsIRSHoldRequested() {
+        return _irsHoldRequested;
+    }
         
     public void Update(GameTime gameTime, KeyboardState currentKeyboard, KeyboardState previousKeyboard) {
         if (_gameOver) return;
@@ -310,13 +359,34 @@ public class TetrisGame {
         // Handle line clear animation
         if (_lineClearInProgress) {
             if (_timingManager.IsLineClearComplete()) {
-                // Animation finished - process the line clear
+                // Animation finished - now actually remove the lines and process scoring
+                var actualLinesCleared = _grid.ClearFullLines();
                 _lineClearInProgress = false;
-                ProcessLineClears(_pendingLinesCleared);
+                _hidePieceForLineClear = false;
+                ProcessLineClears(actualLinesCleared);
                 _pendingLinesCleared = 0;
                 _timingManager.StopLineClear();
+                
+                // Start ARE after line clear processing
+                _areInProgress = true;
+                _nextPieceReady = false;
+                _timingManager.StartAREDelay();
             }
             // During line clear animation, block other game logic
+            return;
+        }
+        
+        // Handle ARE (Entry Delay)
+        if (_areInProgress) {
+            // Allow IRS (Initial Rotation System) during ARE
+            HandleIRSInput(currentKeyboard, previousKeyboard);
+            
+            if (_timingManager.IsAREComplete()) {
+                // ARE delay finished - spawn next piece with IRS
+                SpawnNextPieceWithIRS();
+                _timingManager.StopAREDelay();
+            }
+            // During ARE delay, block normal input and gravity
             return;
         }
         
@@ -338,13 +408,7 @@ public class TetrisGame {
             }
         }
         
-        // Check for line clears and start animation
-        var linesCleared = _grid.CheckLines();
-        if (linesCleared > 0) {
-            _lineClearInProgress = true;
-            _pendingLinesCleared = linesCleared;
-            _timingManager.StartLineClear();
-        }
+        // Line clear detection is now handled immediately in Lock() method
     }
     
     private void ProcessLineClears(int linesCleared) {
@@ -443,6 +507,96 @@ public class TetrisGame {
     
     private bool IsGridEmpty() {
         return _grid.IsEmpty();
+    }
+    
+    private void HandleIRSInput(KeyboardState currentKeyboard, KeyboardState previousKeyboard) {
+        // Direct key mapping for IRS
+        var leftRotate = currentKeyboard.IsKeyDown(Keys.Z) && !previousKeyboard.IsKeyDown(Keys.Z);
+        var rightRotate = currentKeyboard.IsKeyDown(Keys.X) && !previousKeyboard.IsKeyDown(Keys.X);
+        var hold = currentKeyboard.IsKeyDown(Keys.C) && !previousKeyboard.IsKeyDown(Keys.C);
+        
+        // Handle IRS rotation
+        if (leftRotate) {
+            _irsRotation = (_irsRotation + 3) % 4; // Counter-clockwise
+        }
+        if (rightRotate) {
+            _irsRotation = (_irsRotation + 1) % 4; // Clockwise
+        }
+        
+        // Handle IRS hold (IHS - Initial Hold System)
+        if (hold) {
+            _irsHoldRequested = true;
+        }
+        
+        // Update key states for seamless transition when piece spawns
+        UpdateKeyStatesFromKeyboard(currentKeyboard, previousKeyboard);
+    }
+    
+    private void UpdateKeyStatesFromKeyboard(KeyboardState currentKeyboard, KeyboardState previousKeyboard) {
+        // Direct key mapping - same as HandleInput
+        var directKeyMap = new Dictionary<Keys, KeyBind>
+        {
+            [Keys.Left] = KeyBind.MoveLeft,
+            [Keys.Right] = KeyBind.MoveRight,
+            [Keys.Down] = KeyBind.SoftDrop,
+            [Keys.Space] = KeyBind.HardDrop,
+            [Keys.X] = KeyBind.RotateClockwise,
+            [Keys.Z] = KeyBind.RotateCounterClockwise,
+            [Keys.C] = KeyBind.Hold
+        };
+        
+        // Update key states without triggering actions
+        foreach (var (key, keyBind) in directKeyMap) {
+            bool isPressed = currentKeyboard.IsKeyDown(key);
+            bool wasPressed = previousKeyboard.IsKeyDown(key);
+            
+            _keyHeld[keyBind] = isPressed;
+            _keyPressed[keyBind] = false; // Don't trigger immediate actions during ARE
+        }
+    }
+    
+    private void SpawnNextPieceWithIRS() {
+        // Get next piece
+        _currentTetromino = _nextTetrominos[0];
+        for (var i = 0; i < _nextTetrominos.Length - 1; i++) {
+            _nextTetrominos[i] = _nextTetrominos[i + 1];
+        }
+        _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
+        
+        // Apply IRS rotation
+        for (int i = 0; i < _irsRotation; i++) {
+            var (rotatedPos, _) = _currentTetromino.RotateRight(_grid, new Point(4, 0));
+            // If IRS rotation fails, spawn in original orientation
+        }
+        
+        // Reset position and state
+        _tetrominoPoint = new Point(4, 0);
+        _timingManager.Reset();
+        _canHold = !_irsHoldRequested; // If hold was requested during ARE, disable hold for this piece
+        _areInProgress = false;
+        _nextPieceReady = true;
+        
+        // Reset IRS state
+        _irsRotation = 0;
+        var holdRequested = _irsHoldRequested;
+        _irsHoldRequested = false;
+        
+        // Initialize DAS/ARR for any held movement keys
+        if (_keyHeld[KeyBind.MoveLeft] || _keyHeld[KeyBind.MoveRight]) {
+            _timingManager.StartAutoRepeat();
+        }
+        
+        UpdateCachedValues();
+        
+        // Apply IRS hold if requested
+        if (holdRequested && _canHold) {
+            Hold();
+        }
+        
+        // Check if new piece can be placed (game over condition)
+        if (IsGameOver()) {
+            _gameOver = true;
+        }
     }
 
     
@@ -626,18 +780,21 @@ public class TetrisGame {
     public void Draw() {
         _grid.Draw(_spriteBatch, _point, _tiles);
         
-        // Calculate proper pixel positions for tetrominos based on grid scaling
-        var scaledTileSize = (int)(Grid.TILE_SIZE * _grid.GetSizeMultiplier());
-        var tetrominoPixelPos = new Point(
-            _point.X + _tetrominoPoint.X * scaledTileSize,
-            _point.Y + _tetrominoPoint.Y * scaledTileSize
-        );
-        var ghostPixelPos = new Point(
-            _point.X + GetGhostPosition().X * scaledTileSize,
-            _point.Y + GetGhostPosition().Y * scaledTileSize
-        );
-        
-        _currentTetromino.Draw(_spriteBatch, tetrominoPixelPos, _tiles, _grid.GetSizeMultiplier());
-        _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, _tiles, _grid.GetSizeMultiplier());
+        // Don't draw the current piece if we're hiding it for line clear animation
+        if (!_hidePieceForLineClear && !_areInProgress) {
+            // Calculate proper pixel positions for tetrominos based on grid scaling
+            var scaledTileSize = (int)(Grid.TILE_SIZE * _grid.GetSizeMultiplier());
+            var tetrominoPixelPos = new Point(
+                _point.X + _tetrominoPoint.X * scaledTileSize,
+                _point.Y + _tetrominoPoint.Y * scaledTileSize
+            );
+            var ghostPixelPos = new Point(
+                _point.X + GetGhostPosition().X * scaledTileSize,
+                _point.Y + GetGhostPosition().Y * scaledTileSize
+            );
+            
+            _currentTetromino.Draw(_spriteBatch, tetrominoPixelPos, _tiles, _grid.GetSizeMultiplier());
+            _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, _tiles, _grid.GetSizeMultiplier());
+        }
     }
 }

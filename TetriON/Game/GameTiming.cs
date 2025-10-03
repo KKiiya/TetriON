@@ -25,10 +25,10 @@ public static class GameTiming
     public const float LockDelay = 0.5f; // 30 frames at 60fps
     
     /// <summary>Line clear delay - Time to show line clear animation</summary>
-    public const float LineClearDelay = 0.4f; // Slightly faster for better gameplay flow
+    public const float LineClearDelay = 0.25f; // Reduced for better gameplay flow
     
     /// <summary>Entry delay - Time between piece spawn</summary>
-    public const float EntryDelay = 0.1f;
+    public const float EntryDelay = 0.05f; // Reduced for better gameplay feel
     
     /// <summary>Maximum lock resets allowed per piece (modern Tetris standard)</summary>
     public const int MaxLockResets = 15; // Standard limit for infinite spin prevention

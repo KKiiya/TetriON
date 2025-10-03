@@ -18,10 +18,12 @@ public class TimingManager
     private float _lineClearTimer;
     private float _autoRepeatTimer;
     private float _inputDelayTimer;
+    private float _areTimer;              // ARE (Entry Delay) timer
     
     // State tracking
     private bool _lineClearActive;
     private bool _autoRepeatActive;
+    private bool _areActive;              // ARE delay active
     
     // Modern Tetris lock delay system (according to specifications)
     private float _lockDelayTimer;        // time left before lock in seconds
@@ -78,6 +80,9 @@ public class TimingManager
             
         if (_autoRepeatActive)
             _autoRepeatTimer += _deltaTime;
+            
+        if (_areActive)
+            _areTimer += _deltaTime;
             
         _pieceDropTimer += _deltaTime;
         _inputDelayTimer += _deltaTime;
@@ -308,6 +313,53 @@ public class TimingManager
     
     #endregion
     
+    #region ARE (Entry Delay) Timing
+    
+    /// <summary>
+    /// Start ARE (Entry Delay) after piece lock.
+    /// </summary>
+    public void StartAREDelay()
+    {
+        _areActive = true;
+        _areTimer = 0;
+    }
+    
+    /// <summary>
+    /// Check if ARE delay is complete.
+    /// </summary>
+    public bool IsAREComplete()
+    {
+        return _areActive && _areTimer >= GameTiming.EntryDelay;
+    }
+    
+    /// <summary>
+    /// Stop ARE timing.
+    /// </summary>
+    public void StopAREDelay()
+    {
+        _areActive = false;
+        _areTimer = 0;
+    }
+    
+    /// <summary>
+    /// Get ARE delay progress (0.0 to 1.0).
+    /// </summary>
+    public float GetAREProgress()
+    {
+        if (!_areActive) return 0;
+        return Math.Clamp(_areTimer / GameTiming.EntryDelay, 0, 1);
+    }
+    
+    /// <summary>
+    /// Check if ARE is currently active.
+    /// </summary>
+    public bool IsAREActive()
+    {
+        return _areActive;
+    }
+    
+    #endregion
+    
     #region Utility Methods
     
     /// <summary>
@@ -324,6 +376,7 @@ public class TimingManager
         
         _lineClearActive = false;
         _autoRepeatActive = false;
+        _areActive = false;
         
         // Reset modern lock delay system
         InitializePiece();
@@ -354,7 +407,8 @@ public class TimingManager
                $"DropTimer: {_pieceDropTimer:F3}, " +
                $"LockDelay: {(_isGrounded ? _lockDelayTimer.ToString("F3") : "OFF")}, " +
                $"Resets: {_resetCounter}/{_resetCounterLimit}, " +
-               $"AutoRepeat: {(_autoRepeatActive ? _autoRepeatTimer.ToString("F3") : "OFF")}";
+               $"AutoRepeat: {(_autoRepeatActive ? _autoRepeatTimer.ToString("F3") : "OFF")}, " +
+               $"ARE: {(_areActive ? _areTimer.ToString("F3") : "OFF")}";
     }
     
     #endregion

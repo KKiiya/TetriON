@@ -76,7 +76,7 @@ public class T : Tetromino {
             _rotation = newRotation;
             _matrix = newMatrix;
             
-            // Check for T-Spin after successful rotation
+            // Check for T-Spin after successful rotation (includes mini T-spins)
             var isTSpin = wasWallKick && IsTSpin(grid, newPosition.Value);
             
             return (newPosition.Value, isTSpin);
@@ -101,5 +101,30 @@ public class T : Tetromino {
 
         // A T-Spin requires at least 3 of the 4 corners to be occupied
         return filledCorners >= 3;
+    }
+    
+    public bool IsMiniTSpin(Grid grid, Point pivot) {
+        // Mini T-Spin: exactly 3 corners filled, and the filled corners don't include
+        // both corners facing the direction the piece is pointing
+        var pivotX = pivot.X + 1;
+        var pivotY = pivot.Y + 1;
+        
+        var topLeft = !grid.IsCellEmpty(pivotX - 1, pivotY - 1);
+        var topRight = !grid.IsCellEmpty(pivotX + 1, pivotY - 1);  
+        var bottomLeft = !grid.IsCellEmpty(pivotX - 1, pivotY + 1);
+        var bottomRight = !grid.IsCellEmpty(pivotX + 1, pivotY + 1);
+        
+        var filledCorners = (topLeft ? 1 : 0) + (topRight ? 1 : 0) + (bottomLeft ? 1 : 0) + (bottomRight ? 1 : 0);
+        
+        if (filledCorners != 3) return false;
+        
+        // Check if it's a mini T-spin based on orientation
+        return _rotation switch {
+            0 => !(topLeft && topRight),     // Up: not both top corners
+            1 => !(topRight && bottomRight), // Right: not both right corners  
+            2 => !(bottomLeft && bottomRight), // Down: not both bottom corners
+            3 => !(topLeft && bottomLeft),   // Left: not both left corners
+            _ => false
+        };
     }
 }
