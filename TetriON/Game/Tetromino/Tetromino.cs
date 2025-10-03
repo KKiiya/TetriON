@@ -37,13 +37,13 @@ public abstract class Tetromino {
     }
     
     public static void Initialize() {
-        new I();
-        new J();
-        new L();
-        new O();
-        new S();
-        new T();
-        new Z();
+        _ = new I();
+        _ = new J();
+        _ = new L();
+        _ = new O();
+        _ = new S();
+        _ = new T();
+        _ = new Z();
     }
 
     public static Tetromino GetRandom(Random random, Tetromino previous) {
