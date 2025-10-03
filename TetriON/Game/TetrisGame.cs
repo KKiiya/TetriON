@@ -45,7 +45,6 @@ public class TetrisGame {
     private List<Point> _cachedTetrominoCells;
 
     private bool _canHold;
-    private bool _rotate;
     private bool _lastMoveWasTSpin;
     private bool _gameOver;
     
@@ -104,8 +103,7 @@ public class TetrisGame {
     }
     
     public void RotateLeft() {
-        if (_rotate || _gameOver) return;
-        _rotate = true;
+        if (_gameOver) return;
         var (newPosition, tSpin) = _currentTetromino.RotateLeft(_grid, _tetrominoPoint);
         if (newPosition.HasValue) {
             _tetrominoPoint = newPosition.Value;
@@ -116,8 +114,7 @@ public class TetrisGame {
     }
     
     public void RotateRight() {
-        if (_rotate || _gameOver) return;
-        _rotate = true;
+        if (_gameOver) return;
         var (newPosition, tSpin) = _currentTetromino.RotateRight(_grid, _tetrominoPoint);
         if (newPosition.HasValue) {
             _tetrominoPoint = newPosition.Value;
@@ -252,8 +249,6 @@ public class TetrisGame {
             _timingManager.StartLineClear();
             ProcessLineClears(linesCleared);
         }
-        
-        _rotate = false;
     }
     
     private void ProcessLineClears(int linesCleared) {
@@ -373,7 +368,7 @@ public class TetrisGame {
         // Update key states
         foreach (var keyBind in _keyHeld.Keys.ToList()) {
             var key = KeyBindHelper.GetKey(keyBind);
-            var wasPressed = _keyHeld[keyBind];
+            var wasPressed = previousKeyboard.IsKeyDown(key); // Fix: Use previous keyboard state
             var isPressed = currentKeyboard.IsKeyDown(key);
             
             _keyHeld[keyBind] = isPressed;
