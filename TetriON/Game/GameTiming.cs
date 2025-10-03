@@ -21,17 +21,17 @@ public static class GameTiming
     public const float SoftDropMultiplier = 20.0f;
     
     // === PIECE TIMING ===
-    /// <summary>Lock delay - Time before piece locks when touching ground</summary>
-    public const float LockDelay = 0.5f;
+    /// <summary>Lock delay - Time before piece locks when touching ground (modern Tetris standard)</summary>
+    public const float LockDelay = 0.5f; // 30 frames at 60fps
     
     /// <summary>Line clear delay - Time to show line clear animation</summary>
-    public const float LineClearDelay = 0.5f;
+    public const float LineClearDelay = 0.4f; // Slightly faster for better gameplay flow
     
     /// <summary>Entry delay - Time between piece spawn</summary>
     public const float EntryDelay = 0.1f;
     
-    /// <summary>Maximum lock resets allowed per piece</summary>
-    public const int MaxLockResets = 15;
+    /// <summary>Maximum lock resets allowed per piece (modern Tetris standard)</summary>
+    public const int MaxLockResets = 15; // Standard limit for infinite spin prevention
     
     // === LEVEL PROGRESSION ===
     /// <summary>Base gravity values per level (cells per second)</summary>

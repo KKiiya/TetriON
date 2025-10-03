@@ -15,20 +15,28 @@ public class TimingManager
     
     // Timing accumulators for various game events
     private float _pieceDropTimer;
-    private float _lockDelayTimer;
     private float _lineClearTimer;
     private float _autoRepeatTimer;
     private float _inputDelayTimer;
     
     // State tracking
-    private bool _lockDelayActive;
     private bool _lineClearActive;
     private bool _autoRepeatActive;
-    private int _lockResetCount;
+    
+    // Modern Tetris lock delay system (according to specifications)
+    private float _lockDelayTimer;        // time left before lock in seconds
+    private float _lockDelayLimit;        // fixed per speed level (default 0.5s)
+    private int _resetCounter;            // number of resets done at current floor elevation
+    private int _resetCounterLimit;       // usually 15
+    private bool _isGrounded;             // true if piece is in contact with the stack/floor
     
     public TimingManager()
     {
         Reset();
+        // Initialize modern lock delay system
+        _lockDelayLimit = GameTiming.LockDelay;
+        _resetCounterLimit = GameTiming.MaxLockResets;
+        InitializePiece();
     }
     
     #region Core Timing Properties
@@ -61,8 +69,9 @@ public class TimingManager
     
     private void UpdateTimers()
     {
-        if (_lockDelayActive)
-            _lockDelayTimer += _deltaTime;
+        // Modern lock delay system - timer counts DOWN
+        if (_isGrounded)
+            _lockDelayTimer -= _deltaTime;
             
         if (_lineClearActive)
             _lineClearTimer += _deltaTime;
@@ -116,48 +125,82 @@ public class TimingManager
     
     #endregion
     
-    #region Lock Delay Management
+    #region Modern Tetris Lock Delay System
     
     /// <summary>
-    /// Start lock delay countdown when piece touches ground.
+    /// Initialize piece state - called when new piece spawns.
     /// </summary>
-    public void StartLockDelay()
+    public void InitializePiece()
     {
-        if (!_lockDelayActive)
+        _lockDelayTimer = _lockDelayLimit;
+        _resetCounter = 0;
+        _isGrounded = false;
+    }
+    
+    /// <summary>
+    /// Called after gravity step - determines if piece is grounded.
+    /// </summary>
+    public void OnGravityStep(bool pieceCollidesWithGround)
+    {
+        if (pieceCollidesWithGround)
         {
-            _lockDelayActive = true;
-            _lockDelayTimer = 0;
+            _isGrounded = true;
+            // Lock timer starts running (counts down in UpdateTimers)
+        }
+        else
+        {
+            _isGrounded = false;
+            // Reset lock timer/counter because piece is airborne again
+            _lockDelayTimer = _lockDelayLimit;
+            _resetCounter = 0;
         }
     }
     
     /// <summary>
-    /// Reset lock delay (when piece moves or rotates successfully).
+    /// Called on player input (move or rotate) - handles reset logic.
+    /// Returns true if reset was successful, false if limit reached.
     /// </summary>
-    public void ResetLockDelay()
+    public bool OnPlayerInput()
     {
-        if (_lockDelayActive && _lockResetCount < GameTiming.MaxLockResets)
+        if (_isGrounded)
         {
-            _lockDelayTimer = 0;
-            _lockResetCount++;
+            if (_resetCounter < _resetCounterLimit)
+            {
+                _lockDelayTimer = _lockDelayLimit;
+                _resetCounter++;
+                return true;
+            }
+            else
+            {
+                // No reset allowed; timer continues counting down
+                return false;
+            }
         }
+        return true; // Not grounded, no reset needed
     }
     
     /// <summary>
-    /// Check if lock delay has expired and piece should lock.
+    /// Check if piece should lock (lock delay expired).
     /// </summary>
     public bool ShouldLockPiece()
     {
-        return _lockDelayActive && _lockDelayTimer >= GameTiming.LockDelay;
+        return _isGrounded && _lockDelayTimer <= 0;
     }
     
     /// <summary>
-    /// Stop lock delay (when piece is no longer touching ground).
+    /// Check if movement limit has been reached.
     /// </summary>
-    public void StopLockDelay()
+    public bool HasReachedMovementLimit()
     {
-        _lockDelayActive = false;
-        _lockDelayTimer = 0;
-        _lockResetCount = 0;
+        return _isGrounded && _resetCounter >= _resetCounterLimit;
+    }
+    
+    /// <summary>
+    /// Get current lock reset count for UI display.
+    /// </summary>
+    public int GetLockResetCount()
+    {
+        return _resetCounter;
     }
     
     /// <summary>
@@ -165,8 +208,16 @@ public class TimingManager
     /// </summary>
     public float GetLockDelayProgress()
     {
-        if (!_lockDelayActive) return 0;
-        return Math.Clamp(_lockDelayTimer / GameTiming.LockDelay, 0, 1);
+        if (!_isGrounded) return 0;
+        return Math.Clamp(1.0f - (_lockDelayTimer / _lockDelayLimit), 0, 1);
+    }
+    
+    /// <summary>
+    /// Check if piece is currently grounded.
+    /// </summary>
+    public bool IsGrounded()
+    {
+        return _isGrounded;
     }
     
     #endregion
@@ -267,15 +318,15 @@ public class TimingManager
         _totalTime = 0;
         _deltaTime = 0;
         _pieceDropTimer = 0;
-        _lockDelayTimer = 0;
         _lineClearTimer = 0;
         _autoRepeatTimer = 0;
         _inputDelayTimer = 0;
         
-        _lockDelayActive = false;
         _lineClearActive = false;
         _autoRepeatActive = false;
-        _lockResetCount = 0;
+        
+        // Reset modern lock delay system
+        InitializePiece();
     }
     
     /// <summary>
@@ -301,7 +352,8 @@ public class TimingManager
     {
         return $"FPS: {FPS:F1}, " +
                $"DropTimer: {_pieceDropTimer:F3}, " +
-               $"LockDelay: {(_lockDelayActive ? _lockDelayTimer.ToString("F3") : "OFF")}, " +
+               $"LockDelay: {(_isGrounded ? _lockDelayTimer.ToString("F3") : "OFF")}, " +
+               $"Resets: {_resetCounter}/{_resetCounterLimit}, " +
                $"AutoRepeat: {(_autoRepeatActive ? _autoRepeatTimer.ToString("F3") : "OFF")}";
     }
     

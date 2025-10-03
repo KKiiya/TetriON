@@ -68,6 +68,9 @@ public class TetrisGame {
             _nextTetrominos[i] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
         }
         
+        // Initialize modern lock delay for first piece
+        _timingManager.InitializePiece();
+        
         _canHold = true;
         _mode = mode;
         _level = 1;
@@ -97,7 +100,7 @@ public class TetrisGame {
     
         _canHold = false;
         _tetrominoPoint = new Point(4, 0);
-        _timingManager.StopLockDelay();
+        _timingManager.InitializePiece(); // New piece, initialize lock delay
         _lastMoveWasTSpin = false;
         
         UpdateCachedValues();
@@ -110,7 +113,13 @@ public class TetrisGame {
             _tetrominoPoint = newPosition.Value;
             _lastMoveWasTSpin = tSpin;
             UpdateCachedValues();
-            _timingManager.ResetLockDelay(); // Reset lock delay on successful rotation
+            
+            // Handle modern lock delay on player input
+            if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
+                // Movement limit reached while on ground - force lock
+                Lock();
+                return;
+            }
         }
     }
     
@@ -121,7 +130,13 @@ public class TetrisGame {
             _tetrominoPoint = newPosition.Value;
             _lastMoveWasTSpin = tSpin;
             UpdateCachedValues();
-            _timingManager.ResetLockDelay(); // Reset lock delay on successful rotation
+            
+            // Handle modern lock delay on player input
+            if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
+                // Movement limit reached while on ground - force lock
+                Lock();
+                return;
+            }
         }
     }
     
@@ -129,25 +144,41 @@ public class TetrisGame {
         if (_gameOver || !CanMoveCurrentTo(-1, 0)) return;
         _tetrominoPoint.X--;
         UpdateCachedValues();
-        _timingManager.ResetLockDelay(); // Reset lock delay on successful move
         _moveSound.Play();
+        
+        // Handle modern lock delay on player input
+        if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
+            // Movement limit reached while on ground - force lock
+            Lock();
+            return;
+        }
     }
     
     public void MoveRight() {
         if (_gameOver || !CanMoveCurrentTo(1, 0)) return;
         _tetrominoPoint.X++;
         UpdateCachedValues();
-        _timingManager.ResetLockDelay(); // Reset lock delay on successful move
         _moveSound.Play();
+        
+        // Handle modern lock delay on player input
+        if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
+            // Movement limit reached while on ground - force lock
+            Lock();
+            return;
+        }
     }
     
     public void MoveDown() {
         if (_gameOver) return;
         if (CanMoveCurrentTo(0, 1)) {
             _tetrominoPoint.Y++;
+            UpdateCachedValues();
             // Small score bonus for soft drops
             _score += 1;
+            // Handle modern lock delay on player input (soft drop)
+            _timingManager.OnPlayerInput();
         } else {
+            // Piece hit ground due to soft drop - immediate lock for soft drop
             Lock();
         }
     }
@@ -164,7 +195,7 @@ public class TetrisGame {
         
         // Reset position and state
         _tetrominoPoint = new Point(4, 0);
-        _timingManager.StopLockDelay();
+        _timingManager.Reset();
         _canHold = true;
         
         UpdateCachedValues();
@@ -222,6 +253,18 @@ public class TetrisGame {
     public bool GetGameOver() {
         return _gameOver;
     }
+    
+    public float GetLockDelayProgress() {
+        return _timingManager.GetLockDelayProgress();
+    }
+    
+    public int GetLockResetCount() {
+        return _timingManager.GetLockResetCount();
+    }
+    
+    public bool HasReachedMovementLimit() {
+        return _timingManager.HasReachedMovementLimit();
+    }
         
     public void Update(GameTime gameTime, KeyboardState currentKeyboard, KeyboardState previousKeyboard) {
         if (_gameOver) return;
@@ -229,19 +272,20 @@ public class TetrisGame {
         _timingManager.Update(gameTime);
         HandleInput(currentKeyboard, previousKeyboard);
         
-        // Apply gravity
+        // Apply gravity - handle modern lock delay for gravity steps
         if (_timingManager.ShouldDropPiece((int)_level)) {
-            MoveDown();
-        }
-        
-        // Handle lock delay
-        if (!CanMoveCurrentTo(0, 1)) {
-            _timingManager.StartLockDelay();
-            if (_timingManager.ShouldLockPiece()) {
-                Lock();
+            if (CanMoveCurrentTo(0, 1)) {
+                _tetrominoPoint.Y++;
+                UpdateCachedValues();
+                // Notify timing manager of gravity step (piece didn't collide)
+                _timingManager.OnGravityStep(false);
+            } else {
+                // Piece hit ground due to gravity - handle lock delay
+                _timingManager.OnGravityStep(true);
+                if (_timingManager.ShouldLockPiece()) {
+                    Lock();
+                }
             }
-        } else {
-            _timingManager.StopLockDelay();
         }
         
         // Handle line clears
