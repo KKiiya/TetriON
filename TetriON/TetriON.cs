@@ -84,9 +84,10 @@ public class TetriON : Microsoft.Xna.Framework.Game {
             Exit();
 
         // TODO: Add your update logic here
-        Controller?.Update(gameTime);
-        Keyboard?.Update(gameTime);
-        Mouse?.Update(gameTime);
+        // Temporarily disable potentially conflicting input handlers
+        // Controller?.Update(gameTime);
+        // Keyboard?.Update(gameTime);
+        // Mouse?.Update(gameTime);
         
         _session?.Update();
         

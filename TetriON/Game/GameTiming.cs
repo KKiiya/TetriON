@@ -12,10 +12,10 @@ public static class GameTiming
     
     // === INPUT TIMING ===
     /// <summary>DAS (Delayed Auto Shift) - Initial delay before auto-repeat starts</summary>
-    public const float AutoRepeatDelay = 0.133f; // ~8 frames at 60fps (more responsive)
+    public const float AutoRepeatDelay = 0.100f; // ~6 frames at 60fps (competitive responsive)
     
     /// <summary>ARR (Auto Repeat Rate) - Time between auto-repeat actions</summary>
-    public const float AutoRepeatRate = 0.050f; // ~3 frames at 60fps (smoother movement)
+    public const float AutoRepeatRate = 0.033f; // ~2 frames at 60fps (very fast for competitive play)
     
     /// <summary>Soft drop multiplier - How much faster pieces fall during soft drop</summary>
     public const float SoftDropMultiplier = 20.0f;

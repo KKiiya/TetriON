@@ -36,8 +36,9 @@ public class TetrisGame {
     private readonly TimingManager _timingManager;
     private readonly Random _random;
     private readonly SevenBagRandomizer _bagRandomizer;
-    private readonly Dictionary<KeyBind, bool> _keyHeld = new();
-    private readonly Dictionary<KeyBind, bool> _keyPressed = new();
+    private readonly Dictionary<KeyBind, bool> _keyHeld = [];
+    private readonly Dictionary<KeyBind, bool> _keyPressed = [];
+    private readonly List<KeyBind> _keyPressBuffer = [];
     
     // Cached values for performance
     private Point _cachedGhostPosition;
@@ -75,7 +76,7 @@ public class TetrisGame {
         _gameOver = false;
         
         InitializeKeyStates();
-        _cachedTetrominoCells = new List<Point>();
+        _cachedTetrominoCells = [];
         UpdateCachedValues();
     }
     
@@ -343,7 +344,7 @@ public class TetrisGame {
     }
     
     private List<Point> GetCurrentTetrominoCells() {
-        return new List<Point>(_cachedTetrominoCells);
+        return [.. _cachedTetrominoCells];
     }
     
     private void InitializeKeyStates() {
@@ -365,49 +366,102 @@ public class TetrisGame {
     }
     
     private void HandleInput(KeyboardState currentKeyboard, KeyboardState previousKeyboard) {
-        // Update key states
-        foreach (var keyBind in _keyHeld.Keys.ToList()) {
-            var key = KeyBindHelper.GetKey(keyBind);
-            var wasPressed = previousKeyboard.IsKeyDown(key); // Fix: Use previous keyboard state
-            var isPressed = currentKeyboard.IsKeyDown(key);
+        // Direct key mapping - Original TetriON key bindings restored
+        var directKeyMap = new Dictionary<Keys, KeyBind>
+        {
+            // Classic Tetris movement controls
+            [Keys.Left] = KeyBind.MoveLeft,
+            [Keys.Right] = KeyBind.MoveRight,
+            [Keys.Down] = KeyBind.SoftDrop,
+            [Keys.Space] = KeyBind.HardDrop,
+            
+            // Classic Tetris rotation controls
+            [Keys.X] = KeyBind.RotateClockwise,
+            [Keys.Z] = KeyBind.RotateCounterClockwise,
+            
+            // Game actions
+            [Keys.C] = KeyBind.Hold
+        };
+        
+        // Clear the key press buffer from the previous frame
+        _keyPressBuffer.Clear();
+        
+        // Process direct key input
+        foreach (var (key, keyBind) in directKeyMap) {
+            bool isPressed = currentKeyboard.IsKeyDown(key);
+            bool wasPressed = previousKeyboard.IsKeyDown(key);
+            bool wasJustPressed = isPressed && !wasPressed;
             
             _keyHeld[keyBind] = isPressed;
-            _keyPressed[keyBind] = isPressed && !wasPressed;
+            _keyPressed[keyBind] = wasJustPressed;
+            
+            // Add to buffer for immediate processing of single-press actions
+            if (wasJustPressed) {
+                _keyPressBuffer.Add(keyBind);
+            }
         }
         
-        // Handle single-press actions
-        // Classic Tetris controls: Z for rotate left, X for rotate right, C for hold, Space for hard drop
-        // Movement: Arrow keys for left/right/down
-        if (_keyPressed[KeyBind.RotateCounterClockwise]) RotateLeft();
-        if (_keyPressed[KeyBind.RotateClockwise]) RotateRight();
-        if (_keyPressed[KeyBind.Hold]) Hold();
-        if (_keyPressed[KeyBind.HardDrop]) Drop();
+        // Process all key presses from the buffer - this ensures no presses are missed
+        foreach (var keyBind in _keyPressBuffer) {
+            
+            switch (keyBind) {
+                case KeyBind.RotateCounterClockwise:
+                    RotateLeft();
+                    break;
+                case KeyBind.RotateClockwise:
+                    RotateRight();
+                    break;
+                case KeyBind.Hold:
+                    Hold();
+                    break;
+                case KeyBind.HardDrop:
+                    Drop();
+                    break;
+            }
+        }
         
-        // Handle continuous movement with DAS/ARR
+        // Handle continuous movement with DAS/ARR - BUT allow other keys to work simultaneously
         HandleMovementInput();
     }
     
     private void HandleMovementInput() {
-        // Left movement with proper DAS/ARR
-        if (_keyHeld[KeyBind.MoveLeft] && !_keyHeld[KeyBind.MoveRight]) {
-            if (_keyPressed[KeyBind.MoveLeft]) {
-                MoveLeft();
-                _timingManager.StartAutoRepeat();
-            } else if (_timingManager.ShouldAutoRepeat()) {
-                MoveLeft();
-            }
+        // Competitive Tetris movement: newly pressed direction always takes priority
+        bool leftPressed = _keyPressed[KeyBind.MoveLeft];
+        bool rightPressed = _keyPressed[KeyBind.MoveRight];
+        bool leftHeld = _keyHeld[KeyBind.MoveLeft];
+        bool rightHeld = _keyHeld[KeyBind.MoveRight];
+        
+        // If both directions are pressed this frame (frame perfect), prioritize right (standard Tetris behavior)
+        if (leftPressed && rightPressed) {
+            MoveRight();
+            _timingManager.StartAutoRepeat();
+            return;
         }
-        // Right movement with proper DAS/ARR
-        else if (_keyHeld[KeyBind.MoveRight] && !_keyHeld[KeyBind.MoveLeft]) {
-            if (_keyPressed[KeyBind.MoveRight]) {
-                MoveRight();
-                _timingManager.StartAutoRepeat();
-            } else if (_timingManager.ShouldAutoRepeat()) {
-                MoveRight();
-            }
+        
+        // If left is newly pressed, it takes priority even if right is held
+        if (leftPressed) {
+            MoveLeft();
+            _timingManager.StartAutoRepeat();
+            return;
         }
+        
+        // If right is newly pressed, it takes priority even if left is held
+        if (rightPressed) {
+            MoveRight();
+            _timingManager.StartAutoRepeat();
+            return;
+        }
+        
+        // Handle continuous movement for held keys (but only if the opposite isn't also held)
+        if (leftHeld && !rightHeld && _timingManager.ShouldAutoRepeat()) {
+            MoveLeft();
+        }
+        else if (rightHeld && !leftHeld && _timingManager.ShouldAutoRepeat()) {
+            MoveRight();
+        }
+        
         // Stop auto-repeat when no horizontal movement keys are held
-        else {
+        if (!leftHeld && !rightHeld) {
             _timingManager.StopAutoRepeat();
         }
         
