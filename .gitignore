@@ -32,6 +32,11 @@ packages/
 *.mgcb.mgcontent/
 *.mgcontent/
 
+# MonoGame Content build artifacts
+**/Content/bin/
+**/Content/obj/
+*.xnb
+
 # Logs
 *.log
 
@@ -59,6 +64,10 @@ TetriONInstaller/dist/
 TetriONInstaller/game_files.zip
 TetriONInstaller/installer_icon.ico
 TetriONInstaller/Uninstaller.csproj
+
+# TetriON Content Build Artifacts
+TetriONContent/bin/
+TetriONContent/obj/
 
 # Publish outputs (general)
 **/publish/
