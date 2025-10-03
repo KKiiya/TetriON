@@ -82,36 +82,7 @@ public abstract class Tetromino {
         return tetrominos;
     }
     
-    // Add 7-bag randomizer for proper Tetris gameplay
-    private static readonly List<Type> SevenBag = new();
-    private static int _bagIndex = 0;
-    
-    public static Tetromino GetNext7Bag(Random random) {
-        ArgumentNullException.ThrowIfNull(random);
 
-        // Refill bag when empty
-        if (SevenBag.Count == 0 || _bagIndex >= SevenBag.Count) {
-            RefillSevenBag(random);
-            _bagIndex = 0;
-        }
-        
-        var pieceType = SevenBag[_bagIndex++];
-        return Bag.First(t => t.GetType() == pieceType);
-    }
-    
-    private static void RefillSevenBag(Random random) {
-        SevenBag.Clear();
-        
-        // Add all 7 piece types
-        var pieceTypes = new[] { typeof(I), typeof(J), typeof(L), typeof(O), typeof(S), typeof(T), typeof(Z) };
-        SevenBag.AddRange(pieceTypes);
-        
-        // Shuffle the bag using Fisher-Yates algorithm
-        for (var i = SevenBag.Count - 1; i > 0; i--) {
-            var j = random.Next(i + 1);
-            (SevenBag[i], SevenBag[j]) = (SevenBag[j], SevenBag[i]);
-        }
-    }
 
     public void Draw(SpriteBatch spriteBatch, Point location, Texture2D texture, float size) {
         var matrix = GetMatrix();

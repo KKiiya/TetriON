@@ -9,19 +9,16 @@ namespace TetriON.Game;
 /// Implements the standard Tetris 7-bag randomization system for fair piece distribution.
 /// This ensures each piece type appears exactly once in every 7-piece sequence.
 /// </summary>
-public class SevenBagRandomizer
-{
+public class SevenBagRandomizer {
     private readonly Random _random;
     private readonly Queue<Type> _bag = new();
     
     // All 7 standard Tetris piece types
-    private static readonly Type[] PieceTypes = 
-    {
+    private static readonly Type[] PieceTypes =  {
         typeof(I), typeof(J), typeof(L), typeof(O), typeof(S), typeof(T), typeof(Z)
     };
     
-    public SevenBagRandomizer(Random random = null)
-    {
+    public SevenBagRandomizer(Random random = null) {
         _random = random ?? new Random();
         RefillBag();
     }
@@ -30,10 +27,8 @@ public class SevenBagRandomizer
     /// Get the next piece from the 7-bag sequence.
     /// Automatically refills the bag when empty.
     /// </summary>
-    public Type GetNextPieceType()
-    {
-        if (_bag.Count == 0)
-        {
+    public Type GetNextPieceType() {
+        if (_bag.Count == 0) {
             RefillBag();
         }
         
@@ -44,18 +39,15 @@ public class SevenBagRandomizer
     /// Peek at the next N piece types without consuming them.
     /// Useful for displaying upcoming pieces.
     /// </summary>
-    public Type[] PeekNextPieceTypes(int count)
-    {
+    public Type[] PeekNextPieceTypes(int count){
         if (count <= 0) return Array.Empty<Type>();
         
         var result = new Type[count];
         var tempBag = new Queue<Type>(_bag);
         var index = 0;
         
-        while (index < count)
-        {
-            if (tempBag.Count == 0)
-            {
+        while (index < count) {
+            if (tempBag.Count == 0) {
                 // Simulate refilling the bag
                 var shuffledBag = CreateShuffledBag();
                 foreach (var pieceType in shuffledBag)
@@ -73,8 +65,7 @@ public class SevenBagRandomizer
     /// <summary>
     /// Reset the bag to a fresh state.
     /// </summary>
-    public void Reset()
-    {
+    public void Reset() {
         _bag.Clear();
         RefillBag();
     }
@@ -89,25 +80,21 @@ public class SevenBagRandomizer
     /// </summary>
     public bool IsBagEmpty => _bag.Count == 0;
     
-    private void RefillBag()
-    {
+    private void RefillBag() {
         _bag.Clear();
         var shuffledBag = CreateShuffledBag();
         
-        foreach (var pieceType in shuffledBag)
-        {
+        foreach (var pieceType in shuffledBag) {
             _bag.Enqueue(pieceType);
         }
     }
     
-    private Type[] CreateShuffledBag()
-    {
+    private Type[] CreateShuffledBag() {
         var shuffledBag = new Type[PieceTypes.Length];
         Array.Copy(PieceTypes, shuffledBag, PieceTypes.Length);
         
         // Fisher-Yates shuffle algorithm
-        for (var i = shuffledBag.Length - 1; i > 0; i--)
-        {
+        for (var i = shuffledBag.Length - 1; i > 0; i--) {
             var j = _random.Next(i + 1);
             (shuffledBag[i], shuffledBag[j]) = (shuffledBag[j], shuffledBag[i]);
         }
@@ -118,17 +105,14 @@ public class SevenBagRandomizer
     /// <summary>
     /// Get statistics about piece distribution for debugging.
     /// </summary>
-    public Dictionary<Type, int> GetDistributionStats()
-    {
+    public Dictionary<Type, int> GetDistributionStats() {
         var stats = new Dictionary<Type, int>();
         
-        foreach (var pieceType in PieceTypes)
-        {
+        foreach (var pieceType in PieceTypes)  {
             stats[pieceType] = 0;
         }
         
-        foreach (var pieceType in _bag)
-        {
+        foreach (var pieceType in _bag)  {
             stats[pieceType]++;
         }
         
@@ -139,10 +123,8 @@ public class SevenBagRandomizer
     /// Create a Tetromino instance from a piece type.
     /// This method handles the mapping from Type to actual Tetromino instances.
     /// </summary>
-    public static Tetromino CreateTetrominoFromType(Type pieceType)
-    {
-        return pieceType.Name switch
-        {
+    public static Tetromino CreateTetrominoFromType(Type pieceType)  {
+        return pieceType.Name switch {
             nameof(I) => new I(),
             nameof(J) => new J(),
             nameof(L) => new L(),

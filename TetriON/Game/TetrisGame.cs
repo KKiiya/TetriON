@@ -35,6 +35,7 @@ public class TetrisGame {
     
     private readonly TimingManager _timingManager;
     private readonly Random _random;
+    private readonly SevenBagRandomizer _bagRandomizer;
     private readonly Dictionary<KeyBind, bool> _keyHeld = new();
     private readonly Dictionary<KeyBind, bool> _keyPressed = new();
     
@@ -57,11 +58,15 @@ public class TetrisGame {
         _tetrominoPoint = new Point(4, 0); // Start at column 4 (center of 10-wide grid), row 0 (top)
         _timingManager = new TimingManager();
         _random = new Random();
+        _bagRandomizer = new SevenBagRandomizer(_random);
         
         // Initialize with proper 7-bag randomizer
-        _currentTetromino = Tetromino.GetRandom(_random);
+        _currentTetromino = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
         _holdTetromino = null;
-        _nextTetrominos = Tetromino.GetRandom(_random, 5);
+        _nextTetrominos = new Tetromino[5];
+        for (int i = 0; i < _nextTetrominos.Length; i++) {
+            _nextTetrominos[i] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
+        }
         
         _canHold = true;
         _mode = mode;
@@ -85,7 +90,7 @@ public class TetrisGame {
             for (var i = 0; i < _nextTetrominos.Length - 1; i++) {
                 _nextTetrominos[i] = _nextTetrominos[i + 1];
             }
-            _nextTetrominos[^1] = Tetromino.GetRandom(_random, _nextTetrominos[^2]);
+            _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
         } else {
             (_holdTetromino, _currentTetromino) = (_currentTetromino, _holdTetromino);
         }
@@ -157,7 +162,7 @@ public class TetrisGame {
         for (var i = 0; i < _nextTetrominos.Length - 1; i++) {
             _nextTetrominos[i] = _nextTetrominos[i + 1];
         }
-        _nextTetrominos[^1] = Tetromino.GetRandom(_random, _nextTetrominos[^1]);
+        _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
         
         // Reset position and state
         _tetrominoPoint = new Point(4, 0);
