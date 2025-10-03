@@ -40,6 +40,15 @@ public class TetrisGame {
     private readonly Dictionary<KeyBind, bool> _keyPressed = [];
     private readonly List<KeyBind> _keyPressBuffer = [];
     
+    // Modern Tetris scoring state
+    private bool _lastClearWasDifficult;  // For Back-to-Back tracking
+    private int _comboCount;              // For combo scoring
+    private long _softDropDistance;      // Accumulated soft drop distance
+    
+    // Line clear animation state
+    private bool _lineClearInProgress;    // True during line clear animation
+    private int _pendingLinesCleared;     // Lines to clear after animation
+    
     // Cached values for performance
     private Point _cachedGhostPosition;
     private bool _ghostPositionDirty = true;
@@ -77,6 +86,13 @@ public class TetrisGame {
         _score = 0;
         _lines = 0;
         _gameOver = false;
+        
+        // Initialize modern scoring state
+        _lastClearWasDifficult = false;
+        _comboCount = 0;
+        _softDropDistance = 0;
+        _lineClearInProgress = false;
+        _pendingLinesCleared = 0;
         
         InitializeKeyStates();
         _cachedTetrominoCells = [];
@@ -173,8 +189,8 @@ public class TetrisGame {
         if (CanMoveCurrentTo(0, 1)) {
             _tetrominoPoint.Y++;
             UpdateCachedValues();
-            // Small score bonus for soft drops
-            _score += 1;
+            // Track soft drop distance for scoring
+            _softDropDistance++;
             // Handle modern lock delay on player input (soft drop)
             _timingManager.OnPlayerInput();
         } else {
@@ -213,8 +229,12 @@ public class TetrisGame {
             _tetrominoPoint.Y++;
             dropDistance++;
         }
-        // Add small bonus for hard drops
+        UpdateCachedValues();
+        
+        // Hard drop scoring: 2 points per cell (modern Tetris standard)
         _score += dropDistance * 2;
+        
+        // Hard drop bypasses lock delay - immediate lock
         Lock();
     }
     
@@ -265,11 +285,41 @@ public class TetrisGame {
     public bool HasReachedMovementLimit() {
         return _timingManager.HasReachedMovementLimit();
     }
+    
+    public bool IsBackToBackActive() {
+        return _lastClearWasDifficult;
+    }
+    
+    public int GetComboCount() {
+        return _comboCount;
+    }
+    
+    public bool IsLineClearInProgress() {
+        return _lineClearInProgress;
+    }
+    
+    public float GetLineClearProgress() {
+        return _timingManager.GetLineClearProgress();
+    }
         
     public void Update(GameTime gameTime, KeyboardState currentKeyboard, KeyboardState previousKeyboard) {
         if (_gameOver) return;
         
         _timingManager.Update(gameTime);
+        
+        // Handle line clear animation
+        if (_lineClearInProgress) {
+            if (_timingManager.IsLineClearComplete()) {
+                // Animation finished - process the line clear
+                _lineClearInProgress = false;
+                ProcessLineClears(_pendingLinesCleared);
+                _pendingLinesCleared = 0;
+                _timingManager.StopLineClear();
+            }
+            // During line clear animation, block other game logic
+            return;
+        }
+        
         HandleInput(currentKeyboard, previousKeyboard);
         
         // Apply gravity - handle modern lock delay for gravity steps
@@ -288,55 +338,111 @@ public class TetrisGame {
             }
         }
         
-        // Handle line clears
+        // Check for line clears and start animation
         var linesCleared = _grid.CheckLines();
         if (linesCleared > 0) {
+            _lineClearInProgress = true;
+            _pendingLinesCleared = linesCleared;
             _timingManager.StartLineClear();
-            ProcessLineClears(linesCleared);
         }
     }
     
     private void ProcessLineClears(int linesCleared) {
         _lines += linesCleared;
         
-        // Calculate score with T-spin bonus
-        var baseScore = CalculateScore(linesCleared, _lastMoveWasTSpin);
-        _score += baseScore;
+        // Calculate modern Tetris score
+        var scoreResult = CalculateModernScore(linesCleared, _lastMoveWasTSpin);
+        _score += scoreResult.totalScore;
         
-        // Update level based on lines cleared
-        var newLevel = (_lines / 10) + 1;
-        if (newLevel != _level) {
-            _level = newLevel;
-            // Gravity is now handled by GameTiming.GetGravitySpeed()
+        // Update level progression (variable goal mode: 5 × current level)
+        UpdateLevelProgression();
+        
+        // Update Back-to-Back state
+        _lastClearWasDifficult = scoreResult.wasDifficult;
+        
+        // Update combo counter
+        if (linesCleared > 0) {
+            _comboCount++;
+        } else {
+            _comboCount = 0; // Reset combo on empty drop
         }
         
         // Reset T-spin flag after line clear
         _lastMoveWasTSpin = false;
     }
     
-    private long CalculateScore(int linesCleared, bool wasTSpin) {
-        var baseScore = linesCleared switch {
-            1 => 100,
-            2 => 300,
-            3 => 500,
-            4 => 800, // Tetris
-            _ => 100 * linesCleared
+    private (long totalScore, bool wasDifficult) CalculateModernScore(int linesCleared, bool wasTSpin) {
+        if (linesCleared == 0) {
+            // Empty drop - add soft drop and combo reset
+            var emptySoftDropScore = _softDropDistance; // 1 point per cell
+            _softDropDistance = 0; // Reset after scoring
+            _comboCount = 0; // Reset combo on empty drop
+            return (emptySoftDropScore, false);
+        }
+        
+        // Base scores according to modern Tetris guideline
+        var baseScore = (linesCleared, wasTSpin) switch {
+            // Regular line clears
+            (1, false) => 100L,      // Single
+            (2, false) => 300L,      // Double  
+            (3, false) => 500L,      // Triple
+            (4, false) => 800L,      // Tetris
+            
+            // T-Spin line clears
+            (0, true) => 400L,       // T-Spin (no lines)
+            (1, true) => 800L,       // T-Spin Single
+            (2, true) => 1200L,      // T-Spin Double
+            (3, true) => 1600L,      // T-Spin Triple
+            
+            _ => 100L * linesCleared
         };
         
         // Apply level multiplier
-        baseScore *= (int)_level;
+        baseScore *= _level;
         
-        // Apply T-spin bonus
-        if (wasTSpin) {
-            baseScore = linesCleared switch {
-                1 => baseScore * 3, // T-Spin Single
-                2 => baseScore * 2, // T-Spin Double  
-                3 => baseScore * 2, // T-Spin Triple
-                _ => baseScore * 2
+        // Check if this is a "difficult" clear (Tetris or T-Spin)
+        var isDifficult = linesCleared == 4 || wasTSpin;
+        
+        // Apply Back-to-Back bonus (1.5x multiplier)
+        if (isDifficult && _lastClearWasDifficult) {
+            baseScore = (long)(baseScore * 1.5f);
+        }
+        
+        // Add combo bonus: 50 × combo_count × level
+        var comboBonus = _comboCount > 1 ? 50L * (_comboCount - 1) * _level : 0L;
+        
+        // Add soft drop bonus
+        var softDropScore = _softDropDistance;
+        _softDropDistance = 0; // Reset after scoring
+        
+        // Check for perfect clear bonus
+        var perfectClearBonus = 0L;
+        if (IsGridEmpty()) {
+            perfectClearBonus = linesCleared switch {
+                1 => 800L * _level,
+                2 => 1200L * _level,
+                3 => 1800L * _level,
+                4 => 2000L * _level, // Perfect Clear Tetris
+                _ => 1000L * _level
             };
         }
         
-        return baseScore;
+        var totalScore = baseScore + comboBonus + softDropScore + perfectClearBonus;
+        return (totalScore, isDifficult);
+    }
+    
+    private void UpdateLevelProgression() {
+        // Variable goal mode: lines required = 5 × current level
+        var linesForNextLevel = 5 * (int)_level;
+        
+        if (_lines >= linesForNextLevel) {
+            _level++;
+            // Gravity speed is automatically handled by GameTiming.GetGravitySpeed()
+        }
+    }
+    
+    private bool IsGridEmpty() {
+        return _grid.IsEmpty();
     }
 
     
