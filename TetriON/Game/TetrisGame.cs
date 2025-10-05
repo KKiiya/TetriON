@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TetriON.game.tetromino;
 using TetriON.Wrappers.Content;
-using TetriON.Input.Support;
 using TetriON.Account.Enums;
 using TetriON.Game;
+using TetriON.Game.Enums;
 
 namespace TetriON.game;
 
@@ -28,10 +27,14 @@ public class TetrisGame {
     private Tetromino _currentTetromino;
     private Tetromino _holdTetromino;
 
+    private readonly Gamemode _gamemode;
+    private readonly Mode _modeType;
+
     private readonly string _mode;
     private long _level;
     private long _score;
     private long _lines;
+    private long _targetLines; // For modes with line targets
     
     private readonly TimingManager _timingManager;
     private readonly Random _random;
