@@ -40,8 +40,15 @@ public class TextureWrapper : IDisposable {
         }
         
         try {
-            _texture = TetriON.Instance.Content.Load<Texture2D>(path);
-            _ownsTexture = true; // We loaded it, so we own it
+            // Try custom skin system first
+            var skinManager = TetriON.Instance._skinManager;
+            if (skinManager?.HasCustomTexture(path) == true) {
+                _texture = skinManager.LoadCustomTexture(path);
+                _ownsTexture = false; // Skin manager owns custom textures
+            } else {
+                _texture = TetriON.Instance.Content.Load<Texture2D>(path);
+                _ownsTexture = true; // We loaded it, so we own it
+            }
         } catch (Exception e) {
             try {
                 _texture = TetriON.Instance.Content.Load<Texture2D>("missing_texture");

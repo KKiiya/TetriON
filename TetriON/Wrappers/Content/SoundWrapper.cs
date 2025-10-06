@@ -20,7 +20,13 @@ public class SoundWrapper : IDisposable {
         _path = path;
         
         try {
-            _soundEffect = TetriON.Instance.Content.Load<SoundEffect>(path);
+            // Try custom skin system first
+            var skinManager = TetriON.Instance._skinManager;
+            if (skinManager?.HasCustomSound(path) == true) {
+                _soundEffect = skinManager.LoadCustomSoundEffect(path);
+            } else {
+                _soundEffect = TetriON.Instance.Content.Load<SoundEffect>(path);
+            }
         } catch (Exception ex) {
             throw new InvalidOperationException($"Failed to load sound effect from '{path}'", ex);
         }

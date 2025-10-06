@@ -10,6 +10,7 @@ using KeyBoard = TetriON.Input.Support.KeyBoard;
 using Mouse = TetriON.Input.Mouse;
 using TetriON.session;
 using TetriON.Game.Enums;
+using TetriON.Skins;
 
 namespace TetriON;
 
@@ -28,6 +29,8 @@ public class TetriON : Microsoft.Xna.Framework.Game {
     private TetrisGame _tetrisGame;
     private Point _position;
     private KeyboardState _previousKeyboardState;
+    
+    public SkinManager _skinManager { get; private set; }
 
     public TetriON() {
         _graphics = new GraphicsDeviceManager(this);
@@ -54,9 +57,12 @@ public class TetriON : Microsoft.Xna.Framework.Game {
     protected override void LoadContent() {
         SpriteBatch = new SpriteBatch(GraphicsDevice);
         Tetromino.Initialize();
-        // TODO: use this.Content to load your game content here
         
         Instance = this;
+        
+        // Initialize skin system
+        _skinManager = new SkinManager();
+        _skinManager.Initialize(GraphicsDevice);
         
         // Initialize settings and key bindings
         var credentials = new Credentials("DefaultUser"); // Create default credentials
