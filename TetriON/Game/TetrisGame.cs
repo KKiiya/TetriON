@@ -13,7 +13,32 @@ namespace TetriON.game;
 
 public class TetrisGame {
     
+    // === SOUND EFFECTS ===
     private readonly SoundWrapper _moveSound;
+    private readonly SoundWrapper _rotateSound;
+    private readonly SoundWrapper _harddropSound;
+    private readonly SoundWrapper _holdSound;
+    private readonly SoundWrapper _spinSound;
+    
+    // Line clear sounds
+    private readonly SoundWrapper _clearlineSound;
+    private readonly SoundWrapper _clearquadSound;
+    private readonly SoundWrapper _clearspinSound;
+    private readonly SoundWrapper _clearbtbSound;
+    private readonly SoundWrapper _allclearSound;
+    
+    // Combo sounds (1-16)
+    private readonly Dictionary<int, SoundWrapper> _comboSounds = new();
+    private readonly SoundWrapper _btb1Sound;
+    
+    // Menu sounds
+    private readonly SoundWrapper _menuclickSound;
+    private readonly SoundWrapper _menutapSound;
+    
+    // Game flow sounds
+    private readonly SoundWrapper _levelupSound;
+    private readonly SoundWrapper _topoutSound;
+    private readonly SoundWrapper _finishSound;
     
     private readonly SpriteBatch _spriteBatch;
     private readonly Texture2D _tiles;
@@ -87,7 +112,34 @@ public class TetrisGame {
         _point = new Point(centerX, centerY);
         _tiles = game._skinManager.GetTextureAsset("tiles").GetTexture();
         _grid = new Grid(_point, 10, 20, 1.2f); // Reasonable size for proper Tetris gameplay
+        
+        // Initialize sound effects
         _moveSound = game._skinManager.GetAudioAsset("move");
+        _rotateSound = game._skinManager.GetAudioAsset("rotate");
+        _harddropSound = game._skinManager.GetAudioAsset("harddrop");
+        _holdSound = game._skinManager.GetAudioAsset("hold");
+        _spinSound = game._skinManager.GetAudioAsset("spin");
+        
+        // Line clear sounds
+        _clearlineSound = game._skinManager.GetAudioAsset("clearline");
+        _clearquadSound = game._skinManager.GetAudioAsset("clearquad");
+        _clearspinSound = game._skinManager.GetAudioAsset("clearspin");
+        _clearbtbSound = game._skinManager.GetAudioAsset("clearbtb");
+        _allclearSound = game._skinManager.GetAudioAsset("allclear");
+        
+        // Initialize combo sounds (1-16)
+        for (int i = 1; i <= 16; i++) {
+            _comboSounds[i] = game._skinManager.GetAudioAsset($"combo_{i}");
+        }
+        _btb1Sound = game._skinManager.GetAudioAsset("btb_1");
+        
+        // Menu and game flow sounds
+        _menuclickSound = game._skinManager.GetAudioAsset("menuclick");
+        _menutapSound = game._skinManager.GetAudioAsset("menutap");
+        _levelupSound = game._skinManager.GetAudioAsset("levelup");
+        _topoutSound = game._skinManager.GetAudioAsset("topout");
+        _finishSound = game._skinManager.GetAudioAsset("finish");
+        
         _tetrominoPoint = new Point(4, 0); // Start at column 4 (center of 10-wide grid), row 0 (top)
         _timingManager = new TimingManager();
         _random = new Random();
@@ -155,6 +207,9 @@ public class TetrisGame {
         _timingManager.InitializePiece(); // New piece, initialize lock delay
         _lastMoveWasTSpin = false;
         
+        // Play hold sound
+        _holdSound.Play();
+        
         UpdateCachedValues();
     }
     
@@ -165,7 +220,14 @@ public class TetrisGame {
             _tetrominoPoint = newPosition.Value;
             _lastMoveWasTSpin = tSpin;
             UpdateCachedValues();
-            if (tSpin) TetriON.debugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [T-SPIN]");
+            
+            // Play appropriate sound
+            if (tSpin) {
+                _spinSound.Play();
+                TetriON.debugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [T-SPIN]");
+            } else {
+                _rotateSound.Play();
+            }
             
             // Handle modern lock delay on player input
             if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
@@ -183,7 +245,14 @@ public class TetrisGame {
             _tetrominoPoint = newPosition.Value;
             _lastMoveWasTSpin = tSpin;
             UpdateCachedValues();
-            if (tSpin) TetriON.debugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [T-SPIN]");
+            
+            // Play appropriate sound
+            if (tSpin) {
+                _spinSound.Play();
+                TetriON.debugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [T-SPIN]");
+            } else {
+                _rotateSound.Play();
+            }
             
             // Handle modern lock delay on player input
             if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1))
@@ -290,6 +359,7 @@ public class TetrisGame {
         // Check if new piece can be placed (game over condition)
         if (IsGameOver()) {
             _gameOver = true;
+            _topoutSound.Play();
             TetriON.debugLog($"SpawnNextPiece: GAME OVER! Cannot place {spawnedPiece} at spawn position");
         }
     }
@@ -304,6 +374,9 @@ public class TetrisGame {
         }
         UpdateCachedValues();
         TetriON.debugLog($"TetrisGame: HARD DROP - {_currentTetromino.GetType().Name} from Y={startY} to Y={_tetrominoPoint.Y}, distance: {dropDistance}");
+        
+        // Play hard drop sound
+        _harddropSound.Play();
         
         // Hard drop scoring: 2 points per cell (modern Tetris standard)
         _score += dropDistance * 2;
@@ -463,6 +536,9 @@ public class TetrisGame {
         
         TetriON.debugLog($"ProcessLineClears: Score increased by {scoreResult.totalScore}. Total score: {_score}");
         
+        // Play appropriate line clear sound
+        PlayLineClearSound(linesCleared, _lastMoveWasTSpin, scoreResult.wasDifficult);
+        
         // Update level progression (variable goal mode: 5 × current level)
         UpdateLevelProgression();
         
@@ -483,8 +559,59 @@ public class TetrisGame {
         
         TetriON.debugLog($"ProcessLineClears: Combo updated from {previousCombo} to {_comboCount}");
         
+        // Play combo sound if combo is active (2 or higher)
+        if (_comboCount >= 2) {
+            PlayComboSound(_comboCount);
+        }
+        
+        // Play back-to-back sound if applicable
+        if (scoreResult.wasDifficult && previousB2B) {
+            _btb1Sound.Play();
+        }
+        
         // Reset T-spin flag after line clear
         _lastMoveWasTSpin = false;
+    }
+    
+    /// <summary>
+    /// Play appropriate line clear sound based on lines cleared and special conditions
+    /// </summary>
+    private void PlayLineClearSound(int linesCleared, bool wasTSpin, bool wasDifficult) {
+        // Check for perfect clear (all clear)
+        if (_grid.IsEmpty()) {
+            _allclearSound.Play();
+            return;
+        }
+        
+        // T-Spin sounds
+        if (wasTSpin) {
+            _clearspinSound.Play();
+            return;
+        }
+        
+        // Regular line clear sounds
+        switch (linesCleared) {
+            case 1:
+            case 2:
+            case 3:
+                _clearlineSound.Play();
+                break;
+            case 4:
+                _clearquadSound.Play(); // Tetris sound
+                break;
+        }
+    }
+    
+    /// <summary>
+    /// Play combo sound based on combo count
+    /// </summary>
+    private void PlayComboSound(int comboCount) {
+        // Clamp combo count to available sounds (1-16)
+        var soundIndex = Math.Min(comboCount, 16);
+        
+        if (_comboSounds.TryGetValue(soundIndex, out var comboSound)) {
+            comboSound.Play();
+        }
     }
     
     private (long totalScore, bool wasDifficult) CalculateModernScore(int linesCleared, bool wasTSpin) {
@@ -581,6 +708,7 @@ public class TetrisGame {
         
         if (_lines >= linesForNextLevel) {
             _level++;
+            _levelupSound.Play();
             TetriON.debugLog($"UpdateLevelProgression: LEVEL UP! {previousLevel} -> {_level} (Lines: {_lines}/{linesForNextLevel})");
         } else {
             var linesNeeded = linesForNextLevel - _lines;
@@ -866,4 +994,296 @@ public class TetrisGame {
             _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, _tiles, _grid.GetSizeMultiplier());
         }
     }
+    
+    #region Unused Values Utilization Methods
+    
+    // === LINE CLEAR ANIMATION STATE ===
+    
+    /// <summary>Get the number of lines waiting to be cleared after animation</summary>
+    public int GetPendingLinesCleared() {
+        return _pendingLinesCleared;
+    }
+    
+    /// <summary>Check if the current piece is hidden during line clear animation</summary>
+    public bool IsHidingPieceForLineClear() {
+        return _hidePieceForLineClear;
+    }
+    
+    /// <summary>UI helper - should show line clear effects</summary>
+    public bool ShouldShowLineClearEffect() {
+        return _lineClearInProgress && _pendingLinesCleared > 0;
+    }
+    
+    // === ARE (ENTRY DELAY) STATE ===
+    
+    /// <summary>Check if the next piece is ready to spawn</summary>
+    public bool IsNextPieceReady() {
+        return _nextPieceReady;
+    }
+    
+    /// <summary>Check if the game is in ARE delay state</summary>
+    public bool IsInAREDelay() {
+        return _areInProgress;
+    }
+    
+    /// <summary>Debug method to force ARE state</summary>
+    public void ForceARE() {
+        _areInProgress = true;
+        _nextPieceReady = false;
+        _timingManager.StartAREDelay();
+    }
+    
+    // === TARGET LINES SYSTEM ===
+    
+    /// <summary>Get the target lines for this game mode</summary>
+    public long GetTargetLines() {
+        return _targetLines;
+    }
+    
+    /// <summary>Set target lines for sprint/challenge modes</summary>
+    public void SetTargetLines(long targetLines) {
+        _targetLines = targetLines;
+    }
+    
+    /// <summary>Check if the target has been reached</summary>
+    public bool HasReachedTarget() {
+        return _targetLines > 0 && _lines >= _targetLines;
+    }
+    
+    /// <summary>Get remaining lines to reach target</summary>
+    public long GetRemainingLines() {
+        return _targetLines > 0 ? Math.Max(0, _targetLines - _lines) : 0;
+    }
+    
+    /// <summary>Get target progress as percentage (0.0 to 1.0)</summary>
+    public float GetTargetProgress() {
+        return _targetLines > 0 ? Math.Min(1.0f, (float)_lines / _targetLines) : 0f;
+    }
+    
+    /// <summary>Set appropriate target for specific game mode</summary>
+    public void SetGameModeSpecificTarget(Gamemode gamemode) {
+        switch (gamemode) {
+            case Gamemode.Sprint40:
+                SetTargetLines(40);
+                break;
+            case Gamemode.Sprint20:
+                SetTargetLines(20);
+                break;
+            case Gamemode.Sprint100:
+                SetTargetLines(100);
+                break;
+            case Gamemode.Marathon:
+                SetTargetLines(150); // Traditional marathon target
+                break;
+            default:
+                SetTargetLines(0); // No target for endless modes
+                break;
+        }
+    }
+    
+    /// <summary>Check and consume target reached state (for events)</summary>
+    public bool CheckAndConsumeTargetReached() {
+        if (HasReachedTarget()) {
+            var reached = _lines >= _targetLines;
+            return reached;
+        }
+        return false;
+    }
+    
+    // === SOFT DROP TRACKING ===
+    
+    /// <summary>Get current accumulated soft drop distance</summary>
+    public long GetSoftDropDistance() {
+        return _softDropDistance;
+    }
+    
+    /// <summary>Manually reset soft drop distance</summary>
+    public void ResetSoftDropDistance() {
+        _softDropDistance = 0;
+    }
+    
+    // === INPUT STATE ACCESS ===
+    
+    /// <summary>Check if a specific key is currently held</summary>
+    public bool IsKeyHeld(KeyBind keyBind) {
+        return _keyHeld.TryGetValue(keyBind, out bool held) && held;
+    }
+    
+    /// <summary>Check if a specific key was pressed this frame</summary>
+    public bool WasKeyPressed(KeyBind keyBind) {
+        return _keyPressed.TryGetValue(keyBind, out bool pressed) && pressed;
+    }
+    
+    /// <summary>Get all keys pressed this frame</summary>
+    public List<KeyBind> GetPressedKeys() {
+        return [.. _keyPressBuffer];
+    }
+    
+    /// <summary>Get all currently held keys</summary>
+    public Dictionary<KeyBind, bool> GetHeldKeys() {
+        return new Dictionary<KeyBind, bool>(_keyHeld);
+    }
+    
+    // === GAME STATE QUERIES ===
+    
+    /// <summary>Check if game is in normal play state (not animating/waiting)</summary>
+    public bool IsInActivePlay() {
+        return !_gameOver && !_lineClearInProgress && !_areInProgress;
+    }
+    
+    /// <summary>Check if game is in line clear animation</summary>
+    public bool IsInLineClearAnimation() {
+        return _lineClearInProgress;
+    }
+    
+    /// <summary>Get string description of current game state</summary>
+    public string GetCurrentGameState() {
+        if (_gameOver) return "Game Over";
+        if (_lineClearInProgress) return "Line Clear Animation";
+        if (_areInProgress) return "ARE Delay";
+        return "Active Play";
+    }
+    
+    // === LEVEL PROGRESSION ===
+    
+    /// <summary>Get lines needed for current level (5 × current level)</summary>
+    public long GetCurrentLevelLines() {
+        return 5 * _level;
+    }
+    
+    /// <summary>Get remaining lines needed for next level</summary>
+    public long GetLinesForNextLevel() {
+        return Math.Max(0, GetCurrentLevelLines() - _lines);
+    }
+    
+    /// <summary>Get progress within current level (0.0 to 1.0)</summary>
+    public float GetLevelProgress() {
+        var linesForLevel = GetCurrentLevelLines();
+        var previousLevelLines = 5 * (_level - 1);
+        var progressLines = _lines - previousLevelLines;
+        var neededLines = linesForLevel - previousLevelLines;
+        
+        return neededLines > 0 ? Math.Min(1.0f, (float)progressLines / neededLines) : 1.0f;
+    }
+    
+    // === ADVANCED STATE QUERIES ===
+    
+    /// <summary>Check if last move was a T-spin</summary>
+    public bool WasLastMoveATSpin() {
+        return _lastMoveWasTSpin;
+    }
+    
+    /// <summary>Check if can hold piece</summary>
+    public bool CanHold() {
+        return _canHold;
+    }
+    
+    /// <summary>UI helper - should show perfect clear effect</summary>
+    public bool ShouldShowPerfectClearEffect() {
+        return _lineClearInProgress && _grid.IsEmpty();
+    }
+    
+    /// <summary>UI helper - should show back-to-back effect</summary>
+    public bool ShouldShowBackToBackEffect() {
+        return _lastClearWasDifficult && _lineClearInProgress;
+    }
+    
+    /// <summary>UI helper - should show combo effect</summary>
+    public bool ShouldShowComboEffect() {
+        return _comboCount > 1 && _lineClearInProgress;
+    }
+    
+    // === POSITION AND COLLISION METHODS ===
+    
+    /// <summary>Get current tetromino piece cells</summary>
+    public List<Point> GetCurrentPieceCells() {
+        return GetCurrentTetrominoCells();
+    }
+    
+    /// <summary>Get ghost position (public access)</summary>
+    public Point GetGhostPositionPublic() {
+        return GetGhostPosition();
+    }
+    
+    /// <summary>Get current tetromino position</summary>
+    public Point GetTetrominoPosition() {
+        return _tetrominoPoint;
+    }
+    
+    // === SYSTEM ACCESS METHODS ===
+    
+    /// <summary>Get timing manager for external access</summary>
+    public TimingManager GetTimingManager() {
+        return _timingManager;
+    }
+    
+    /// <summary>Get seven bag randomizer for external access</summary>
+    public SevenBagRandomizer GetBagRandomizer() {
+        return _bagRandomizer;
+    }
+    
+    // === UTILITY METHODS ===
+    
+    /// <summary>Get play field bounds as rectangle</summary>
+    public Rectangle GetPlayFieldBounds() {
+        var scaledTileSize = (int)(Grid.TILE_SIZE * _grid.GetSizeMultiplier());
+        return new Rectangle(
+            _point.X,
+            _point.Y,
+            _grid.GetWidth() * scaledTileSize,
+            _grid.GetHeight() * scaledTileSize
+        );
+    }
+    
+    /// <summary>Convert grid position to pixel position</summary>
+    public Point GridToPixelPosition(Point gridPos) {
+        var scaledTileSize = (int)(Grid.TILE_SIZE * _grid.GetSizeMultiplier());
+        return new Point(
+            _point.X + gridPos.X * scaledTileSize,
+            _point.Y + gridPos.Y * scaledTileSize
+        );
+    }
+    
+    /// <summary>Convert pixel position to grid position</summary>
+    public Point PixelToGridPosition(Point pixelPos) {
+        var scaledTileSize = (int)(Grid.TILE_SIZE * _grid.GetSizeMultiplier());
+        return new Point(
+            (pixelPos.X - _point.X) / scaledTileSize,
+            (pixelPos.Y - _point.Y) / scaledTileSize
+        );
+    }
+    
+    // === PERFORMANCE AND DEBUGGING ===
+    
+    /// <summary>Force update cached values</summary>
+    public void ForceUpdateCachedValues() {
+        UpdateCachedValues();
+    }
+    
+    /// <summary>Check if ghost position needs recalculation</summary>
+    public bool IsGhostPositionDirty() {
+        return _ghostPositionDirty;
+    }
+    
+    /// <summary>Mark ghost position for recalculation</summary>
+    public void InvalidateGhostPosition() {
+        _ghostPositionDirty = true;
+    }
+    
+    /// <summary>Debug method to force line clear</summary>
+    public void ForceLineClear(int lines) {
+        if (lines > 0 && lines <= 4) {
+            _lineClearInProgress = true;
+            _pendingLinesCleared = lines;
+            _hidePieceForLineClear = true;
+            _timingManager.StartLineClear();
+        }
+    }
+    
+    /// <summary>Debug method to force game over</summary>
+    public void ForceGameOver() {
+        _gameOver = true;
+    }
+    
+    #endregion
 }

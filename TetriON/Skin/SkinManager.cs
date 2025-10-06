@@ -22,20 +22,48 @@ public class SkinManager : IDisposable {
         { "default", new HashSet<string> { "tiles", "missing_texture" } }
     };
     // Cache of available sound files per skin (paths only, no actual sounds loaded)
-    private readonly Dictionary<string, HashSet<string>> _availableSounds = new() {
-        { "default", new HashSet<string> { "move", "rotate", "clear", "drop" } }
-    };
-    private readonly Dictionary<string, SoundWrapper> _audioAssets = new();
-    private readonly Dictionary<string, TextureWrapper> _textureAssets = new();
+    // This will be populated dynamically by scanning the filesystem
+    private readonly Dictionary<string, HashSet<string>> _availableSounds = [];
+    private readonly Dictionary<string, SoundWrapper> _audioAssets = [];
+    private readonly Dictionary<string, TextureWrapper> _textureAssets = [];
 
     // Valid asset names that are allowed to be loaded (security/validation)
-    private static readonly HashSet<string> ValidTextureNames = new() {
+    private static readonly HashSet<string> ValidTextureNames = [
         "tiles", "missing_texture", "background", "ui", "logo", "particles", "effects"
-    };
+    ];
     
-    private static readonly HashSet<string> ValidSoundNames = new() {
-        "move", "rotate", "clear", "drop", "hold", "lock", "levelup", "gameover", "pause"
-    };
+    private static readonly HashSet<string> ValidSoundNames = [
+        // === GAME ACTIONS ===
+        "move", "rotate", "harddrop", "hold", "spin",
+        
+        // === LINE CLEARS ===
+        "clearline", "clearquad", "clearspin", "clearbtb", "allclear",
+        
+        // === COMBO SYSTEM ===
+        "combo_1", "combo_2", "combo_3", "combo_4", "combo_5", "combo_6", "combo_7", "combo_8",
+        "combo_9", "combo_10", "combo_11", "combo_12", "combo_13", "combo_14", "combo_15", "combo_16",
+        
+        // === BACK-TO-BACK ===
+        "btb_1",
+        
+        // === GARBAGE SYSTEM ===
+        "garbage_in_large", "garbage_in_small", "garbagerise", "garbagesmash", "damage_alert",
+        
+        // === GAME FLOW ===
+        "levelup", "speed_up", "speed_down", "countdown4", "countdown5", "go", "finish", "failure", "topout",
+        
+        // === MENU INTERFACE ===
+        "menuclick", "menutap",
+        
+        // === SPECIAL EVENTS ===
+        "personalbest", "pbstart", "pbend", "hyperalert", "thunder",
+        
+        // === UTILITY ===
+        "undo", "redo", "retry", "offset",
+        
+        // === ZENITH MODE ===
+        "zenith_levelup", "zenith_speedrun_start", "zenith_speedrun_end"
+    ];
 
     private static readonly string SupportedAudioExtension = ".wav";
     private static readonly string SupportedTextureExtensions = ".png";
@@ -88,21 +116,29 @@ public class SkinManager : IDisposable {
         if (cleanTextureName.EndsWith(SupportedTextureExtensions))
             cleanTextureName = cleanTextureName.Substring(0, cleanTextureName.Length - SupportedTextureExtensions.Length);
 
-        // Try to load from custom skin folder
-        var skinPath = Path.Combine("skins", _currentSkin, $"{cleanTextureName}{SupportedTextureExtensions}");
-        if (File.Exists(skinPath)) {
-            TetriON.debugLog($"SkinManager: Loading texture '{cleanTextureName}' from current skin '{_currentSkin}' at '{skinPath}'");
-            return LoadTextureFromFile(skinPath);
+        // Try to load from custom skin folder (search recursively)
+        var skinFolder = Path.Combine("skins", _currentSkin);
+        if (Directory.Exists(skinFolder)) {
+            var matchingFiles = Directory.GetFiles(skinFolder, $"{cleanTextureName}{SupportedTextureExtensions}", SearchOption.AllDirectories);
+            if (matchingFiles.Length > 0) {
+                var skinPath = matchingFiles[0];
+                TetriON.debugLog($"SkinManager: Loading texture '{cleanTextureName}' from current skin '{_currentSkin}' at '{skinPath}'");
+                return LoadTextureFromFile(skinPath);
+            }
         }
 
-        // Try default skin folder
-        var defaultPath = Path.Combine("skins", "default", $"{cleanTextureName}{SupportedTextureExtensions}");
-        if (File.Exists(defaultPath)) {
-            TetriON.debugLog($"SkinManager: Loading texture '{cleanTextureName}' from default skin fallback at '{defaultPath}'");
-            return LoadTextureFromFile(defaultPath);
+        // Try default skin folder (search recursively)
+        var defaultFolder = Path.Combine("skins", "default");
+        if (Directory.Exists(defaultFolder)) {
+            var matchingFiles = Directory.GetFiles(defaultFolder, $"{cleanTextureName}{SupportedTextureExtensions}", SearchOption.AllDirectories);
+            if (matchingFiles.Length > 0) {
+                var defaultPath = matchingFiles[0];
+                TetriON.debugLog($"SkinManager: Loading texture '{cleanTextureName}' from default skin fallback at '{defaultPath}'");
+                return LoadTextureFromFile(defaultPath);
+            }
         }
 
-        TetriON.debugLog($"SkinManager: ✗ Texture '{textureName}' not found in '{skinPath}' or '{defaultPath}'");
+        TetriON.debugLog($"SkinManager: ✗ Texture '{textureName}' not found in skin '{_currentSkin}' or default skin (searched recursively)");
         throw new FileNotFoundException($"Custom texture '{textureName}' not found in skin '{_currentSkin}' or default skin.");
     }
 
@@ -158,14 +194,21 @@ public class SkinManager : IDisposable {
 
     /// <summary>
     /// Find a sound file with any supported audio extension (prioritizes WAV for runtime loading)
+    /// Searches recursively through all subdirectories
     /// </summary>
     private string FindSoundFile(string baseFolder, string skinName, string soundName) {
+        var skinFolder = Path.Combine(baseFolder, skinName);
+        if (!Directory.Exists(skinFolder)) {
+            return null;
+        }
+        
         // Prioritize WAV files since they can be loaded at runtime
         var extensions = new[] { ".wav", ".ogg", ".mp3" };
         foreach (var ext in extensions) {
-            var filePath = Path.Combine(baseFolder, skinName, $"{soundName}{ext}");
-            if (File.Exists(filePath)) {
-                return filePath;
+            // Search recursively through all subdirectories
+            var matchingFiles = Directory.GetFiles(skinFolder, $"{soundName}{ext}", SearchOption.AllDirectories);
+            if (matchingFiles.Length > 0) {
+                return matchingFiles[0]; // Return first match
             }
         }
         return null;
@@ -366,13 +409,14 @@ public class SkinManager : IDisposable {
     /// <summary>
     /// Scan for available PNG textures in a specific skin folder (memory efficient - paths only)
     /// Only includes textures with valid names for security
+    /// Scans recursively through all subdirectories
     /// </summary>
     private void ScanTexturesInSkin(string skinName, string skinFolder) {
         if (!_availableTextures.ContainsKey(skinName)) {
             _availableTextures[skinName] = [];
         }
 
-        var pngFiles = Directory.GetFiles(skinFolder, "*.png", SearchOption.TopDirectoryOnly);
+        var pngFiles = Directory.GetFiles(skinFolder, "*.png", SearchOption.AllDirectories);
         var validTextures = new List<string>();
         var invalidTextures = new List<string>();
         
@@ -387,12 +431,13 @@ public class SkinManager : IDisposable {
             }
         }
         
-        TetriON.debugLog($"SkinManager: Skin '{skinName}' - Found {pngFiles.Length} PNG files. Valid: {validTextures.Count} [{string.Join(", ", validTextures)}]" + 
+        TetriON.debugLog($"SkinManager: Skin '{skinName}' - Found {pngFiles.Length} PNG files (including subdirectories). Valid: {validTextures.Count} [{string.Join(", ", validTextures)}]" + 
                         (invalidTextures.Count > 0 ? $", Invalid: {invalidTextures.Count} [{string.Join(", ", invalidTextures)}]" : ""));
     }
 
     /// <summary>
     /// Scan for available sound files in a specific skin folder (memory efficient - paths only)
+    /// Scans recursively through all subdirectories (e.g., sfx/ folder)
     /// </summary>
     private void ScanSoundsInSkin(string skinName, string skinFolder) {
         if (!_availableSounds.ContainsKey(skinName)) {
@@ -403,27 +448,28 @@ public class SkinManager : IDisposable {
         var invalidSounds = new List<string>();
         var totalFiles = 0;
 
-        // Scan for various audio formats
+        // Scan for various audio formats recursively
         var audioExtensions = new[] { "*.wav", "*.mp3", "*.ogg" };
         foreach (var extension in audioExtensions) {
-            var audioFiles = Directory.GetFiles(skinFolder, extension, SearchOption.TopDirectoryOnly);
+            var audioFiles = Directory.GetFiles(skinFolder, extension, SearchOption.AllDirectories);
             totalFiles += audioFiles.Length;
             
             foreach (var audioFile in audioFiles) {
                 var soundName = Path.GetFileNameWithoutExtension(audioFile);
                 var fileExtension = Path.GetExtension(audioFile);
+                var relativePath = Path.GetRelativePath(skinFolder, audioFile);
                 
                 // Only include sounds with valid names
                 if (ValidSoundNames.Contains(soundName)) {
                     _availableSounds[skinName].Add(soundName);
-                    validSounds.Add($"{soundName}{fileExtension}");
+                    validSounds.Add($"{soundName}{fileExtension} ({Path.GetDirectoryName(relativePath)})");
                 } else {
-                    invalidSounds.Add($"{soundName}{fileExtension}");
+                    invalidSounds.Add($"{soundName}{fileExtension} ({Path.GetDirectoryName(relativePath)})");
                 }
             }
         }
         
-        TetriON.debugLog($"SkinManager: Skin '{skinName}' - Found {totalFiles} audio files. Valid: {validSounds.Count} [{string.Join(", ", validSounds)}]" + 
+        TetriON.debugLog($"SkinManager: Skin '{skinName}' - Found {totalFiles} audio files (including subdirectories). Valid: {validSounds.Count} [{string.Join(", ", validSounds)}]" + 
                         (invalidSounds.Count > 0 ? $", Invalid: {invalidSounds.Count} [{string.Join(", ", invalidSounds)}]" : ""));
     }
 
@@ -442,10 +488,11 @@ public class SkinManager : IDisposable {
             "   - background.png (optional background)\n" +
             "   - ui.png (optional UI elements)\n\n" +
             "3. Add audio files for your custom sounds:\n" +
-            "   - move.wav/.mp3/.ogg (piece movement sound)\n" +
-            "   - rotate.wav/.mp3/.ogg (piece rotation sound)\n" +
-            "   - clear.wav/.mp3/.ogg (line clear sound)\n" +
-            "   - drop.wav/.mp3/.ogg (hard drop sound)\n\n" +
+            "   Game Actions: move.wav, rotate.wav, harddrop.wav, hold.wav, spin.wav\n" +
+            "   Line Clears: clearline.wav, clearquad.wav, clearspin.wav, allclear.wav\n" +
+            "   Combos: combo_1.wav through combo_16.wav\n" +
+            "   Menu: menuclick.wav, menutap.wav\n" +
+            "   And many more! See ValidSoundNames in SkinManager for full list.\n\n" +
             "4. The game will automatically detect and load your custom skin\n" +
             "5. Use LoadCustomTexture(\"filename\") to load your PNG files\n" +
             "6. Use LoadCustomSound(\"filename\") to load your audio files\n\n" +
