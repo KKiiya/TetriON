@@ -24,6 +24,7 @@ public class TimingManager
     private bool _lineClearActive;
     private bool _autoRepeatActive;
     private bool _areActive;              // ARE delay active
+    private readonly GameSettings _gameSettings;
     
     // Modern Tetris lock delay system (according to specifications)
     private float _lockDelayTimer;        // time left before lock in seconds
@@ -32,7 +33,8 @@ public class TimingManager
     private int _resetCounterLimit;       // usually 15
     private bool _isGrounded;             // true if piece is in contact with the stack/floor
     
-    public TimingManager() {
+    public TimingManager(GameSettings gameSettings = null) {
+        _gameSettings = gameSettings;
         Reset();
         // Initialize modern lock delay system
         _lockDelayLimit = GameTiming.LockDelay;
@@ -247,7 +249,8 @@ public class TimingManager
     /// Check if initial auto-repeat delay has passed.
     /// </summary>
     public bool HasAutoRepeatDelayPassed() {
-        return _autoRepeatActive && _autoRepeatTimer >= GameTiming.AutoRepeatDelay;
+        var delayTime = GameTiming.GetAutoRepeatDelay(_gameSettings);
+        return _autoRepeatActive && _autoRepeatTimer >= delayTime;
     }
     
     /// <summary>
@@ -256,10 +259,13 @@ public class TimingManager
     public bool ShouldAutoRepeat() {
         if (!HasAutoRepeatDelayPassed()) return false;
         
-        var timeSinceDelay = _autoRepeatTimer - GameTiming.AutoRepeatDelay;
-        if (timeSinceDelay >= GameTiming.AutoRepeatRate) {
+        var delayTime = GameTiming.GetAutoRepeatDelay(_gameSettings);
+        var repeatRate = GameTiming.GetAutoRepeatRate(_gameSettings);
+        
+        var timeSinceDelay = _autoRepeatTimer - delayTime;
+        if (timeSinceDelay >= repeatRate) {
             // Reset timer to maintain consistent intervals
-            _autoRepeatTimer = GameTiming.AutoRepeatDelay;
+            _autoRepeatTimer = delayTime;
             return true;
         }
         return false;

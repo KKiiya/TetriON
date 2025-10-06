@@ -10,11 +10,13 @@ public static class GameTiming {
     #region Core Timing Constants (in seconds)
     
     // === INPUT TIMING ===
-    /// <summary>DAS (Delayed Auto Shift) - Initial delay before auto-repeat starts</summary>
-    public const float AutoRepeatDelay = 0.100f; // ~6 frames at 60fps (competitive responsive)
+    // Note: DAS and ARR values are now configured in GameSettings and accessed via GetAutoRepeatDelay() and GetAutoRepeatRate()
     
-    /// <summary>ARR (Auto Repeat Rate) - Time between auto-repeat actions</summary>
-    public const float AutoRepeatRate = 0.033f; // ~2 frames at 60fps (very fast for competitive play)
+    /// <summary>Default DAS (Delayed Auto Shift) if no settings provided</summary>
+    public const float DefaultAutoRepeatDelay = 0.170f; // 170ms (matches GameSettings default)
+    
+    /// <summary>Default ARR (Auto Repeat Rate) if no settings provided</summary>
+    public const float DefaultAutoRepeatRate = 0.030f; // 30ms (matches GameSettings default)
     
     /// <summary>Soft drop multiplier - How much faster pieces fall during soft drop</summary>
     public const float SoftDropMultiplier = 20.0f;
@@ -85,6 +87,26 @@ public static class GameTiming {
     }
     
     /// <summary>
+    /// Get DAS (Delayed Auto Shift) value in seconds from settings or default
+    /// </summary>
+    public static float GetAutoRepeatDelay(GameSettings settings = null) {
+        if (settings != null) {
+            return settings.DAS / 1000.0f; // Convert milliseconds to seconds
+        }
+        return DefaultAutoRepeatDelay;
+    }
+    
+    /// <summary>
+    /// Get ARR (Auto Repeat Rate) value in seconds from settings or default
+    /// </summary>
+    public static float GetAutoRepeatRate(GameSettings settings = null) {
+        if (settings != null) {
+            return settings.ARR / 1000.0f; // Convert milliseconds to seconds
+        }
+        return DefaultAutoRepeatRate;
+    }
+    
+    /// <summary>
     /// Get interpolation factor for smooth animations (0.0 to 1.0).
     /// </summary>
     public static float GetInterpolationFactor(float startTime, float duration, float currentTime) {
@@ -148,10 +170,15 @@ public static class GameTiming {
     /// <summary>
     /// Validate that timing values are reasonable for gameplay.
     /// </summary>
-    public static bool ValidateTimingValues() {
-        // Ensure core timing values are positive and reasonable
-        if (AutoRepeatDelay <= 0 || AutoRepeatDelay > 1.0f) return false;
-        if (AutoRepeatRate <= 0 || AutoRepeatRate > 0.5f) return false;
+    public static bool ValidateTimingValues(GameSettings settings = null) {
+        // Validate configurable input timing
+        var das = GetAutoRepeatDelay(settings);
+        var arr = GetAutoRepeatRate(settings);
+        
+        if (das <= 0 || das > 1.0f) return false;  // DAS should be 1-1000ms
+        if (arr <= 0 || arr > 0.5f) return false;  // ARR should be 1-500ms
+        
+        // Validate fixed timing values
         if (LockDelay <= 0 || LockDelay > 2.0f) return false;
         if (LineClearDelay <= 0 || LineClearDelay > 2.0f) return false;
         

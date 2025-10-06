@@ -12,36 +12,15 @@ using TetriON.Game.Enums;
 namespace TetriON.game;
 
 public class TetrisGame {
-    
+
     // === SOUND EFFECTS ===
-    private readonly SoundWrapper _moveSound;
-    private readonly SoundWrapper _rotateSound;
-    private readonly SoundWrapper _harddropSound;
-    private readonly SoundWrapper _holdSound;
-    private readonly SoundWrapper _spinSound;
-    
-    // Line clear sounds
-    private readonly SoundWrapper _clearlineSound;
-    private readonly SoundWrapper _clearquadSound;
-    private readonly SoundWrapper _clearspinSound;
-    private readonly SoundWrapper _clearbtbSound;
-    private readonly SoundWrapper _allclearSound;
-    
+    private readonly Dictionary<string, SoundWrapper> _soundEffects = [];
     // Combo sounds (1-16)
-    private readonly Dictionary<int, SoundWrapper> _comboSounds = new();
-    private readonly SoundWrapper _btb1Sound;
-    
-    // Menu sounds
-    private readonly SoundWrapper _menuclickSound;
-    private readonly SoundWrapper _menutapSound;
-    
-    // Game flow sounds
-    private readonly SoundWrapper _levelupSound;
-    private readonly SoundWrapper _topoutSound;
-    private readonly SoundWrapper _finishSound;
-    
+    private readonly Dictionary<int, SoundWrapper> _comboSounds = [];
+
     private readonly SpriteBatch _spriteBatch;
     private readonly Texture2D _tiles;
+    private readonly GameSettings _gameSettings; // Store for spawn position calculations
     
     private readonly Point _point;
     
@@ -97,51 +76,60 @@ public class TetrisGame {
         TODO: Replace Point and Texture2D with TetriON instance to obtain everything needed
         new constructor: public TetrisGame(TetriON game, Mode mode, Gamemode gamemode)
     */
-    public TetrisGame(TetriON game, Mode mode, Gamemode gamemode) {
+    public TetrisGame(TetriON game, Mode mode, Gamemode gamemode, GameSettings settings = null) {
+        // Create settings if not provided, applying gamemode preset
+        settings ??= new GameSettings(mode, gamemode);
+        
         _spriteBatch = game.SpriteBatch;
-        var gridWidth = 10;
-        var gridHeight = 20; 
+        
+        // Use grid dimensions from settings
+        var gridWidth = settings.GridWidth;
+        var gridHeight = settings.GridHeight; 
         var tileSize = 30;
-        var sizeMultiplier = 1.2f; // Smaller, more reasonable size
+        var sizeMultiplier = 1f; // Consistent size multiplier
         var scaledTileSize = (int)(tileSize * sizeMultiplier);
         var gridPixelWidth = gridWidth * scaledTileSize;
         var gridPixelHeight = gridHeight * scaledTileSize;
+        
+        // Center the visible grid area (without buffer zone adjustment)
         var centerX = (game.GetWindowResolution().X - gridPixelWidth) / 2;
         var centerY = (game.GetWindowResolution().Y - gridPixelHeight) / 2;
 
         _point = new Point(centerX, centerY);
         _tiles = game._skinManager.GetTextureAsset("tiles").GetTexture();
-        _grid = new Grid(_point, 10, 20, 1.2f); // Reasonable size for proper Tetris gameplay
-        
+        _grid = new Grid(_point, settings.GridWidth, settings.GridHeight, sizeMultiplier, settings.BufferZoneHeight);
+
         // Initialize sound effects
-        _moveSound = game._skinManager.GetAudioAsset("move");
-        _rotateSound = game._skinManager.GetAudioAsset("rotate");
-        _harddropSound = game._skinManager.GetAudioAsset("harddrop");
-        _holdSound = game._skinManager.GetAudioAsset("hold");
-        _spinSound = game._skinManager.GetAudioAsset("spin");
-        
+
+        _soundEffects["move"] = game._skinManager.GetAudioAsset("move");
+        _soundEffects["rotate"] = game._skinManager.GetAudioAsset("rotate");
+        _soundEffects["harddrop"] = game._skinManager.GetAudioAsset("harddrop");
+        _soundEffects["hold"] = game._skinManager.GetAudioAsset("hold");
+        _soundEffects["spin"] = game._skinManager.GetAudioAsset("spin");
+
         // Line clear sounds
-        _clearlineSound = game._skinManager.GetAudioAsset("clearline");
-        _clearquadSound = game._skinManager.GetAudioAsset("clearquad");
-        _clearspinSound = game._skinManager.GetAudioAsset("clearspin");
-        _clearbtbSound = game._skinManager.GetAudioAsset("clearbtb");
-        _allclearSound = game._skinManager.GetAudioAsset("allclear");
+        _soundEffects["clearline"] = game._skinManager.GetAudioAsset("clearline");
+        _soundEffects["clearquad"] = game._skinManager.GetAudioAsset("clearquad");
+        _soundEffects["clearspin"] = game._skinManager.GetAudioAsset("clearspin");
+        _soundEffects["clearbtb"] = game._skinManager.GetAudioAsset("clearbtb");
+        _soundEffects["allclear"] = game._skinManager.GetAudioAsset("allclear");
         
         // Initialize combo sounds (1-16)
         for (int i = 1; i <= 16; i++) {
             _comboSounds[i] = game._skinManager.GetAudioAsset($"combo_{i}");
         }
-        _btb1Sound = game._skinManager.GetAudioAsset("btb_1");
+        _soundEffects["btb1"] = game._skinManager.GetAudioAsset("btb_1");
         
         // Menu and game flow sounds
-        _menuclickSound = game._skinManager.GetAudioAsset("menuclick");
-        _menutapSound = game._skinManager.GetAudioAsset("menutap");
-        _levelupSound = game._skinManager.GetAudioAsset("levelup");
-        _topoutSound = game._skinManager.GetAudioAsset("topout");
-        _finishSound = game._skinManager.GetAudioAsset("finish");
-        
-        _tetrominoPoint = new Point(4, 0); // Start at column 4 (center of 10-wide grid), row 0 (top)
-        _timingManager = new TimingManager();
+        _soundEffects["menuclick"] = game._skinManager.GetAudioAsset("menuclick");
+        _soundEffects["menutap"] = game._skinManager.GetAudioAsset("menutap");
+        _soundEffects["levelup"] = game._skinManager.GetAudioAsset("levelup");
+        _soundEffects["topout"] = game._skinManager.GetAudioAsset("topout");
+        _soundEffects["finish"] = game._skinManager.GetAudioAsset("finish");
+
+        _tetrominoPoint = new Point(settings.GridWidth / 2 - 2, -settings.BufferZoneHeight); // Start centered in buffer zone
+        _gameSettings = settings; // Store reference for spawn calculations
+        _timingManager = new TimingManager(settings);
         _random = new Random();
         _bagRandomizer = new SevenBagRandomizer(_random);
 
@@ -157,11 +145,12 @@ public class TetrisGame {
         // Initialize modern lock delay for first piece
         _timingManager.InitializePiece();
 
-        _canHold = true;
-        _mode = mode;
-        _level = 1;
+        _canHold = settings.EnableHoldPiece;
+        _mode = settings.Mode;
+        _level = settings.StartingLevel;
         _score = 0;
         _lines = 0;
+        _targetLines = settings.TargetLines;
         _gameOver = false;
 
         // Initialize modern scoring state
@@ -169,7 +158,7 @@ public class TetrisGame {
         _comboCount = 0;
         _softDropDistance = 0;
 
-        TetriON.debugLog($"TetrisGame: Initialized new game - Mode: {mode}, Gamemode: {gamemode}, Level: {_level}, Score: {_score}");
+        TetriON.DebugLog($"TetrisGame: Initialized new game - Mode: {mode}, Gamemode: {gamemode}, Level: {_level}, Score: {_score}");
         _lineClearInProgress = false;
         _pendingLinesCleared = 0;
         _hidePieceForLineClear = false;
@@ -195,21 +184,20 @@ public class TetrisGame {
                 _nextTetrominos[i] = _nextTetrominos[i + 1];
             }
             _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
-            TetriON.debugLog($"TetrisGame: HOLD - Stored {previousPiece}, spawned {_currentTetromino.GetType().Name} from queue");
+            TetriON.DebugLog($"TetrisGame: HOLD - Stored {previousPiece}, spawned {_currentTetromino.GetType().Name} from queue");
         } else {
             var heldPiece = _holdTetromino.GetType().Name;
             (_holdTetromino, _currentTetromino) = (_currentTetromino, _holdTetromino);
-            TetriON.debugLog($"TetrisGame: HOLD - Swapped {previousPiece} ↔ {heldPiece}");
+            TetriON.DebugLog($"TetrisGame: HOLD - Swapped {previousPiece} ↔ {heldPiece}");
         }
     
         _canHold = false;
-        _tetrominoPoint = new Point(4, 0);
+        _tetrominoPoint = new Point(_gameSettings.GridWidth / 2 - 2, -_gameSettings.BufferZoneHeight);
         _timingManager.InitializePiece(); // New piece, initialize lock delay
         _lastMoveWasTSpin = false;
         
         // Play hold sound
-        _holdSound.Play();
-        
+        _soundEffects["hold"].Play();
         UpdateCachedValues();
     }
     
@@ -223,10 +211,10 @@ public class TetrisGame {
             
             // Play appropriate sound
             if (tSpin) {
-                _spinSound.Play();
-                TetriON.debugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [T-SPIN]");
+                _soundEffects["spin"].Play();
+                TetriON.DebugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [T-SPIN]");
             } else {
-                _rotateSound.Play();
+                _soundEffects["rotate"].Play();
             }
             
             // Handle modern lock delay on player input
@@ -248,10 +236,10 @@ public class TetrisGame {
             
             // Play appropriate sound
             if (tSpin) {
-                _spinSound.Play();
-                TetriON.debugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [T-SPIN]");
+                _soundEffects["spin"].Play();
+                TetriON.DebugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [T-SPIN]");
             } else {
-                _rotateSound.Play();
+                _soundEffects["rotate"].Play();
             }
             
             // Handle modern lock delay on player input
@@ -268,7 +256,7 @@ public class TetrisGame {
         if (_gameOver || !CanMoveCurrentTo(-1, 0)) return;
         _tetrominoPoint.X--;
         UpdateCachedValues();
-        _moveSound.Play();
+        _soundEffects["move"].Play();
         
         // Handle modern lock delay on player input
         if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
@@ -282,7 +270,7 @@ public class TetrisGame {
         if (_gameOver || !CanMoveCurrentTo(1, 0)) return;
         _tetrominoPoint.X++;
         UpdateCachedValues();
-        _moveSound.Play();
+        _soundEffects["move"].Play();
         
         // Handle modern lock delay on player input
         if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
@@ -306,7 +294,7 @@ public class TetrisGame {
 
     private void Lock() {
         var pieceType = _currentTetromino.GetType().Name;
-        TetriON.debugLog($"TetrisGame: LOCK - {pieceType} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})" +
+        TetriON.DebugLog($"TetrisGame: LOCK - {pieceType} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})" +
                         (_lastMoveWasTSpin ? " [T-SPIN SETUP]" : ""));
         
         _grid.PlaceTetromino(_currentTetromino, _tetrominoPoint);
@@ -319,13 +307,13 @@ public class TetrisGame {
             _pendingLinesCleared = linesCleared;
             _hidePieceForLineClear = true; // Hide the current piece during line clear
             _timingManager.StartLineClear();
-            TetriON.debugLog($"TetrisGame: LINE CLEAR DETECTED - {linesCleared} line(s) pending animation");
+            TetriON.DebugLog($"TetrisGame: LINE CLEAR DETECTED - {linesCleared} line(s) pending animation");
         } else {
             // No line clears - start ARE immediately
             _areInProgress = true;
             _nextPieceReady = false;
             _timingManager.StartAREDelay();
-            TetriON.debugLog($"TetrisGame: NO LINE CLEAR - Starting ARE delay, combo broken (was {_comboCount})");
+            TetriON.DebugLog($"TetrisGame: NO LINE CLEAR - Starting ARE delay, combo broken (was {_comboCount})");
             
             // Break combo when no lines are cleared
             if (_comboCount > 0) {
@@ -345,10 +333,10 @@ public class TetrisGame {
         var nextPieceType = _bagRandomizer.GetNextPieceType();
         _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(nextPieceType);
         
-        TetriON.debugLog($"SpawnNextPiece: Spawned {spawnedPiece}, added {nextPieceType} to queue");
+        TetriON.DebugLog($"SpawnNextPiece: Spawned {spawnedPiece}, added {nextPieceType} to queue");
         
         // Reset position and state
-        _tetrominoPoint = new Point(4, 0);
+        _tetrominoPoint = new Point(_gameSettings.GridWidth / 2 - 2, -_gameSettings.BufferZoneHeight);
         _timingManager.Reset();
         _canHold = true;
         _areInProgress = false;
@@ -359,8 +347,8 @@ public class TetrisGame {
         // Check if new piece can be placed (game over condition)
         if (IsGameOver()) {
             _gameOver = true;
-            _topoutSound.Play();
-            TetriON.debugLog($"SpawnNextPiece: GAME OVER! Cannot place {spawnedPiece} at spawn position");
+            _soundEffects["topout"].Play();
+            TetriON.DebugLog($"SpawnNextPiece: GAME OVER! Cannot place {spawnedPiece} at spawn position");
         }
     }
 
@@ -373,11 +361,11 @@ public class TetrisGame {
             dropDistance++;
         }
         UpdateCachedValues();
-        TetriON.debugLog($"TetrisGame: HARD DROP - {_currentTetromino.GetType().Name} from Y={startY} to Y={_tetrominoPoint.Y}, distance: {dropDistance}");
+        TetriON.DebugLog($"TetrisGame: HARD DROP - {_currentTetromino.GetType().Name} from Y={startY} to Y={_tetrominoPoint.Y}, distance: {dropDistance}");
         
         // Play hard drop sound
-        _harddropSound.Play();
-        
+        _soundEffects["harddrop"].Play();
+
         // Hard drop scoring: 2 points per cell (modern Tetris standard)
         _score += dropDistance * 2;
         
@@ -526,7 +514,7 @@ public class TetrisGame {
     }
     
     private void ProcessLineClears(int linesCleared) {
-        TetriON.debugLog($"ProcessLineClears: Processing {linesCleared} lines cleared. Current total lines: {_lines}");
+        TetriON.DebugLog($"ProcessLineClears: Processing {linesCleared} lines cleared. Current total lines: {_lines}");
         
         _lines += linesCleared;
         
@@ -534,7 +522,7 @@ public class TetrisGame {
         var scoreResult = CalculateModernScore(linesCleared, _lastMoveWasTSpin);
         _score += scoreResult.totalScore;
         
-        TetriON.debugLog($"ProcessLineClears: Score increased by {scoreResult.totalScore}. Total score: {_score}");
+        TetriON.DebugLog($"ProcessLineClears: Score increased by {scoreResult.totalScore}. Total score: {_score}");
         
         // Play appropriate line clear sound
         PlayLineClearSound(linesCleared, _lastMoveWasTSpin, scoreResult.wasDifficult);
@@ -547,9 +535,9 @@ public class TetrisGame {
         _lastClearWasDifficult = scoreResult.wasDifficult;
         
         if (scoreResult.wasDifficult && previousB2B) {
-            TetriON.debugLog($"ProcessLineClears: Back-to-Back bonus applied! Difficult clear: {scoreResult.wasDifficult}");
+            TetriON.DebugLog($"ProcessLineClears: Back-to-Back bonus applied! Difficult clear: {scoreResult.wasDifficult}");
         } else if (scoreResult.wasDifficult) {
-            TetriON.debugLog($"ProcessLineClears: Difficult clear registered for future B2B bonus");
+            TetriON.DebugLog($"ProcessLineClears: Difficult clear registered for future B2B bonus");
         }
 
         // Update combo counter
@@ -557,7 +545,7 @@ public class TetrisGame {
         if (linesCleared > 0) _comboCount++;
         else  _comboCount = 0; // Reset combo on empty drop
         
-        TetriON.debugLog($"ProcessLineClears: Combo updated from {previousCombo} to {_comboCount}");
+        TetriON.DebugLog($"ProcessLineClears: Combo updated from {previousCombo} to {_comboCount}");
         
         // Play combo sound if combo is active (2 or higher)
         if (_comboCount >= 2) {
@@ -566,7 +554,7 @@ public class TetrisGame {
         
         // Play back-to-back sound if applicable
         if (scoreResult.wasDifficult && previousB2B) {
-            _btb1Sound.Play();
+            _soundEffects["btb1"].Play();
         }
         
         // Reset T-spin flag after line clear
@@ -579,13 +567,13 @@ public class TetrisGame {
     private void PlayLineClearSound(int linesCleared, bool wasTSpin, bool wasDifficult) {
         // Check for perfect clear (all clear)
         if (_grid.IsEmpty()) {
-            _allclearSound.Play();
+            _soundEffects["allclear"].Play();
             return;
         }
         
         // T-Spin sounds
         if (wasTSpin) {
-            _clearspinSound.Play();
+            _soundEffects["clearspin"].Play();
             return;
         }
         
@@ -594,10 +582,10 @@ public class TetrisGame {
             case 1:
             case 2:
             case 3:
-                _clearlineSound.Play();
+                _soundEffects["clearline"].Play();
                 break;
             case 4:
-                _clearquadSound.Play(); // Tetris sound
+                _soundEffects["clearquad"].Play(); // Tetris sound
                 break;
         }
     }
@@ -615,12 +603,12 @@ public class TetrisGame {
     }
     
     private (long totalScore, bool wasDifficult) CalculateModernScore(int linesCleared, bool wasTSpin) {
-        TetriON.debugLog($"CalculateModernScore: Lines={linesCleared}, T-Spin={wasTSpin}, Level={_level}, Combo={_comboCount}");
+        TetriON.DebugLog($"CalculateModernScore: Lines={linesCleared}, T-Spin={wasTSpin}, Level={_level}, Combo={_comboCount}");
         
         if (linesCleared == 0) {
             // Empty drop - add soft drop and combo reset
             var emptySoftDropScore = _softDropDistance; // 1 point per cell
-            TetriON.debugLog($"CalculateModernScore: Empty drop - soft drop score: {emptySoftDropScore}");
+            TetriON.DebugLog($"CalculateModernScore: Empty drop - soft drop score: {emptySoftDropScore}");
             _softDropDistance = 0; // Reset after scoring
             _comboCount = 0; // Reset combo on empty drop
             return (emptySoftDropScore, false);
@@ -655,7 +643,7 @@ public class TetrisGame {
             _ => $"Custom ({linesCleared} lines)"
         };
         
-        TetriON.debugLog($"CalculateModernScore: Clear type: {clearType}, Base score: {baseScore}");
+        TetriON.DebugLog($"CalculateModernScore: Clear type: {clearType}, Base score: {baseScore}");
         
         // Apply level multiplier
         baseScore *= _level;
@@ -667,19 +655,19 @@ public class TetrisGame {
         var scoreBefore = baseScore;
         if (isDifficult && _lastClearWasDifficult) {
             baseScore = (long)(baseScore * 1.5f);
-            TetriON.debugLog($"CalculateModernScore: Back-to-Back bonus applied! Score: {scoreBefore} -> {baseScore}");
+            TetriON.DebugLog($"CalculateModernScore: Back-to-Back bonus applied! Score: {scoreBefore} -> {baseScore}");
         }
         
         // Add combo bonus: 50 × combo_count × level
         var comboBonus = _comboCount > 1 ? 50L * (_comboCount - 1) * _level : 0L;
         if (comboBonus > 0) {
-            TetriON.debugLog($"CalculateModernScore: Combo bonus: {comboBonus} (combo {_comboCount})");
+            TetriON.DebugLog($"CalculateModernScore: Combo bonus: {comboBonus} (combo {_comboCount})");
         }
         
         // Add soft drop bonus
         var softDropScore = _softDropDistance;
         if (softDropScore > 0) {
-            TetriON.debugLog($"CalculateModernScore: Soft drop bonus: {softDropScore}");
+            TetriON.DebugLog($"CalculateModernScore: Soft drop bonus: {softDropScore}");
         }
         _softDropDistance = 0; // Reset after scoring
         
@@ -693,11 +681,11 @@ public class TetrisGame {
                 4 => 2000L * _level, // Perfect Clear Tetris
                 _ => 1000L * _level
             };
-            TetriON.debugLog($"CalculateModernScore: PERFECT CLEAR! Bonus: {perfectClearBonus}");
+            TetriON.DebugLog($"CalculateModernScore: PERFECT CLEAR! Bonus: {perfectClearBonus}");
         }
         
         var totalScore = baseScore + comboBonus + softDropScore + perfectClearBonus;
-        TetriON.debugLog($"CalculateModernScore: Total score breakdown - Base: {baseScore}, Combo: {comboBonus}, Soft drop: {softDropScore}, Perfect: {perfectClearBonus}, Total: {totalScore}");
+        TetriON.DebugLog($"CalculateModernScore: Total score breakdown - Base: {baseScore}, Combo: {comboBonus}, Soft drop: {softDropScore}, Perfect: {perfectClearBonus}, Total: {totalScore}");
         return (totalScore, isDifficult);
     }
     
@@ -708,11 +696,11 @@ public class TetrisGame {
         
         if (_lines >= linesForNextLevel) {
             _level++;
-            _levelupSound.Play();
-            TetriON.debugLog($"UpdateLevelProgression: LEVEL UP! {previousLevel} -> {_level} (Lines: {_lines}/{linesForNextLevel})");
+            _soundEffects["levelup"].Play();
+            TetriON.DebugLog($"UpdateLevelProgression: LEVEL UP! {previousLevel} -> {_level} (Lines: {_lines}/{linesForNextLevel})");
         } else {
             var linesNeeded = linesForNextLevel - _lines;
-            TetriON.debugLog($"UpdateLevelProgression: Level {_level} - Progress: {_lines}/{linesForNextLevel} ({linesNeeded} lines needed)");
+            TetriON.DebugLog($"UpdateLevelProgression: Level {_level} - Progress: {_lines}/{linesForNextLevel} ({linesNeeded} lines needed)");
         }
     }
     
@@ -769,12 +757,13 @@ public class TetrisGame {
         
         // Apply IRS rotation
         for (int i = 0; i < _irsRotation; i++) {
-            var (rotatedPos, _) = _currentTetromino.RotateRight(_grid, new Point(4, 0));
+            var spawnPoint = new Point(_gameSettings.GridWidth / 2 - 2, -_gameSettings.BufferZoneHeight);
+            var (rotatedPos, _) = _currentTetromino.RotateRight(_grid, spawnPoint);
             // If IRS rotation fails, spawn in original orientation
         }
         
         // Reset position and state
-        _tetrominoPoint = new Point(4, 0);
+        _tetrominoPoint = new Point(_gameSettings.GridWidth / 2 - 2, -_gameSettings.BufferZoneHeight);
         _timingManager.Reset();
         _canHold = !_irsHoldRequested; // If hold was requested during ARE, disable hold for this piece
         _areInProgress = false;
@@ -981,17 +970,28 @@ public class TetrisGame {
         if (!_hidePieceForLineClear && !_areInProgress) {
             // Calculate proper pixel positions for tetrominos based on grid scaling
             var scaledTileSize = (int)(Grid.TILE_SIZE * _grid.GetSizeMultiplier());
-            var tetrominoPixelPos = new Point(
-                _point.X + _tetrominoPoint.X * scaledTileSize,
-                _point.Y + _tetrominoPoint.Y * scaledTileSize
-            );
-            var ghostPixelPos = new Point(
-                _point.X + GetGhostPosition().X * scaledTileSize,
-                _point.Y + GetGhostPosition().Y * scaledTileSize
-            );
             
-            _currentTetromino.Draw(_spriteBatch, tetrominoPixelPos, _tiles, _grid.GetSizeMultiplier());
-            _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, _tiles, _grid.GetSizeMultiplier());
+            // Modern Tetris behavior - show pieces entering from above, even in buffer zone
+            // Only hide pieces that are completely above the buffer zone display area
+            if (_tetrominoPoint.Y >= -_gameSettings.BufferZoneHeight) {
+                // Calculate position properly: _point.Y is top of visible grid (Y=0)
+                // For buffer zone pieces (negative Y), we need to draw above the visible grid
+                var tetrominoPixelPos = new Point(
+                    _point.X + _tetrominoPoint.X * scaledTileSize,
+                    _point.Y + _tetrominoPoint.Y * scaledTileSize  // Negative Y will naturally place above visible grid
+                );
+                _currentTetromino.Draw(_spriteBatch, tetrominoPixelPos, _tiles, _grid.GetSizeMultiplier());
+            }
+            
+            // Ghost piece should always be drawn if it's in visible area
+            var ghostPos = GetGhostPosition();
+            if (ghostPos.Y >= 0) { // Only draw ghost if it's in visible area
+                var ghostPixelPos = new Point(
+                    _point.X + ghostPos.X * scaledTileSize,
+                    _point.Y + ghostPos.Y * scaledTileSize
+                );
+                _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, _tiles, _grid.GetSizeMultiplier());
+            }
         }
     }
     

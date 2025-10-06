@@ -49,7 +49,8 @@ public class Grid {
         [0x04] = "O",
         [0x05] = "T",
         [0x06] = "L",
-        [0x07] = "I"
+        [0x07] = "I",
+        [0x08] = "garbage"
     };
     
     private readonly Dictionary<string, Point> _tilePositions = new() {
@@ -59,13 +60,16 @@ public class Grid {
         ["S"] = new Point(93, 0),
         ["O"] = new Point(124, 0),
         ["I"] = new Point(155, 0),
-        ["L"] = new Point(186, 0)
+        ["L"] = new Point(186, 0),
+        ["garbage"] = new Point(248, 0)
     };
 
     private readonly Point _point;
 
-    private readonly int _height;
+    private readonly int _height;        // Visible grid height
     private readonly int _width;
+    private readonly int _bufferZoneHeight; // Hidden area above visible grid
+    private readonly int _totalHeight;    // _height + _bufferZoneHeight
     
     private readonly float _sizeMultiplier;
     
@@ -73,31 +77,39 @@ public class Grid {
     private static Texture2D _pixelTexture;
     
     
-    public Grid(Point point, int width, int height, float sizeMultiplier = 2) {
+    public Grid(Point point, int width, int height, float sizeMultiplier = 2, int bufferZoneHeight = 0) {
         _point = point;
         _width = width;
         _height = height;
+        _bufferZoneHeight = bufferZoneHeight;
+        _totalHeight = height + bufferZoneHeight;
         _sizeMultiplier = sizeMultiplier;
+        
+        // Create grid with total height (visible + buffer zone)
         _grid = new byte[width][];
         for (var i = 0; i < width; i++) {
-            _grid[i] = new byte[height];
+            _grid[i] = new byte[_totalHeight];
         }
     }
     
     public bool SetCell(int x, int y, byte color) {
-        if (x < 0 || x >= _width || y < 0 || y >= _height) {
+        // Convert to buffer zone coordinates (negative Y values are in buffer zone)
+        var gridY = y + _bufferZoneHeight;
+        if (x < 0 || x >= _width || gridY < 0 || gridY >= _totalHeight) {
             return false;
         }
         
-        _grid[x][y] = color;
+        _grid[x][gridY] = color;
         return true;
     }
     
     public byte GetCell(int x, int y) {
-        if (x < 0 || x >= _width || y < 0 || y >= _height) {
+        // Convert to buffer zone coordinates (negative Y values are in buffer zone)
+        var gridY = y + _bufferZoneHeight;
+        if (x < 0 || x >= _width || gridY < 0 || gridY >= _totalHeight) {
             return EMPTY_CELL; // Return empty for out-of-bounds
         }
-        return _grid[x][y];
+        return _grid[x][gridY];
     }
     
     public int GetWidth() {
@@ -108,6 +120,14 @@ public class Grid {
         return _height;
     }
     
+    public int GetBufferZoneHeight() {
+        return _bufferZoneHeight;
+    }
+    
+    public int GetTotalHeight() {
+        return _totalHeight;
+    }
+    
     public float GetSizeMultiplier() {
         return _sizeMultiplier;
     }
@@ -115,7 +135,7 @@ public class Grid {
     public int CheckLines() {
         var cleared = 0;
         
-        // Check from bottom to top to handle multiple line clears correctly
+        // Check from bottom to top to handle multiple line clears correctly (only visible area)
         for (var i = _height - 1; i >= 0; i--) {
             if (IsLineFull(i)) {
                 RemoveLine(i);
@@ -160,8 +180,9 @@ public class Grid {
     private bool IsLineFull(int row) {
         if (row < 0 || row >= _height) return false;
         
+        var gridY = row + _bufferZoneHeight;
         for (var x = 0; x < _width; x++) {
-            if (_grid[x][row] == EMPTY_CELL) {
+            if (_grid[x][gridY] == EMPTY_CELL) {
                 return false;
             }
         }
@@ -188,10 +209,18 @@ public class Grid {
     }
 
     private void RemoveLine(int index) {
-        for (var i = index; i > 0; i--) {
+        var gridY = index + _bufferZoneHeight;
+        
+        // Move all lines above down by one (including buffer zone)
+        for (var i = gridY; i > 0; i--) {
             for (var j = 0; j < _width; j++) {
                 _grid[j][i] = _grid[j][i - 1];
             }
+        }
+        
+        // Clear the top row (top of buffer zone)
+        for (var j = 0; j < _width; j++) {
+            _grid[j][0] = EMPTY_CELL;
         }
     }
     
@@ -249,8 +278,12 @@ public class Grid {
                 var x = position.X + col; // Convert relative position to grid coordinates
                 var y = position.Y + row;
 
-                // Check if the position is out of bounds
-                if (x < 0 || x >= GetWidth() || y < 0 || y >= GetHeight()) return false;
+                // Check if the position is out of bounds (allow buffer zone)
+                if (x < 0 || x >= GetWidth()) return false;
+                
+                // Allow pieces in buffer zone (negative Y) but not below visible area
+                var gridY = y + _bufferZoneHeight;
+                if (gridY < 0 || gridY >= _totalHeight) return false;
                 
                 if (!IsCellEmpty(x, y)) return false;
             }
@@ -260,8 +293,10 @@ public class Grid {
     }
     
     public bool IsCellEmpty(int x, int y) {
-        if (x < 0 || x >= _width || y < 0 || y >= _height) return false;
-        return _grid[x][y] == EMPTY_CELL;
+        // Convert to buffer zone coordinates
+        var gridY = y + _bufferZoneHeight;
+        if (x < 0 || x >= _width || gridY < 0 || gridY >= _totalHeight) return false;
+        return _grid[x][gridY] == EMPTY_CELL;
     }
     
     public void Draw(SpriteBatch spriteBatch, Point location, Texture2D tiles) {
@@ -315,10 +350,12 @@ public class Grid {
             spriteBatch.Draw(_pixelTexture, lineRect, Color.Gray * 0.5f);
         }
         
-        // Draw filled cells
+        // Draw filled cells (only visible area)
         for (var x = 0; x < _width; x++) {
             for (var y = 0; y < _height; y++) {
-                var color = _grid[x][y];
+                // Convert to buffer zone coordinates to access the correct cell
+                var gridY = y + _bufferZoneHeight;
+                var color = _grid[x][gridY];
                 if (color == EMPTY_CELL) continue;
             
                 if (!Tiles.TryGetValue(color, out var tile)) continue;

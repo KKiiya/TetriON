@@ -33,73 +33,69 @@ public class TetriON : Microsoft.Xna.Framework.Game
 
     public SkinManager _skinManager { get; private set; }
 
-    public TetriON()
-    {
-        debugLog("TetriON: Constructor started");
+    public TetriON()  {
+        DebugLog("TetriON: Constructor started");
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         Window.AllowUserResizing = true;
         Window.AllowAltF4 = true;
-        Window.ClientSizeChanged += (_, _) =>
-        {
+        Window.ClientSizeChanged += (_, _) =>  {
             _graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
             _graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
             _graphics.ApplyChanges();
         };
         IsMouseVisible = true;
-        debugLog("TetriON: Constructor completed");
+        DebugLog("TetriON: Constructor completed");
     }
 
-    protected override void Initialize()
-    {
-        debugLog("TetriON: Initialize() started");
+    protected override void Initialize() {
+        DebugLog("TetriON: Initialize() started");
         _position = new Point(10, 5);
         _graphics.IsFullScreen = false;
         _graphics.PreferredBackBufferWidth = 1366;
         _graphics.PreferredBackBufferHeight = 768;
         _graphics.ApplyChanges();
-        debugLog("TetriON: Graphics configured, calling base.Initialize()");
+        DebugLog("TetriON: Graphics configured, calling base.Initialize()");
         base.Initialize();
-        debugLog("TetriON: Initialize() completed");
+        DebugLog("TetriON: Initialize() completed");
     }
 
-    protected override void LoadContent()
-    {
-        debugLog("TetriON: LoadContent() started");
+    protected override void LoadContent() {
+        DebugLog("TetriON: LoadContent() started");
         
         try {
             SpriteBatch = new SpriteBatch(GraphicsDevice);
-            debugLog("TetriON: SpriteBatch created");
+            DebugLog("TetriON: SpriteBatch created");
             
             Tetromino.Initialize();
-            debugLog("TetriON: Tetromino initialized");
+            DebugLog("TetriON: Tetromino initialized");
 
             Instance = this;
-            debugLog("TetriON: Instance set");
+            DebugLog("TetriON: Instance set");
 
             // Initialize skin system
             _skinManager = new SkinManager();
-            debugLog("TetriON: SkinManager created");
+            DebugLog("TetriON: SkinManager created");
             
             _skinManager.Initialize(GraphicsDevice);
-            debugLog("TetriON: SkinManager initialized");
+            DebugLog("TetriON: SkinManager initialized");
             
             // Load texture and audio assets
             _skinManager.LoadTextureAssets();
-            debugLog("TetriON: SkinManager texture assets loaded");
+            DebugLog("TetriON: SkinManager texture assets loaded");
             
             _skinManager.LoadAudioAssets();
-            debugLog("TetriON: SkinManager audio assets loaded");
+            DebugLog("TetriON: SkinManager audio assets loaded");
 
             // Initialize settings and key bindings
             var credentials = new Credentials("DefaultUser"); // Create default credentials
-            debugLog("TetriON: Credentials created");
+            DebugLog("TetriON: Credentials created");
             
             var settings = new Settings(credentials);
-            debugLog("TetriON: Settings created");
+            DebugLog("TetriON: Settings created");
             
             KeyBindHelper.Initialize(settings);
-            debugLog("TetriON: KeyBindHelper initialized");
+            DebugLog("TetriON: KeyBindHelper initialized");
 
             // Center the grid better on a 1366x768 screen with reasonable sizing
 
@@ -108,19 +104,18 @@ public class TetriON : Microsoft.Xna.Framework.Game
 
             //_session = new GameSession(this);
             _tetrisGame = new TetrisGame(this, Mode.Singleplayer, Gamemode.Marathon);
-            debugLog("TetriON: TetrisGame created successfully");
+            DebugLog("TetriON: TetrisGame created successfully");
             
         } catch (System.Exception ex) {
-            debugLog($"TetriON: ERROR in LoadContent(): {ex.Message}");
-            debugLog($"TetriON: Stack trace: {ex.StackTrace}");
+            DebugLog($"TetriON: ERROR in LoadContent(): {ex.Message}");
+            DebugLog($"TetriON: Stack trace: {ex.StackTrace}");
             throw;
         }
         
-        debugLog("TetriON: LoadContent() completed");
+        DebugLog("TetriON: LoadContent() completed");
     }
 
-    protected override void Update(GameTime gameTime)
-    {
+    protected override void Update(GameTime gameTime) {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Microsoft.Xna.Framework.Input.Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
@@ -142,8 +137,7 @@ public class TetriON : Microsoft.Xna.Framework.Game
         base.Update(gameTime);
     }
 
-    protected override void Draw(GameTime gameTime)
-    {
+    protected override void Draw(GameTime gameTime) {
         GraphicsDevice.Clear(Color.CornflowerBlue); // Changed to blue to see if game is running
         SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
         //_session?.Draw();
@@ -156,26 +150,22 @@ public class TetriON : Microsoft.Xna.Framework.Game
     /// <summary>
     /// Get the current window resolution
     /// </summary>
-    public Point GetWindowResolution()
-    {
+    public Point GetWindowResolution() {
         return new Point(Window.ClientBounds.Width, Window.ClientBounds.Height);
     }
 
     /// <summary>
     /// Get the current rendering resolution (back buffer size)
     /// </summary>
-    public Point GetRenderResolution()
-    {
+    public Point GetRenderResolution() {
         return new Point(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
     }
 
     /// <summary>
     /// Get the current viewport size
     /// </summary>
-    public Point GetViewportSize()
-    {
-        if (GraphicsDevice != null)
-        {
+    public Point GetViewportSize() {
+        if (GraphicsDevice != null) {
             var viewport = GraphicsDevice.Viewport;
             return new Point(viewport.Width, viewport.Height);
         }
@@ -187,7 +177,7 @@ public class TetriON : Microsoft.Xna.Framework.Game
     /// </summary>
     public bool IsFullscreen => _graphics.IsFullScreen;
     
-    public static void debugLog(string message) {
+    public static void DebugLog(string message) {
         var logMessage = $"[TetriON] {message}";
         System.Diagnostics.Debug.WriteLine(logMessage);
         System.Console.WriteLine(logMessage);
