@@ -205,18 +205,31 @@ public partial class InstallerForm : Form {
         foreach (var entry in archive.Entries)  {
             if (string.IsNullOrEmpty(entry.Name)) continue;
             
-            // Skip Content folder and its contents
-            if (entry.FullName.StartsWith("Content/", StringComparison.OrdinalIgnoreCase) ||
-                entry.FullName.StartsWith("Content\\", StringComparison.OrdinalIgnoreCase)) {
+            // Handle Content/skins specially - extract to skins folder
+            if (entry.FullName.StartsWith("Content/skins/", StringComparison.OrdinalIgnoreCase) ||
+                entry.FullName.StartsWith("Content\\skins\\", StringComparison.OrdinalIgnoreCase)) {
+                
+                // Remove "Content/" prefix and extract to installation directory
+                var relativePath = entry.FullName.Substring(8); // Remove "Content/" or "Content\"
+                var destinationPath = Path.Combine(installPath, relativePath);
+                var destinationDir = Path.GetDirectoryName(destinationPath);
+
+                if (!string.IsNullOrEmpty(destinationDir)) Directory.CreateDirectory(destinationDir);
+                entry.ExtractToFile(destinationPath, true);
+            }
+            // Skip all other Content folder contents
+            else if (entry.FullName.StartsWith("Content/", StringComparison.OrdinalIgnoreCase) ||
+                     entry.FullName.StartsWith("Content\\", StringComparison.OrdinalIgnoreCase)) {
                 continue;
             }
+            // Extract all other files normally
+            else {
+                var destinationPath = Path.Combine(installPath, entry.FullName);
+                var destinationDir = Path.GetDirectoryName(destinationPath);
 
-            var destinationPath = Path.Combine(installPath, entry.FullName);
-            var destinationDir = Path.GetDirectoryName(destinationPath);
-
-            if (!string.IsNullOrEmpty(destinationDir)) Directory.CreateDirectory(destinationDir);
-
-            entry.ExtractToFile(destinationPath, true);
+                if (!string.IsNullOrEmpty(destinationDir)) Directory.CreateDirectory(destinationDir);
+                entry.ExtractToFile(destinationPath, true);
+            }
 
             extractedFiles++;
             var fileProgress = (int)((double)extractedFiles / totalFiles * 40) + 10; // 10-50 range

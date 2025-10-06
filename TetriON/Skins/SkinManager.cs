@@ -10,7 +10,7 @@ using TetriON.Wrappers.Texture;
 
 namespace TetriON.Skins;
 
-public class SkinManager {
+public class SkinManager : IDisposable {
 
     private static readonly Dictionary<string, string> Skins = new() {
         ["default"] = "skins/default/",
@@ -18,11 +18,24 @@ public class SkinManager {
     };
 
     // Cache of available texture files per skin (paths only, no actual textures loaded)
-    private readonly Dictionary<string, HashSet<string>> _availableTextures = [];
+    private readonly Dictionary<string, HashSet<string>> _availableTextures = new() {
+        { "default", new HashSet<string> { "tiles", "missing_texture" } }
+    };
     // Cache of available sound files per skin (paths only, no actual sounds loaded)
-    private readonly Dictionary<string, HashSet<string>> _availableSounds = [];
-    private readonly Dictionary<string, SoundWrapper> _audioAssets = [];
-    private readonly Dictionary<string, TextureWrapper> _textureAssets = [];
+    private readonly Dictionary<string, HashSet<string>> _availableSounds = new() {
+        { "default", new HashSet<string> { "move", "rotate", "clear", "drop" } }
+    };
+    private readonly Dictionary<string, SoundWrapper> _audioAssets = new();
+    private readonly Dictionary<string, TextureWrapper> _textureAssets = new();
+
+    // Valid asset names that are allowed to be loaded (security/validation)
+    private static readonly HashSet<string> ValidTextureNames = new() {
+        "tiles", "missing_texture", "background", "ui", "logo", "particles", "effects"
+    };
+    
+    private static readonly HashSet<string> ValidSoundNames = new() {
+        "move", "rotate", "clear", "drop", "hold", "lock", "levelup", "gameover", "pause"
+    };
 
     private static readonly string SupportedAudioExtension = ".ogg";
     private static readonly string SupportedTextureExtensions = ".png";
@@ -31,14 +44,33 @@ public class SkinManager {
     private GraphicsDevice _graphicsDevice;
 
     public void Initialize(GraphicsDevice graphicsDevice) {
+        TetriON.debugLog("SkinManager: Initializing skin system...");
         _graphicsDevice = graphicsDevice;
         ScanForCustomSkins();
+        TetriON.debugLog($"SkinManager: Initialization complete. Found {Skins.Count} skins: [{string.Join(", ", Skins.Keys)}]");
     }
 
     public void SetSkin(string skinName) {
         if (Skins.ContainsKey(skinName)) {
+            TetriON.debugLog($"SkinManager: Changing skin from '{_currentSkin}' to '{skinName}'");
             _currentSkin = skinName;
-        } else throw new ArgumentException($"Skin '{skinName}' does not exist.");
+            // Automatically reload assets for the new skin
+            LoadAllAssets();
+            TetriON.debugLog($"SkinManager: Skin change to '{skinName}' completed successfully");
+        } else {
+            TetriON.debugLog($"SkinManager: Failed to set skin '{skinName}' - not found. Available skins: [{string.Join(", ", Skins.Keys)}]");
+            throw new ArgumentException($"Skin '{skinName}' does not exist.");
+        }
+    }
+
+    /// <summary>
+    /// Load both texture and audio assets for the current skin
+    /// </summary>
+    public void LoadAllAssets() {
+        TetriON.debugLog($"SkinManager: Loading all assets for skin '{_currentSkin}'...");
+        LoadTextureAssets();
+        LoadAudioAssets();
+        TetriON.debugLog($"SkinManager: All assets loaded for skin '{_currentSkin}'. Textures: {_textureAssets.Count}, Sounds: {_audioAssets.Count}");
     }
 
     public string GetCurrentSkinPath() {
@@ -52,15 +84,18 @@ public class SkinManager {
         // Try to load from custom skin folder
         var skinPath = Path.Combine("skins", _currentSkin, $"{textureName}.{SupportedTextureExtensions}");
         if (File.Exists(skinPath)) {
+            TetriON.debugLog($"SkinManager: Loading texture '{textureName}' from current skin '{_currentSkin}' at '{skinPath}'");
             return LoadTextureFromFile(skinPath);
         }
 
         // Try default skin folder
         var defaultPath = Path.Combine("skins", "default", $"{textureName}.{SupportedTextureExtensions}");
         if (File.Exists(defaultPath)) {
+            TetriON.debugLog($"SkinManager: Loading texture '{textureName}' from default skin fallback at '{defaultPath}'");
             return LoadTextureFromFile(defaultPath);
         }
 
+        TetriON.debugLog($"SkinManager: ✗ Texture '{textureName}' not found in '{skinPath}' or '{defaultPath}'");
         throw new FileNotFoundException($"Custom texture '{textureName}' not found in skin '{_currentSkin}' or default skin.");
     }
 
@@ -71,15 +106,18 @@ public class SkinManager {
         // Try to load from custom skin folder
         var skinPath = FindSoundFile("skins", _currentSkin, soundName);
         if (skinPath != null) {
+            TetriON.debugLog($"SkinManager: Loading sound '{soundName}' from current skin '{_currentSkin}' at '{skinPath}'");
             return LoadSoundEffectFromFile(skinPath);
         }
 
         // Try default skin folder
         var defaultPath = FindSoundFile("skins", "default", soundName);
         if (defaultPath != null) {
+            TetriON.debugLog($"SkinManager: Loading sound '{soundName}' from default skin fallback at '{defaultPath}'");
             return LoadSoundEffectFromFile(defaultPath);
         }
 
+        TetriON.debugLog($"SkinManager: ✗ Sound '{soundName}' not found in skin '{_currentSkin}' or default skin");
         throw new FileNotFoundException($"Custom sound '{soundName}' not found in skin '{_currentSkin}' or default skin.");
     }
 
@@ -114,13 +152,136 @@ public class SkinManager {
     }
 
     /// <summary>
+    /// Preload all valid texture assets for the current skin into _textureAssets cache
+    /// </summary>
+    public void LoadTextureAssets() {
+        TetriON.debugLog($"SkinManager: Loading texture assets for skin '{_currentSkin}'...");
+        
+        // Clear existing texture assets
+        var disposedCount = 0;
+        foreach (var textureAsset in _textureAssets.Values) {
+            textureAsset?.Dispose();
+            disposedCount++;
+        }
+        _textureAssets.Clear();
+        
+        if (disposedCount > 0) {
+            TetriON.debugLog($"SkinManager: Disposed {disposedCount} previous texture assets");
+        }
+
+        // Load all valid textures that exist for the current skin
+        var loadedCount = 0;
+        var skippedTextures = new List<string>();
+        
+        foreach (var textureName in ValidTextureNames) {
+            try {
+                var texture = LoadCustomTexture(textureName);
+                var textureWrapper = new TextureWrapper(texture, true); // ownsTexture = true
+                _textureAssets[textureName] = textureWrapper;
+                loadedCount++;
+                TetriON.debugLog($"SkinManager: ✓ Loaded texture '{textureName}' ({texture.Width}x{texture.Height})");
+            }
+            catch (FileNotFoundException) {
+                // Texture doesn't exist for this skin, skip it
+                skippedTextures.Add(textureName);
+                continue;
+            }
+        }
+        
+        TetriON.debugLog($"SkinManager: Texture loading complete. Loaded: {loadedCount}, Skipped: {skippedTextures.Count} [{string.Join(", ", skippedTextures)}]");
+    }
+
+    /// <summary>
+    /// Preload all valid audio assets for the current skin into _audioAssets cache
+    /// </summary>
+    public void LoadAudioAssets() {
+        TetriON.debugLog($"SkinManager: Loading audio assets for skin '{_currentSkin}'...");
+        
+        // Clear existing audio assets
+        var disposedCount = 0;
+        foreach (var audioAsset in _audioAssets.Values) {
+            audioAsset?.Dispose();
+            disposedCount++;
+        }
+        _audioAssets.Clear();
+        
+        if (disposedCount > 0) {
+            TetriON.debugLog($"SkinManager: Disposed {disposedCount} previous audio assets");
+        }
+
+        // Load all valid sounds that exist for the current skin
+        var loadedCount = 0;
+        var skippedSounds = new List<string>();
+        
+        foreach (var soundName in ValidSoundNames) {
+            try {
+                // Use SoundWrapper constructor that takes a path - it will handle loading internally
+                var soundWrapper = new SoundWrapper(soundName);
+                _audioAssets[soundName] = soundWrapper;
+                loadedCount++;
+                TetriON.debugLog($"SkinManager: ✓ Loaded sound '{soundName}'");
+            }
+            catch (FileNotFoundException) {
+                // Sound doesn't exist for this skin, skip it
+                skippedSounds.Add(soundName);
+                continue;
+            }
+            catch (Exception ex) {
+                TetriON.debugLog($"SkinManager: ✗ Failed to load sound '{soundName}': {ex.Message}");
+                skippedSounds.Add(soundName);
+                continue;
+            }
+        }
+        
+        TetriON.debugLog($"SkinManager: Audio loading complete. Loaded: {loadedCount}, Skipped: {skippedSounds.Count} [{string.Join(", ", skippedSounds)}]");
+    }
+
+    /// <summary>
+    /// Get a cached texture asset as TextureWrapper
+    /// </summary>
+    public TextureWrapper GetTextureAsset(string textureName) {
+        if (!ValidTextureNames.Contains(textureName)) {
+            TetriON.debugLog($"SkinManager: ✗ Attempted to get invalid texture '{textureName}'. Valid names: [{string.Join(", ", ValidTextureNames)}]");
+            throw new ArgumentException($"Texture name '{textureName}' is not in the list of valid texture names.");
+        }
+
+        if (_textureAssets.TryGetValue(textureName, out var textureWrapper)) {
+            TetriON.debugLog($"SkinManager: ✓ Retrieved texture asset '{textureName}' for skin '{_currentSkin}'");
+            return textureWrapper;
+        }
+
+        TetriON.debugLog($"SkinManager: ✗ Texture '{textureName}' not found in loaded assets. Available: [{string.Join(", ", _textureAssets.Keys)}]");
+        throw new KeyNotFoundException($"Texture '{textureName}' not found in loaded assets. Call LoadTextureAssets() first.");
+    }
+
+    /// <summary>
+    /// Get a cached audio asset as SoundWrapper
+    /// </summary>
+    public SoundWrapper GetAudioAsset(string soundName) {
+        if (!ValidSoundNames.Contains(soundName)) {
+            TetriON.debugLog($"SkinManager: ✗ Attempted to get invalid sound '{soundName}'. Valid names: [{string.Join(", ", ValidSoundNames)}]");
+            throw new ArgumentException($"Sound name '{soundName}' is not in the list of valid sound names.");
+        }
+
+        if (_audioAssets.TryGetValue(soundName, out var soundWrapper)) {
+            TetriON.debugLog($"SkinManager: ✓ Retrieved audio asset '{soundName}' for skin '{_currentSkin}'");
+            return soundWrapper;
+        }
+
+        TetriON.debugLog($"SkinManager: ✗ Sound '{soundName}' not found in loaded assets. Available: [{string.Join(", ", _audioAssets.Keys)}]");
+        throw new KeyNotFoundException($"Sound '{soundName}' not found in loaded assets. Call LoadAudioAssets() first.");
+    }
+
+    /// <summary>
     /// Scan for custom skin folders and available textures (paths only, no loading)
     /// </summary>
     private void ScanForCustomSkins() {
         var skinsFolder = "skins";
+        TetriON.debugLog($"SkinManager: Scanning for custom skins in '{skinsFolder}' folder...");
         
         // Create skins folder if it doesn't exist
         if (!Directory.Exists(skinsFolder)) {
+            TetriON.debugLog($"SkinManager: Skins folder doesn't exist, creating it and default skin folder");
             Directory.CreateDirectory(skinsFolder);
             CreateDefaultSkinFolder();
             return;
@@ -128,10 +289,15 @@ public class SkinManager {
 
         // Scan for skin folders
         var skinFolders = Directory.GetDirectories(skinsFolder);
+        TetriON.debugLog($"SkinManager: Found {skinFolders.Length} skin folders to scan");
+        
         foreach (var folder in skinFolders) {
             var skinName = Path.GetFileName(folder);
+            TetriON.debugLog($"SkinManager: Scanning skin folder '{skinName}'...");
+            
             if (!Skins.ContainsKey(skinName)) {
                 Skins[skinName] = Path.Combine("skins", skinName) + "/";
+                TetriON.debugLog($"SkinManager: Registered new skin '{skinName}' at path '{Skins[skinName]}'");
             }
             
             // Scan for PNG files in this skin folder (paths only)
@@ -140,10 +306,13 @@ public class SkinManager {
             // Scan for sound files in this skin folder (paths only)
             ScanSoundsInSkin(skinName, folder);
         }
+        
+        TetriON.debugLog($"SkinManager: Skin scanning complete. Total skins registered: {Skins.Count}");
     }
 
     /// <summary>
     /// Scan for available PNG textures in a specific skin folder (memory efficient - paths only)
+    /// Only includes textures with valid names for security
     /// </summary>
     private void ScanTexturesInSkin(string skinName, string skinFolder) {
         if (!_availableTextures.ContainsKey(skinName)) {
@@ -151,10 +320,22 @@ public class SkinManager {
         }
 
         var pngFiles = Directory.GetFiles(skinFolder, "*.png", SearchOption.TopDirectoryOnly);
+        var validTextures = new List<string>();
+        var invalidTextures = new List<string>();
+        
         foreach (var pngFile in pngFiles) {
             var textureName = Path.GetFileNameWithoutExtension(pngFile);
-            _availableTextures[skinName].Add(textureName);
+            // Only include textures with valid names
+            if (ValidTextureNames.Contains(textureName)) {
+                _availableTextures[skinName].Add(textureName);
+                validTextures.Add(textureName);
+            } else {
+                invalidTextures.Add(textureName);
+            }
         }
+        
+        TetriON.debugLog($"SkinManager: Skin '{skinName}' - Found {pngFiles.Length} PNG files. Valid: {validTextures.Count} [{string.Join(", ", validTextures)}]" + 
+                        (invalidTextures.Count > 0 ? $", Invalid: {invalidTextures.Count} [{string.Join(", ", invalidTextures)}]" : ""));
     }
 
     /// <summary>
@@ -165,15 +346,32 @@ public class SkinManager {
             _availableSounds[skinName] = [];
         }
 
+        var validSounds = new List<string>();
+        var invalidSounds = new List<string>();
+        var totalFiles = 0;
+
         // Scan for various audio formats
         var audioExtensions = new[] { "*.wav", "*.mp3", "*.ogg" };
         foreach (var extension in audioExtensions) {
             var audioFiles = Directory.GetFiles(skinFolder, extension, SearchOption.TopDirectoryOnly);
+            totalFiles += audioFiles.Length;
+            
             foreach (var audioFile in audioFiles) {
                 var soundName = Path.GetFileNameWithoutExtension(audioFile);
-                _availableSounds[skinName].Add(soundName);
+                var fileExtension = Path.GetExtension(audioFile);
+                
+                // Only include sounds with valid names
+                if (ValidSoundNames.Contains(soundName)) {
+                    _availableSounds[skinName].Add(soundName);
+                    validSounds.Add($"{soundName}{fileExtension}");
+                } else {
+                    invalidSounds.Add($"{soundName}{fileExtension}");
+                }
             }
         }
+        
+        TetriON.debugLog($"SkinManager: Skin '{skinName}' - Found {totalFiles} audio files. Valid: {validSounds.Count} [{string.Join(", ", validSounds)}]" + 
+                        (invalidSounds.Count > 0 ? $", Invalid: {invalidSounds.Count} [{string.Join(", ", invalidSounds)}]" : ""));
     }
 
     private void CreateDefaultSkinFolder() {
@@ -221,12 +419,24 @@ public class SkinManager {
     /// Reload all skins from file system (clears cached paths and rescans)
     /// </summary>
     public void ReloadSkins() {
+        TetriON.debugLog("SkinManager: Reloading all skins from file system...");
+        
+        var previousSkinCount = Skins.Count;
+        var previousTextureCount = _availableTextures.Values.Sum(set => set.Count);
+        var previousSoundCount = _availableSounds.Values.Sum(set => set.Count);
+        
         // Clear cached texture and sound paths
         _availableTextures.Clear();
         _availableSounds.Clear();
         
         // Rescan for new skins and their available assets
         ScanForCustomSkins();
+        
+        var newSkinCount = Skins.Count;
+        var newTextureCount = _availableTextures.Values.Sum(set => set.Count);
+        var newSoundCount = _availableSounds.Values.Sum(set => set.Count);
+        
+        TetriON.debugLog($"SkinManager: Reload complete. Skins: {previousSkinCount}→{newSkinCount}, Textures: {previousTextureCount}→{newTextureCount}, Sounds: {previousSoundCount}→{newSoundCount}");
     }
 
     /// <summary>
@@ -334,10 +544,56 @@ public class SkinManager {
     }
 
     /// <summary>
-    /// Dispose method - no texture caching to clean up (TextureWrapper handles disposal)
+    /// Check if a texture asset is currently loaded and available
+    /// </summary>
+    public bool IsTextureAssetLoaded(string textureName) {
+        return ValidTextureNames.Contains(textureName) && _textureAssets.ContainsKey(textureName);
+    }
+
+    /// <summary>
+    /// Check if an audio asset is currently loaded and available
+    /// </summary>
+    public bool IsAudioAssetLoaded(string soundName) {
+        return ValidSoundNames.Contains(soundName) && _audioAssets.ContainsKey(soundName);
+    }
+
+    /// <summary>
+    /// Get list of all valid texture names that can be loaded
+    /// </summary>
+    public string[] GetValidTextureNames() {
+        return ValidTextureNames.ToArray();
+    }
+
+    /// <summary>
+    /// Get list of all valid sound names that can be loaded
+    /// </summary>
+    public string[] GetValidSoundNames() {
+        return ValidSoundNames.ToArray();
+    }
+
+    /// <summary>
+    /// Dispose method - properly clean up all loaded assets
     /// </summary>
     public void Dispose() {
-        // No custom texture caching - TextureWrapper handles all texture disposal
+        TetriON.debugLog($"SkinManager: Disposing skin manager. Cleaning up {_textureAssets.Count} texture assets and {_audioAssets.Count} audio assets...");
+        
+        // Dispose all texture assets
+        var textureCount = 0;
+        foreach (var textureAsset in _textureAssets.Values) {
+            textureAsset?.Dispose();
+            textureCount++;
+        }
+        _textureAssets.Clear();
+
+        // Dispose all audio assets
+        var audioCount = 0;
+        foreach (var audioAsset in _audioAssets.Values) {
+            audioAsset?.Dispose();
+            audioCount++;
+        }
+        _audioAssets.Clear();
+        
+        TetriON.debugLog($"SkinManager: Disposal complete. Cleaned up {textureCount} textures and {audioCount} audio assets");
     }
 }
 

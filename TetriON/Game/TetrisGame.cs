@@ -72,12 +72,22 @@ public class TetrisGame {
         TODO: Replace Point and Texture2D with TetriON instance to obtain everything needed
         new constructor: public TetrisGame(TetriON game, Mode mode, Gamemode gamemode)
     */
-    public TetrisGame(Point point, Texture2D tiles, Mode mode, Gamemode gamemode) {
-        _spriteBatch = TetriON.Instance.SpriteBatch;
-        _point = point;
-        _tiles = tiles;
-        _grid = new Grid(point, 10, 20, 1.2f); // Reasonable size for proper Tetris gameplay
-        _moveSound = new SoundWrapper("assets/sfx/move");
+    public TetrisGame(TetriON game, Mode mode, Gamemode gamemode) {
+        _spriteBatch = game.SpriteBatch;
+        var gridWidth = 10;
+        var gridHeight = 20; 
+        var tileSize = 30;
+        var sizeMultiplier = 1.2f; // Smaller, more reasonable size
+        var scaledTileSize = (int)(tileSize * sizeMultiplier);
+        var gridPixelWidth = gridWidth * scaledTileSize;
+        var gridPixelHeight = gridHeight * scaledTileSize;
+        var centerX = (game.GetWindowResolution().X - gridPixelWidth) / 2;
+        var centerY = (game.GetWindowResolution().Y - gridPixelHeight) / 2;
+
+        _point = new Point(centerX, centerY);
+        _tiles = game._skinManager.GetTextureAsset("tiles").GetTexture();
+        _grid = new Grid(_point, 10, 20, 1.2f); // Reasonable size for proper Tetris gameplay
+        _moveSound = game._skinManager.GetAudioAsset("move");
         _tetrominoPoint = new Point(4, 0); // Start at column 4 (center of 10-wide grid), row 0 (top)
         _timingManager = new TimingManager();
         _random = new Random();
@@ -106,6 +116,8 @@ public class TetrisGame {
         _lastClearWasDifficult = false;
         _comboCount = 0;
         _softDropDistance = 0;
+
+        TetriON.debugLog($"TetrisGame: Initialized new game - Mode: {mode}, Gamemode: {gamemode}, Level: {_level}, Score: {_score}");
         _lineClearInProgress = false;
         _pendingLinesCleared = 0;
         _hidePieceForLineClear = false;
@@ -122,6 +134,7 @@ public class TetrisGame {
     public void Hold() {
         if (!_canHold || _gameOver) return;
     
+        var previousPiece = _currentTetromino.GetType().Name;
         if (_holdTetromino == null) {
             _holdTetromino = _currentTetromino;
             _currentTetromino = _nextTetrominos[0];
@@ -130,7 +143,12 @@ public class TetrisGame {
                 _nextTetrominos[i] = _nextTetrominos[i + 1];
             }
             _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
-        } else (_holdTetromino, _currentTetromino) = (_currentTetromino, _holdTetromino);
+            TetriON.debugLog($"TetrisGame: HOLD - Stored {previousPiece}, spawned {_currentTetromino.GetType().Name} from queue");
+        } else {
+            var heldPiece = _holdTetromino.GetType().Name;
+            (_holdTetromino, _currentTetromino) = (_currentTetromino, _holdTetromino);
+            TetriON.debugLog($"TetrisGame: HOLD - Swapped {previousPiece} ↔ {heldPiece}");
+        }
     
         _canHold = false;
         _tetrominoPoint = new Point(4, 0);
@@ -147,6 +165,7 @@ public class TetrisGame {
             _tetrominoPoint = newPosition.Value;
             _lastMoveWasTSpin = tSpin;
             UpdateCachedValues();
+            if (tSpin) TetriON.debugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [T-SPIN]");
             
             // Handle modern lock delay on player input
             if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
@@ -164,9 +183,11 @@ public class TetrisGame {
             _tetrominoPoint = newPosition.Value;
             _lastMoveWasTSpin = tSpin;
             UpdateCachedValues();
+            if (tSpin) TetriON.debugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [T-SPIN]");
             
             // Handle modern lock delay on player input
-            if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
+            if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1))
+            {
                 // Movement limit reached while on ground - force lock
                 Lock();
                 return;
@@ -215,6 +236,10 @@ public class TetrisGame {
     }
 
     private void Lock() {
+        var pieceType = _currentTetromino.GetType().Name;
+        TetriON.debugLog($"TetrisGame: LOCK - {pieceType} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})" +
+                        (_lastMoveWasTSpin ? " [T-SPIN SETUP]" : ""));
+        
         _grid.PlaceTetromino(_currentTetromino, _tetrominoPoint);
         
         // Detect line clears without removing them yet
@@ -225,21 +250,33 @@ public class TetrisGame {
             _pendingLinesCleared = linesCleared;
             _hidePieceForLineClear = true; // Hide the current piece during line clear
             _timingManager.StartLineClear();
+            TetriON.debugLog($"TetrisGame: LINE CLEAR DETECTED - {linesCleared} line(s) pending animation");
         } else {
             // No line clears - start ARE immediately
             _areInProgress = true;
             _nextPieceReady = false;
             _timingManager.StartAREDelay();
+            TetriON.debugLog($"TetrisGame: NO LINE CLEAR - Starting ARE delay, combo broken (was {_comboCount})");
+            
+            // Break combo when no lines are cleared
+            if (_comboCount > 0) {
+                _comboCount = 0;
+            }
         }
     }
     
     private void SpawnNextPiece() {
         // Get next piece
         _currentTetromino = _nextTetrominos[0];
+        var spawnedPiece = _currentTetromino.GetType().Name;
+        
         for (var i = 0; i < _nextTetrominos.Length - 1; i++) {
             _nextTetrominos[i] = _nextTetrominos[i + 1];
         }
-        _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
+        var nextPieceType = _bagRandomizer.GetNextPieceType();
+        _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(nextPieceType);
+        
+        TetriON.debugLog($"SpawnNextPiece: Spawned {spawnedPiece}, added {nextPieceType} to queue");
         
         // Reset position and state
         _tetrominoPoint = new Point(4, 0);
@@ -251,17 +288,22 @@ public class TetrisGame {
         UpdateCachedValues();
         
         // Check if new piece can be placed (game over condition)
-        if (IsGameOver()) _gameOver = true;
+        if (IsGameOver()) {
+            _gameOver = true;
+            TetriON.debugLog($"SpawnNextPiece: GAME OVER! Cannot place {spawnedPiece} at spawn position");
+        }
     }
 
     public void Drop() {
         if (_gameOver) return;
         var dropDistance = 0;
+        var startY = _tetrominoPoint.Y;
         while (CanMoveCurrentTo(0, 1)) {
             _tetrominoPoint.Y++;
             dropDistance++;
         }
         UpdateCachedValues();
+        TetriON.debugLog($"TetrisGame: HARD DROP - {_currentTetromino.GetType().Name} from Y={startY} to Y={_tetrominoPoint.Y}, distance: {dropDistance}");
         
         // Hard drop scoring: 2 points per cell (modern Tetris standard)
         _score += dropDistance * 2;
@@ -411,29 +453,47 @@ public class TetrisGame {
     }
     
     private void ProcessLineClears(int linesCleared) {
+        TetriON.debugLog($"ProcessLineClears: Processing {linesCleared} lines cleared. Current total lines: {_lines}");
+        
         _lines += linesCleared;
         
         // Calculate modern Tetris score
         var scoreResult = CalculateModernScore(linesCleared, _lastMoveWasTSpin);
         _score += scoreResult.totalScore;
         
+        TetriON.debugLog($"ProcessLineClears: Score increased by {scoreResult.totalScore}. Total score: {_score}");
+        
         // Update level progression (variable goal mode: 5 × current level)
         UpdateLevelProgression();
         
         // Update Back-to-Back state
+        var previousB2B = _lastClearWasDifficult;
         _lastClearWasDifficult = scoreResult.wasDifficult;
+        
+        if (scoreResult.wasDifficult && previousB2B) {
+            TetriON.debugLog($"ProcessLineClears: Back-to-Back bonus applied! Difficult clear: {scoreResult.wasDifficult}");
+        } else if (scoreResult.wasDifficult) {
+            TetriON.debugLog($"ProcessLineClears: Difficult clear registered for future B2B bonus");
+        }
 
         // Update combo counter
+        var previousCombo = _comboCount;
         if (linesCleared > 0) _comboCount++;
         else  _comboCount = 0; // Reset combo on empty drop
+        
+        TetriON.debugLog($"ProcessLineClears: Combo updated from {previousCombo} to {_comboCount}");
+        
         // Reset T-spin flag after line clear
         _lastMoveWasTSpin = false;
     }
     
     private (long totalScore, bool wasDifficult) CalculateModernScore(int linesCleared, bool wasTSpin) {
+        TetriON.debugLog($"CalculateModernScore: Lines={linesCleared}, T-Spin={wasTSpin}, Level={_level}, Combo={_comboCount}");
+        
         if (linesCleared == 0) {
             // Empty drop - add soft drop and combo reset
             var emptySoftDropScore = _softDropDistance; // 1 point per cell
+            TetriON.debugLog($"CalculateModernScore: Empty drop - soft drop score: {emptySoftDropScore}");
             _softDropDistance = 0; // Reset after scoring
             _comboCount = 0; // Reset combo on empty drop
             return (emptySoftDropScore, false);
@@ -456,6 +516,20 @@ public class TetrisGame {
             _ => 100L * linesCleared
         };
         
+        var clearType = (linesCleared, wasTSpin) switch {
+            (1, false) => "Single",
+            (2, false) => "Double",
+            (3, false) => "Triple",
+            (4, false) => "Tetris",
+            (0, true) => "T-Spin",
+            (1, true) => "T-Spin Single",
+            (2, true) => "T-Spin Double",
+            (3, true) => "T-Spin Triple",
+            _ => $"Custom ({linesCleared} lines)"
+        };
+        
+        TetriON.debugLog($"CalculateModernScore: Clear type: {clearType}, Base score: {baseScore}");
+        
         // Apply level multiplier
         baseScore *= _level;
         
@@ -463,15 +537,23 @@ public class TetrisGame {
         var isDifficult = linesCleared == 4 || wasTSpin;
         
         // Apply Back-to-Back bonus (1.5x multiplier)
+        var scoreBefore = baseScore;
         if (isDifficult && _lastClearWasDifficult) {
             baseScore = (long)(baseScore * 1.5f);
+            TetriON.debugLog($"CalculateModernScore: Back-to-Back bonus applied! Score: {scoreBefore} -> {baseScore}");
         }
         
         // Add combo bonus: 50 × combo_count × level
         var comboBonus = _comboCount > 1 ? 50L * (_comboCount - 1) * _level : 0L;
+        if (comboBonus > 0) {
+            TetriON.debugLog($"CalculateModernScore: Combo bonus: {comboBonus} (combo {_comboCount})");
+        }
         
         // Add soft drop bonus
         var softDropScore = _softDropDistance;
+        if (softDropScore > 0) {
+            TetriON.debugLog($"CalculateModernScore: Soft drop bonus: {softDropScore}");
+        }
         _softDropDistance = 0; // Reset after scoring
         
         // Check for perfect clear bonus
@@ -484,16 +566,26 @@ public class TetrisGame {
                 4 => 2000L * _level, // Perfect Clear Tetris
                 _ => 1000L * _level
             };
+            TetriON.debugLog($"CalculateModernScore: PERFECT CLEAR! Bonus: {perfectClearBonus}");
         }
         
         var totalScore = baseScore + comboBonus + softDropScore + perfectClearBonus;
+        TetriON.debugLog($"CalculateModernScore: Total score breakdown - Base: {baseScore}, Combo: {comboBonus}, Soft drop: {softDropScore}, Perfect: {perfectClearBonus}, Total: {totalScore}");
         return (totalScore, isDifficult);
     }
     
     private void UpdateLevelProgression() {
         // Variable goal mode: lines required = 5 × current level
         var linesForNextLevel = 5 * (int)_level;
-        if (_lines >= linesForNextLevel) _level++;
+        var previousLevel = _level;
+        
+        if (_lines >= linesForNextLevel) {
+            _level++;
+            TetriON.debugLog($"UpdateLevelProgression: LEVEL UP! {previousLevel} -> {_level} (Lines: {_lines}/{linesForNextLevel})");
+        } else {
+            var linesNeeded = linesForNextLevel - _lines;
+            TetriON.debugLog($"UpdateLevelProgression: Level {_level} - Progress: {_lines}/{linesForNextLevel} ({linesNeeded} lines needed)");
+        }
     }
     
     private bool IsGridEmpty() {

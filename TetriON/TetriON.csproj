@@ -32,6 +32,13 @@
 	<ItemGroup>
 		<MonoGameContentReference Include="Content/Content.mgcb" />
 	</ItemGroup>
+	
+	<!-- Include skins directory and all its contents for publishing -->
+	<ItemGroup>
+		<Content Include="Content/skins/**/*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
         <Message Text="Restoring dotnet tools" Importance="High"/>

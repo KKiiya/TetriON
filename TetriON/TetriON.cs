@@ -14,8 +14,9 @@ using TetriON.Skins;
 
 namespace TetriON;
 
-public class TetriON : Microsoft.Xna.Framework.Game {
-    
+public class TetriON : Microsoft.Xna.Framework.Game
+{
+
     public static readonly string Version = "0.1.0";
     public static TetriON Instance { get; private set; }
     private readonly GameSession _session;
@@ -23,21 +24,23 @@ public class TetriON : Microsoft.Xna.Framework.Game {
     public static readonly InputHandler Controller = new Controller();
     public static readonly KeyBoard Keyboard = new();
     public static readonly Mouse Mouse = new();
-    
+
     private readonly GraphicsDeviceManager _graphics;
-    
+
     private TetrisGame _tetrisGame;
     private Point _position;
     private KeyboardState _previousKeyboardState;
-    
+
     public SkinManager _skinManager { get; private set; }
 
-    public TetriON() {
+    public TetriON()
+    {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         Window.AllowUserResizing = true;
         Window.AllowAltF4 = true;
-        Window.ClientSizeChanged += (_, _) => {
+        Window.ClientSizeChanged += (_, _) =>
+        {
             _graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
             _graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
             _graphics.ApplyChanges();
@@ -45,7 +48,8 @@ public class TetriON : Microsoft.Xna.Framework.Game {
         IsMouseVisible = true;
     }
 
-    protected override void Initialize() {
+    protected override void Initialize()
+    {
         _position = new Point(10, 5);
         _graphics.IsFullScreen = false;
         _graphics.PreferredBackBufferWidth = 1366;
@@ -54,38 +58,33 @@ public class TetriON : Microsoft.Xna.Framework.Game {
         base.Initialize();
     }
 
-    protected override void LoadContent() {
+    protected override void LoadContent()
+    {
         SpriteBatch = new SpriteBatch(GraphicsDevice);
         Tetromino.Initialize();
-        
+
         Instance = this;
-        
+
         // Initialize skin system
         _skinManager = new SkinManager();
         _skinManager.Initialize(GraphicsDevice);
-        
+
         // Initialize settings and key bindings
         var credentials = new Credentials("DefaultUser"); // Create default credentials
         var settings = new Settings(credentials);
         KeyBindHelper.Initialize(settings);
-        
-        // Center the grid better on a 1366x768 screen with reasonable sizing
-        var gridWidth = 10;
-        var gridHeight = 20; 
-        var tileSize = 30;
-        var sizeMultiplier = 1.2f; // Smaller, more reasonable size
-        var scaledTileSize = (int)(tileSize * sizeMultiplier);
-        var gridPixelWidth = gridWidth * scaledTileSize;
-        var gridPixelHeight = gridHeight * scaledTileSize;
 
-        var centerX = (GetWindowResolution().X - gridPixelWidth) / 2;
-        var centerY = (GetWindowResolution().Y - gridPixelHeight) / 2;
+        // Center the grid better on a 1366x768 screen with reasonable sizing
+
+
+
 
         //_session = new GameSession(this);
-        _tetrisGame = new TetrisGame(new Point(centerX, centerY), Content.Load<Texture2D>("tiles"), Mode.Singleplayer, Gamemode.Marathon);
+        _tetrisGame = new TetrisGame(this, Mode.Singleplayer, Gamemode.Marathon);
     }
 
-    protected override void Update(GameTime gameTime) {
+    protected override void Update(GameTime gameTime)
+    {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Microsoft.Xna.Framework.Input.Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
@@ -95,19 +94,20 @@ public class TetriON : Microsoft.Xna.Framework.Game {
         // Controller?.Update(gameTime);
         // Keyboard?.Update(gameTime);
         // Mouse?.Update(gameTime);
-        
+
         //_session?.Update(gameTime);
-        
+
         // Update TetrisGame with keyboard states
         var currentKeyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
         // TODO: MOVE THIS TO GAMESESSION TO HANDLE
         _tetrisGame?.Update(gameTime, currentKeyboard, _previousKeyboardState);
         _previousKeyboardState = currentKeyboard;
-        
+
         base.Update(gameTime);
     }
 
-    protected override void Draw(GameTime gameTime) {
+    protected override void Draw(GameTime gameTime)
+    {
         GraphicsDevice.Clear(Color.CornflowerBlue); // Changed to blue to see if game is running
         SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
         //_session?.Draw();
@@ -116,34 +116,42 @@ public class TetriON : Microsoft.Xna.Framework.Game {
     }
 
     public SpriteBatch SpriteBatch { get; private set; }
-    
+
     /// <summary>
     /// Get the current window resolution
     /// </summary>
-    public Point GetWindowResolution() {
+    public Point GetWindowResolution()
+    {
         return new Point(Window.ClientBounds.Width, Window.ClientBounds.Height);
     }
-    
+
     /// <summary>
     /// Get the current rendering resolution (back buffer size)
     /// </summary>
-    public Point GetRenderResolution() {
+    public Point GetRenderResolution()
+    {
         return new Point(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
     }
-    
+
     /// <summary>
     /// Get the current viewport size
     /// </summary>
-    public Point GetViewportSize() {
-        if (GraphicsDevice != null) {
+    public Point GetViewportSize()
+    {
+        if (GraphicsDevice != null)
+        {
             var viewport = GraphicsDevice.Viewport;
             return new Point(viewport.Width, viewport.Height);
         }
         return Point.Zero;
     }
-    
+
     /// <summary>
     /// Check if the window is in fullscreen mode
     /// </summary>
     public bool IsFullscreen => _graphics.IsFullScreen;
+    
+    public static void debugLog(string message) {
+        System.Diagnostics.Debug.WriteLine($"[TetriON] {message}");
+    }
 }
