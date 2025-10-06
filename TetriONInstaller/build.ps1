@@ -35,69 +35,23 @@ Copy-Item "Icon.ico" "..\TetriONInstaller\installer_icon.ico" -Force
 # Build installer
 Write-Host "Building installer..." -ForegroundColor Yellow
 Set-Location "..\TetriONInstaller"
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o $OutputPath
+dotnet publish -c Release --self-contained false -p:PublishSingleFile=true -o $OutputPath
 
 # Build uninstaller
 Write-Host "Building uninstaller..." -ForegroundColor Yellow
-$uninstallerCode = @"
-using System;
-using System.Windows.Forms;
-
-namespace TetriONInstaller
-{
-    internal static class UninstallProgram
-    {
-        [STAThread]
-        static void Main(string[] args)
-        {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-
-            string installPath = args.Length > 0 ? args[0] : Environment.CurrentDirectory;
-            Application.Run(new UninstallerForm(installPath));
-        }
-    }
-}
-"@
-
-$uninstallerCode | Out-File -FilePath "UninstallProgram.cs" -Encoding UTF8
-
-# Create uninstaller project
-$uninstallerProject = @"
-<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <OutputType>WinExe</OutputType>
-        <TargetFramework>net8.0-windows</TargetFramework>
-        <UseWindowsForms>true</UseWindowsForms>
-        <AssemblyName>uninstall</AssemblyName>
-        <PublishSingleFile>true</PublishSingleFile>
-        <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    </PropertyGroup>
-    <ItemGroup>
-        <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-    </ItemGroup>
-    <ItemGroup>
-        <Compile Include="UninstallerForm.cs" />
-        <Compile Include="UninstallProgram.cs" />
-    </ItemGroup>
-</Project>
-"@
-
-$uninstallerProject | Out-File -FilePath "Uninstaller.csproj" -Encoding UTF8
-
-$buildResult = dotnet publish Uninstaller.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o "$OutputPath\uninstaller"
+Set-Location "..\TetriONUninstaller"
+$buildResult = dotnet publish -c Release --self-contained false -p:PublishSingleFile=true -o "..\TetriONInstaller\$OutputPath\uninstaller"
 
 # Copy uninstaller to main output if build succeeded
-if (Test-Path "$OutputPath\uninstaller\uninstall.exe") {
-    Copy-Item "$OutputPath\uninstaller\uninstall.exe" "$OutputPath\" -Force
+Set-Location "..\TetriONInstaller"
+if (Test-Path "$OutputPath\uninstaller\TetriONUninstaller.exe") {
+    Copy-Item "$OutputPath\uninstaller\TetriONUninstaller.exe" "$OutputPath\uninstall.exe" -Force
     Remove-Item -Recurse -Force "$OutputPath\uninstaller"
 } else {
     Write-Warning "Uninstaller build failed, skipping..."
 }
 
 # Clean up temporary files
-if (Test-Path "UninstallProgram.cs") { Remove-Item "UninstallProgram.cs" -Force }
-if (Test-Path "Uninstaller.csproj") { Remove-Item "Uninstaller.csproj" -Force }
 Remove-Item "game_files.zip" -Force
 Remove-Item "installer_icon.ico" -Force
 

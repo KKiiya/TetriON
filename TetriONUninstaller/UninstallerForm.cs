@@ -1,6 +1,6 @@
 using Microsoft.Win32;
 
-namespace TetriONInstaller;
+namespace TetriONUninstaller;
 
 public partial class UninstallerForm : Form
 {

@@ -1,6 +1,6 @@
 @echo off
 echo Building TetriON Installer...
-pwsh -ExecutionPolicy Bypass -File "build.ps1"
+powershell -ExecutionPolicy Bypass -File "build.ps1"
 if %ERRORLEVEL% EQU 0 (
     echo.
     echo Build completed successfully!
