@@ -694,5 +694,3 @@ public class SkinManager : IDisposable {
         TetriON.DebugLog($"SkinManager: Disposal complete. Cleaned up {textureCount} textures and {audioCount} audio assets");
     }
 }
-
-
