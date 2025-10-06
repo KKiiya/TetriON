@@ -27,7 +27,7 @@ public class GameSession {
         _currentMenu?.Draw();
     }
     
-    public void Update() {
-        
+    public void Update(GameTime gameTime) {
+        _currentMenu?.Update(gameTime);
     }
 }

@@ -8,6 +8,7 @@ using TetriON.Input.Support;
 using TetriON.Account;
 using KeyBoard = TetriON.Input.Support.KeyBoard;
 using Mouse = TetriON.Input.Mouse;
+using TetriON.session;
 
 namespace TetriON;
 
@@ -15,7 +16,7 @@ public class TetriON : Microsoft.Xna.Framework.Game {
     
     public static readonly string Version = "0.1.0";
     public static TetriON Instance { get; private set; }
-    // private readonly GameSession _session;
+    private readonly GameSession _session;
 
     public static readonly InputHandler Controller = new Controller();
     public static readonly KeyBoard Keyboard = new();
@@ -69,10 +70,11 @@ public class TetriON : Microsoft.Xna.Framework.Game {
         var scaledTileSize = (int)(tileSize * sizeMultiplier);
         var gridPixelWidth = gridWidth * scaledTileSize;
         var gridPixelHeight = gridHeight * scaledTileSize;
-        
-        var centerX = (1366 - gridPixelWidth) / 2;
-        var centerY = (768 - gridPixelHeight) / 2;
-        
+
+        var centerX = (GetWindowResolution().X - gridPixelWidth) / 2;
+        var centerY = (GetWindowResolution().Y - gridPixelHeight) / 2;
+
+        //_session = new GameSession(this);
         _tetrisGame = new TetrisGame(new Point(centerX, centerY), Content.Load<Texture2D>("tiles"), "normal", 1, gridWidth, gridHeight);
     }
 
@@ -87,7 +89,7 @@ public class TetriON : Microsoft.Xna.Framework.Game {
         // Keyboard?.Update(gameTime);
         // Mouse?.Update(gameTime);
         
-        //_session?.Update();
+        //_session?.Update(gameTime);
         
         // Update TetrisGame with keyboard states
         var currentKeyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
