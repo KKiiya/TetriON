@@ -9,6 +9,7 @@ using TetriON.Account;
 using KeyBoard = TetriON.Input.Support.KeyBoard;
 using Mouse = TetriON.Input.Mouse;
 using TetriON.session;
+using TetriON.Game.Enums;
 
 namespace TetriON;
 
@@ -75,7 +76,7 @@ public class TetriON : Microsoft.Xna.Framework.Game {
         var centerY = (GetWindowResolution().Y - gridPixelHeight) / 2;
 
         //_session = new GameSession(this);
-        _tetrisGame = new TetrisGame(new Point(centerX, centerY), Content.Load<Texture2D>("tiles"), "normal", 1, gridWidth, gridHeight);
+        _tetrisGame = new TetrisGame(new Point(centerX, centerY), Content.Load<Texture2D>("tiles"), Mode.Singleplayer, Gamemode.Marathon);
     }
 
     protected override void Update(GameTime gameTime) {

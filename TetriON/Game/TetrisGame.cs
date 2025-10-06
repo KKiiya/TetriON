@@ -28,9 +28,7 @@ public class TetrisGame {
     private Tetromino _holdTetromino;
 
     private readonly Gamemode _gamemode;
-    private readonly Mode _modeType;
-
-    private readonly string _mode;
+    private readonly Mode _mode;
     private long _level;
     private long _score;
     private long _lines;
@@ -70,35 +68,40 @@ public class TetrisGame {
     private bool _lastMoveWasTSpin;
     private bool _gameOver;
     
-    public TetrisGame(Point point, Texture2D tiles, string mode, int difficulty, int width, int height) {
+    /* 
+        TODO: Replace Point and Texture2D with TetriON instance to obtain everything needed
+        new constructor: public TetrisGame(TetriON game, Mode mode, Gamemode gamemode)
+    */
+    public TetrisGame(Point point, Texture2D tiles, Mode mode, Gamemode gamemode) {
         _spriteBatch = TetriON.Instance.SpriteBatch;
         _point = point;
         _tiles = tiles;
-        _grid = new Grid(point, width, height, 1.2f); // Reasonable size for proper Tetris gameplay
+        _grid = new Grid(point, 10, 20, 1.2f); // Reasonable size for proper Tetris gameplay
         _moveSound = new SoundWrapper("assets/sfx/move");
         _tetrominoPoint = new Point(4, 0); // Start at column 4 (center of 10-wide grid), row 0 (top)
         _timingManager = new TimingManager();
         _random = new Random();
         _bagRandomizer = new SevenBagRandomizer(_random);
-        
+
         // Initialize with proper 7-bag randomizer
         _currentTetromino = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
         _holdTetromino = null;
         _nextTetrominos = new Tetromino[5];
-        for (int i = 0; i < _nextTetrominos.Length; i++) {
+        for (int i = 0; i < _nextTetrominos.Length; i++)
+        {
             _nextTetrominos[i] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
         }
-        
+
         // Initialize modern lock delay for first piece
         _timingManager.InitializePiece();
-        
+
         _canHold = true;
         _mode = mode;
         _level = 1;
         _score = 0;
         _lines = 0;
         _gameOver = false;
-        
+
         // Initialize modern scoring state
         _lastClearWasDifficult = false;
         _comboCount = 0;
@@ -110,7 +113,7 @@ public class TetrisGame {
         _nextPieceReady = true;
         _irsRotation = 0;
         _irsHoldRequested = false;
-        
+
         InitializeKeyStates();
         _cachedTetrominoCells = [];
         UpdateCachedValues();
@@ -283,7 +286,7 @@ public class TetrisGame {
         return _nextTetrominos;
     }
     
-    public string GetMode() {
+    public Mode GetMode() {
         return _mode;
     }
     
