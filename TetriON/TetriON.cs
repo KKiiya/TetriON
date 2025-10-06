@@ -35,6 +35,7 @@ public class TetriON : Microsoft.Xna.Framework.Game
 
     public TetriON()
     {
+        debugLog("TetriON: Constructor started");
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         Window.AllowUserResizing = true;
@@ -46,41 +47,76 @@ public class TetriON : Microsoft.Xna.Framework.Game
             _graphics.ApplyChanges();
         };
         IsMouseVisible = true;
+        debugLog("TetriON: Constructor completed");
     }
 
     protected override void Initialize()
     {
+        debugLog("TetriON: Initialize() started");
         _position = new Point(10, 5);
         _graphics.IsFullScreen = false;
         _graphics.PreferredBackBufferWidth = 1366;
         _graphics.PreferredBackBufferHeight = 768;
         _graphics.ApplyChanges();
+        debugLog("TetriON: Graphics configured, calling base.Initialize()");
         base.Initialize();
+        debugLog("TetriON: Initialize() completed");
     }
 
     protected override void LoadContent()
     {
-        SpriteBatch = new SpriteBatch(GraphicsDevice);
-        Tetromino.Initialize();
+        debugLog("TetriON: LoadContent() started");
+        
+        try {
+            SpriteBatch = new SpriteBatch(GraphicsDevice);
+            debugLog("TetriON: SpriteBatch created");
+            
+            Tetromino.Initialize();
+            debugLog("TetriON: Tetromino initialized");
 
-        Instance = this;
+            Instance = this;
+            debugLog("TetriON: Instance set");
 
-        // Initialize skin system
-        _skinManager = new SkinManager();
-        _skinManager.Initialize(GraphicsDevice);
+            // Initialize skin system
+            _skinManager = new SkinManager();
+            debugLog("TetriON: SkinManager created");
+            
+            _skinManager.Initialize(GraphicsDevice);
+            debugLog("TetriON: SkinManager initialized");
+            
+            // Load texture and audio assets
+            _skinManager.LoadTextureAssets();
+            debugLog("TetriON: SkinManager texture assets loaded");
+            
+            _skinManager.LoadAudioAssets();
+            debugLog("TetriON: SkinManager audio assets loaded");
 
-        // Initialize settings and key bindings
-        var credentials = new Credentials("DefaultUser"); // Create default credentials
-        var settings = new Settings(credentials);
-        KeyBindHelper.Initialize(settings);
+            // Initialize settings and key bindings
+            var credentials = new Credentials("DefaultUser"); // Create default credentials
+            debugLog("TetriON: Credentials created");
+            
+            var settings = new Settings(credentials);
+            debugLog("TetriON: Settings created");
+            
+            KeyBindHelper.Initialize(settings);
+            debugLog("TetriON: KeyBindHelper initialized");
 
-        // Center the grid better on a 1366x768 screen with reasonable sizing
+            // Center the grid better on a 1366x768 screen with reasonable sizing
 
 
 
 
-        //_session = new GameSession(this);
-        _tetrisGame = new TetrisGame(this, Mode.Singleplayer, Gamemode.Marathon);
+            //_session = new GameSession(this);
+            _tetrisGame = new TetrisGame(this, Mode.Singleplayer, Gamemode.Marathon);
+            debugLog("TetriON: TetrisGame created successfully");
+            
+        } catch (System.Exception ex) {
+            debugLog($"TetriON: ERROR in LoadContent(): {ex.Message}");
+            debugLog($"TetriON: Stack trace: {ex.StackTrace}");
+            throw;
+        }
+        
+        debugLog("TetriON: LoadContent() completed");
     }
 
     protected override void Update(GameTime gameTime)
@@ -152,6 +188,8 @@ public class TetriON : Microsoft.Xna.Framework.Game
     public bool IsFullscreen => _graphics.IsFullScreen;
     
     public static void debugLog(string message) {
-        System.Diagnostics.Debug.WriteLine($"[TetriON] {message}");
+        var logMessage = $"[TetriON] {message}";
+        System.Diagnostics.Debug.WriteLine(logMessage);
+        System.Console.WriteLine(logMessage);
     }
 }
