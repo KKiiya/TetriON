@@ -37,7 +37,7 @@ public class SkinManager : IDisposable {
         "move", "rotate", "clear", "drop", "hold", "lock", "levelup", "gameover", "pause"
     };
 
-    private static readonly string SupportedAudioExtension = ".ogg";
+    private static readonly string SupportedAudioExtension = ".wav";
     private static readonly string SupportedTextureExtensions = ".png";
 
     private string _currentSkin = "default";
@@ -81,17 +81,24 @@ public class SkinManager : IDisposable {
     /// Load a custom texture from PNG file at runtime (for TextureWrapper integration)
     /// </summary>
     public Texture2D LoadCustomTexture(string textureName) {
+        // Remove any trailing dot or extension from textureName
+        var cleanTextureName = textureName;
+        if (cleanTextureName.EndsWith("."))
+            cleanTextureName = cleanTextureName.TrimEnd('.');
+        if (cleanTextureName.EndsWith(SupportedTextureExtensions))
+            cleanTextureName = cleanTextureName.Substring(0, cleanTextureName.Length - SupportedTextureExtensions.Length);
+
         // Try to load from custom skin folder
-        var skinPath = Path.Combine("skins", _currentSkin, $"{textureName}.{SupportedTextureExtensions}");
+        var skinPath = Path.Combine("skins", _currentSkin, $"{cleanTextureName}{SupportedTextureExtensions}");
         if (File.Exists(skinPath)) {
-            TetriON.debugLog($"SkinManager: Loading texture '{textureName}' from current skin '{_currentSkin}' at '{skinPath}'");
+            TetriON.debugLog($"SkinManager: Loading texture '{cleanTextureName}' from current skin '{_currentSkin}' at '{skinPath}'");
             return LoadTextureFromFile(skinPath);
         }
 
         // Try default skin folder
-        var defaultPath = Path.Combine("skins", "default", $"{textureName}.{SupportedTextureExtensions}");
+        var defaultPath = Path.Combine("skins", "default", $"{cleanTextureName}{SupportedTextureExtensions}");
         if (File.Exists(defaultPath)) {
-            TetriON.debugLog($"SkinManager: Loading texture '{textureName}' from default skin fallback at '{defaultPath}'");
+            TetriON.debugLog($"SkinManager: Loading texture '{cleanTextureName}' from default skin fallback at '{defaultPath}'");
             return LoadTextureFromFile(defaultPath);
         }
 
@@ -107,29 +114,60 @@ public class SkinManager : IDisposable {
         var skinPath = FindSoundFile("skins", _currentSkin, soundName);
         if (skinPath != null) {
             TetriON.debugLog($"SkinManager: Loading sound '{soundName}' from current skin '{_currentSkin}' at '{skinPath}'");
-            return LoadSoundEffectFromFile(skinPath);
+            try {
+                return LoadSoundEffectFromFile(skinPath);
+            } catch (NotSupportedException ex) {
+                // Fall back to Content Pipeline if file format not supported
+                TetriON.debugLog($"SkinManager: Custom sound format not supported, trying Content Pipeline for '{soundName}': {ex.Message}");
+                try {
+                    return TetriON.Instance.Content.Load<SoundEffect>(soundName);
+                } catch (Exception contentEx) {
+                    TetriON.debugLog($"SkinManager: Content Pipeline also failed for '{soundName}': {contentEx.Message}");
+                    throw new FileNotFoundException($"Sound '{soundName}' could not be loaded from custom skin (format not supported) or Content Pipeline.", contentEx);
+                }
+            }
         }
 
         // Try default skin folder
         var defaultPath = FindSoundFile("skins", "default", soundName);
         if (defaultPath != null) {
             TetriON.debugLog($"SkinManager: Loading sound '{soundName}' from default skin fallback at '{defaultPath}'");
-            return LoadSoundEffectFromFile(defaultPath);
+            try {
+                return LoadSoundEffectFromFile(defaultPath);
+            } catch (NotSupportedException ex) {
+                // Fall back to Content Pipeline if file format not supported
+                TetriON.debugLog($"SkinManager: Default sound format not supported, trying Content Pipeline for '{soundName}': {ex.Message}");
+                try {
+                    return TetriON.Instance.Content.Load<SoundEffect>(soundName);
+                } catch (Exception contentEx) {
+                    TetriON.debugLog($"SkinManager: Content Pipeline also failed for '{soundName}': {contentEx.Message}");
+                    throw new FileNotFoundException($"Sound '{soundName}' could not be loaded from default skin (format not supported) or Content Pipeline.", contentEx);
+                }
+            }
         }
 
-        TetriON.debugLog($"SkinManager: ✗ Sound '{soundName}' not found in skin '{_currentSkin}' or default skin");
-        throw new FileNotFoundException($"Custom sound '{soundName}' not found in skin '{_currentSkin}' or default skin.");
+        // Try Content Pipeline as final fallback
+        TetriON.debugLog($"SkinManager: No custom sound files found for '{soundName}', trying Content Pipeline...");
+        try {
+            return TetriON.Instance.Content.Load<SoundEffect>(soundName);
+        } catch (Exception ex) {
+            TetriON.debugLog($"SkinManager: ✗ Sound '{soundName}' not found in skin '{_currentSkin}', default skin, or Content Pipeline: {ex.Message}");
+            throw new FileNotFoundException($"Sound '{soundName}' not found in skin '{_currentSkin}', default skin, or Content Pipeline.");
+        }
     }
 
     /// <summary>
-    /// Find a sound file with any supported audio extension
+    /// Find a sound file with any supported audio extension (prioritizes WAV for runtime loading)
     /// </summary>
     private string FindSoundFile(string baseFolder, string skinName, string soundName) {
-        var filePath = Path.Combine(baseFolder, skinName, $"{soundName}{SupportedAudioExtension}");
+        // Prioritize WAV files since they can be loaded at runtime
+        var extensions = new[] { ".wav", ".ogg", ".mp3" };
+        foreach (var ext in extensions) {
+            var filePath = Path.Combine(baseFolder, skinName, $"{soundName}{ext}");
             if (File.Exists(filePath)) {
                 return filePath;
             }
-        
+        }
         return null;
     }
 
@@ -138,8 +176,23 @@ public class SkinManager : IDisposable {
             throw new InvalidOperationException("Skin system not initialized. Call Initialize() first.");
         }
 
-        using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-        return SoundEffect.FromStream(fileStream);
+        var extension = Path.GetExtension(filePath).ToLowerInvariant();
+        
+        // Only WAV files can be loaded directly from stream
+        if (extension == ".wav") {
+            try {
+                using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                return SoundEffect.FromStream(fileStream);
+            } catch (Exception ex) {
+                throw new InvalidOperationException($"Failed to load WAV file '{filePath}': {ex.Message}", ex);
+            }
+        }
+        
+        // For OGG/MP3 files, we need to use Content Pipeline or skip them
+        // Since direct OGG loading isn't supported in MonoGame, we'll throw a helpful error
+        throw new NotSupportedException($"Audio format '{extension}' is not supported for runtime loading. " +
+                                       $"Only WAV files can be loaded at runtime. Please convert '{Path.GetFileName(filePath)}' to WAV format " +
+                                       $"or add it to the Content Pipeline.");
     }
 
     private Texture2D LoadTextureFromFile(string filePath) {
@@ -215,8 +268,9 @@ public class SkinManager : IDisposable {
         
         foreach (var soundName in ValidSoundNames) {
             try {
-                // Use SoundWrapper constructor that takes a path - it will handle loading internally
-                var soundWrapper = new SoundWrapper(soundName);
+                // Load sound effect directly from SkinManager, then wrap it
+                var soundEffect = LoadCustomSoundEffect(soundName);
+                var soundWrapper = new SoundWrapper(soundEffect, soundName);
                 _audioAssets[soundName] = soundWrapper;
                 loadedCount++;
                 TetriON.debugLog($"SkinManager: ✓ Loaded sound '{soundName}'");
@@ -225,8 +279,7 @@ public class SkinManager : IDisposable {
                 // Sound doesn't exist for this skin, skip it
                 skippedSounds.Add(soundName);
                 continue;
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 TetriON.debugLog($"SkinManager: ✗ Failed to load sound '{soundName}': {ex.Message}");
                 skippedSounds.Add(soundName);
                 continue;

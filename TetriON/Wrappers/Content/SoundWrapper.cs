@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework.Audio;
 
@@ -16,20 +17,26 @@ public class SoundWrapper : IDisposable {
         if (string.IsNullOrWhiteSpace(path)) {
             throw new ArgumentException("Path cannot be null or empty", nameof(path));
         }
-        
+
         _path = path;
-        
+
         try {
-            // Try custom skin system first
+            // Remove extension if present for consistent lookup
+            var soundName = Path.GetFileNameWithoutExtension(path);
             var skinManager = TetriON.Instance._skinManager;
-            if (skinManager?.HasCustomSound(path) == true) {
-                _soundEffect = skinManager.LoadCustomSoundEffect(path);
+            if (skinManager?.HasCustomSound(soundName) == true) {
+                _soundEffect = skinManager.LoadCustomSoundEffect(soundName);
             } else {
-                _soundEffect = TetriON.Instance.Content.Load<SoundEffect>(path);
+                _soundEffect = TetriON.Instance.Content.Load<SoundEffect>(soundName);
             }
         } catch (Exception ex) {
             throw new InvalidOperationException($"Failed to load sound effect from '{path}'", ex);
         }
+    }
+
+    public SoundWrapper(SoundEffect soundEffect, string name) {
+        _soundEffect = soundEffect ?? throw new ArgumentNullException(nameof(soundEffect));
+        _path = name ?? throw new ArgumentNullException(nameof(name));
     }
 
     public void Play() {
