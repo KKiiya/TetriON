@@ -14,10 +14,27 @@ public class O : Tetromino {
         [true, true]
     ];
     
-    private Dictionary<int, bool[][]> _rotations = new() {
+    private Dictionary<int, bool[][]> _rotations = new()
+    {
         [0] = [
-            [true, true],
-            [true, true]
+            [false, true, true, false],
+            [false, true, true, false],
+            [false, false, false, false],
+        ],
+        [1] = [
+            [false, true, true, false],
+            [false, true, true, false],
+            [false, false, false, false],
+        ],
+        [2] = [
+            [false, true, true, false],
+            [false, true, true, false],
+            [false, false, false, false],
+        ],
+        [3] = [
+            [false, true, true, false],
+            [false, true, true, false],
+            [false, false, false, false],
         ]
     };
 
