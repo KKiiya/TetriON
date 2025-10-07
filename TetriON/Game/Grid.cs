@@ -212,6 +212,25 @@ public class Grid {
         return _bufferGrid[x][bufferY];
     }
     
+    /// <summary>
+    /// Check if a grid position should be rendered (including buffer zone)
+    /// </summary>
+    public bool ShouldRenderPosition(int x, int y) {
+        // Position is renderable if it's within grid bounds (including buffer zone)
+        var gridY = y + _bufferZoneHeight;
+        return x >= 0 && x < _width && gridY >= 0 && gridY < _totalHeight;
+    }
+    
+    /// <summary>
+    /// Convert grid coordinate to render pixel position (handles buffer zone)
+    /// </summary>
+    public Point GridToRenderPosition(Point gridPos, Point gridLocationPixels, int scaledTileSize) {
+        return new Point(
+            gridLocationPixels.X + gridPos.X * scaledTileSize,
+            gridLocationPixels.Y + gridPos.Y * scaledTileSize  // Negative Y will render above visible grid
+        );
+    }
+    
     public byte GetCell(int x, int y) {
         // Convert to buffer zone coordinates (negative Y values are in buffer zone)
         var gridY = y + _bufferZoneHeight;

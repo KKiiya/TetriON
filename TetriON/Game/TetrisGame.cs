@@ -791,6 +791,7 @@ public class TetrisGame {
         var matrix = _currentTetromino.GetMatrix();
         
         // Keep moving down until we can't move anymore
+        // This works with buffer zone coordinates - negative Y values are handled by Grid.CanPlaceTetromino
         while (_grid.CanPlaceTetromino(new Point(_tetrominoPoint.X, ghostY + 1), matrix)) {
             ghostY++;
         }
@@ -978,14 +979,18 @@ public class TetrisGame {
                 _currentTetromino.Draw(_spriteBatch, tetrominoPixelPos, _tiles, _grid.GetSizeMultiplier());
             }
             
-            // Ghost piece should always be drawn if it's in visible area
-            var ghostPos = GetGhostPosition();
-            if (ghostPos.Y >= 0) { // Only draw ghost if it's in visible area
-                var ghostPixelPos = new Point(
-                    _point.X + ghostPos.X * scaledTileSize,
-                    _point.Y + ghostPos.Y * scaledTileSize
-                );
-                _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, _tiles, _grid.GetSizeMultiplier());
+            // Ghost piece - calculate and draw if current piece is visible
+            // Only show ghost if current piece is at least partially visible or in buffer zone
+            if (_tetrominoPoint.Y >= -_gameSettings.BufferZoneHeight) {
+                var ghostPos = GetGhostPosition();
+                // Draw ghost if it lands in visible area or buffer zone
+                if (ghostPos.Y >= -_gameSettings.BufferZoneHeight) {
+                    var ghostPixelPos = new Point(
+                        _point.X + ghostPos.X * scaledTileSize,
+                        _point.Y + ghostPos.Y * scaledTileSize  // This will handle negative Y (buffer zone) correctly
+                    );
+                    _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, _tiles, _grid.GetSizeMultiplier());
+                }
             }
         }
     }
