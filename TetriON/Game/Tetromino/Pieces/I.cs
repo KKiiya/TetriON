@@ -90,20 +90,54 @@ public class I : Tetromino {
     }
     
     private bool IsSpin(Grid grid, Point pivot) {
-        // I-Spin detection for 4x4 matrix - uses different pivot logic
-        // I-piece has special rotation axis that varies by orientation
-        var centerX = pivot.X + 2; // I-piece center in 4x4 matrix
-        var centerY = pivot.Y + 2;
+        // All-spin detection: check if piece is completely surrounded in all 4 directions
+        // Get all coordinates of the current piece
+        var pieceCoords = GetPieceCoordinates(pivot);
         
-        var filledCorners = 0;
+        // Define the four directions: right, down, left, up
+        var directions = new Point[] { 
+            new(1, 0),   // Right
+            new(0, 1),   // Down
+            new(-1, 0),  // Left
+            new(0, -1)   // Up
+        };
         
-        // Check corners around the I-piece center
-        if (!grid.IsCellEmpty(centerX - 1, centerY - 1)) filledCorners++; // Top-left
-        if (!grid.IsCellEmpty(centerX + 1, centerY - 1)) filledCorners++; // Top-right
-        if (!grid.IsCellEmpty(centerX - 1, centerY + 1)) filledCorners++; // Bottom-left
-        if (!grid.IsCellEmpty(centerX + 1, centerY + 1)) filledCorners++; // Bottom-right
-
-        // An I-Spin requires at least 3 of the 4 corners to be occupied
-        return filledCorners >= 3;
+        // Check if moving the piece in ANY direction would cause a collision
+        // If ALL directions are blocked, it's a valid all-spin
+        bool allDirectionsBlocked = true;
+        
+        foreach (var direction in directions) {
+            // Check if moving the piece in this direction would be valid
+            bool canMove = true;
+            foreach (var coord in pieceCoords) {
+                var newX = coord.X + direction.X;
+                var newY = coord.Y + direction.Y;
+                
+                // If any mino of the piece can move in this direction, it's not blocked
+                if (grid.IsCellEmpty(newX, newY)) {
+                    canMove = false; // This direction is not blocked
+                    break;
+                }
+            }
+            
+            if (!canMove) {
+                allDirectionsBlocked = false;
+                break;
+            }
+        }
+        
+        return allDirectionsBlocked;
+    }
+    
+    private List<Point> GetPieceCoordinates(Point pivot) {
+        var coords = new List<Point>();
+        for (int y = 0; y < _matrix.Length; y++) {
+            for (int x = 0; x < _matrix[y].Length; x++) {
+                if (_matrix[y][x]) {
+                    coords.Add(new Point(pivot.X + x, pivot.Y + y));
+                }
+            }
+        }
+        return coords;
     }
 }

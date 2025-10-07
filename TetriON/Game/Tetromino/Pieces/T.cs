@@ -107,32 +107,30 @@ public class T : Tetromino {
         var pivotX = position.X + 1;
         var pivotY = position.Y + 1;
         
-        // Get spin check positions for the rotation we came FROM and the rotation we went TO
-        var fromRotation = (rotation + 2) % 4; // Opposite of current rotation
-        var toRotation = rotation;
+        // Get spin check positions for the rotation we came FROM and the rotation we are NOW
+        var fromRotation = (rotation + 2) % 4; // Opposite of current rotation (where we came from)
+        var currentRotation = rotation;
         
-        // Combine spin checks: positions from the rotation we came from + current rotation
+        // Get the spin check positions and combine them like in the JavaScript
         var fromChecks = SpinChecks[fromRotation];
-        var toChecks = SpinChecks[toRotation];
+        var currentChecks = SpinChecks[currentRotation];
         
-        // Check collision at each corner position
-        var collisions = new bool[8];
+        // Create combined array: from checks first, then current checks (like concat in JS)
+        var minos = new bool[8];
         for (int i = 0; i < 4; i++) {
-            collisions[i] = !grid.IsCellEmpty(pivotX + fromChecks[i].X, pivotY + fromChecks[i].Y);
-            collisions[i + 4] = !grid.IsCellEmpty(pivotX + toChecks[i].X, pivotY + toChecks[i].Y);
+            // Check collision for "from" rotation positions
+            minos[i] = !grid.IsCellEmpty(pivotX + fromChecks[i].X, pivotY + fromChecks[i].Y);
+            // Check collision for current rotation positions
+            minos[i + 4] = !grid.IsCellEmpty(pivotX + currentChecks[i].X, pivotY + currentChecks[i].Y);
         }
         
-        // Check for proper T-Spin: positions 2,3 filled AND (0 OR 1) filled
-        if (collisions[2] && collisions[3] && (collisions[0] || collisions[1])) {
-            return true;
-        }
-        
-        // Check for mini T-Spin: (2 OR 3) filled AND both 0 AND 1 filled
-        if ((collisions[2] || collisions[3]) && collisions[0] && collisions[1]) {
-            // Special case: if moved exactly 1 unit horizontally and 2 units up, it's a proper T-Spin
-            if ((dx == 1 || dx == -1) && dy == -2) {
-                return true;
-            }
+        // Apply the exact JavaScript logic:
+        // Check for proper T-Spin: minos[2] && minos[3] && (minos[0] || minos[1])
+        if (minos[2] && minos[3] && (minos[0] || minos[1])) return true;
+        // Check for mini T-Spin: (minos[2] || minos[3]) && minos[0] && minos[1]
+        if ((minos[2] || minos[3]) && minos[0] && minos[1]) {
+            // Special case: if moved exactly 1 unit horizontally and 2 units down, it's a proper T-Spin
+            if ((dx == 1 || dx == -1) && dy == -2) return true;
             // Otherwise it's a mini T-Spin
             _isMiniTSpin = true;
             return true;
