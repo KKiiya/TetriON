@@ -8,7 +8,7 @@ public class I : Tetromino {
     
     private readonly Color _color = Color.Cyan;
     private const string Shape = "I";
-    private byte _id = 0x07;
+    private readonly byte _id = 0x07;
     private int _rotation;
     private bool[][] _matrix = [
         [false, false, false, false],

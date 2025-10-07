@@ -18,14 +18,6 @@
 - **R** - Restart game
 - **Escape** - Pause game
 
-### Interface
-- **Tab** - Show statistics
-- **G** - Toggle grid visibility
-- **H** - Toggle ghost piece
-- **F1** - Toggle FPS display
-- **F3** - Toggle debug mode
-- **F12** - Take screenshot
-
 ## Movement Mechanics
 
 ### DAS/ARR (Auto-Repeat)

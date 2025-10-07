@@ -29,9 +29,9 @@ public class TimingManager
     
     // Modern Tetris lock delay system (according to specifications)
     private float _lockDelayTimer;        // time left before lock in seconds
-    private float _lockDelayLimit;        // fixed per speed level (default 0.5s)
+    private readonly float _lockDelayLimit;        // fixed per speed level (default 0.5s)
     private int _resetCounter;            // number of resets done at current floor elevation
-    private int _resetCounterLimit;       // usually 15
+    private readonly int _resetCounterLimit;       // usually 15
     private bool _isGrounded;             // true if piece is in contact with the stack/floor
     
     public TimingManager(GameSettings gameSettings = null) {

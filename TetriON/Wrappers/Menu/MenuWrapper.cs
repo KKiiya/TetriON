@@ -17,7 +17,7 @@ public abstract class MenuWrapper : IDisposable {
     
     private TextureWrapper _background;
     private bool _isActive;
-    private bool _isVisible = true;
+    private readonly bool _isVisible = true;
     private bool _disposed;
     
     // Input handling

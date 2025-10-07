@@ -8,7 +8,7 @@ namespace TetriON.session.Menu.Game;
 
 public class GameMenu(GameSession session, TextureWrapper background) : MenuWrapper(session, background) {
     
-    private TetrisGame _game;
+    private readonly TetrisGame _game;
     
     public GameMenu(GameSession session, TetrisGame game) : this(session, new TextureWrapper("assets/backgrounds/game_bg")) {
         _game = game;

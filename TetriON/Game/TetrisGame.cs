@@ -66,7 +66,7 @@ public class TetrisGame {
     // Cached values for performance
     private Point _cachedGhostPosition;
     private bool _ghostPositionDirty = true;
-    private List<Point> _cachedTetrominoCells;
+    private readonly List<Point> _cachedTetrominoCells;
 
     private bool _canHold;
     private bool _lastMoveWasTSpin;
