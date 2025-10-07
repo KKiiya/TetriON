@@ -133,6 +133,7 @@ public class TetrisGame {
 
         _tetrominoPoint = new Point(settings.GridWidth / 2 - 2, -2); // Start slightly above visible area
         _gameSettings = settings; // Store reference for spawn calculations
+        TetriON.DebugLog($"TetrisGame: INITIAL SPAWN - Position: ({_tetrominoPoint.X}, {_tetrominoPoint.Y}), GridWidth: {settings.GridWidth}");
         _timingManager = new TimingManager(settings);
         _random = new Random();
         _bagRandomizer = new SevenBagRandomizer(_random);
@@ -304,9 +305,9 @@ public class TetrisGame {
         }
     }
     
-    public void MoveLeft()
-    {
+    public void MoveLeft() {
         if (_gameOver || !CanMoveCurrentTo(-1, 0)) return;
+        //TetriON.DebugLog($"TetrisGame: MOVE LEFT - {_currentTetromino.GetType().Name} from ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) to ({_tetrominoPoint.X - 1}, {_tetrominoPoint.Y})");
         _tetrominoPoint.X--;
         UpdateCachedValues();
         _soundEffects["move"].Play();
@@ -322,6 +323,7 @@ public class TetrisGame {
     
     public void MoveRight() {
         if (_gameOver || !CanMoveCurrentTo(1, 0)) return;
+        //TetriON.DebugLog($"TetrisGame: MOVE RIGHT - {_currentTetromino.GetType().Name} from ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) to ({_tetrominoPoint.X + 1}, {_tetrominoPoint.Y})");
         _tetrominoPoint.X++;
         UpdateCachedValues();
         _soundEffects["move"].Play();
@@ -373,36 +375,6 @@ public class TetrisGame {
             if (_comboCount > 0) {
                 _comboCount = 0;
             }
-        }
-    }
-    
-    private void SpawnNextPiece() {
-        // Get next piece
-        _currentTetromino = _nextTetrominos[0];
-        var spawnedPiece = _currentTetromino.GetType().Name;
-        
-        for (var i = 0; i < _nextTetrominos.Length - 1; i++) {
-            _nextTetrominos[i] = _nextTetrominos[i + 1];
-        }
-        var nextPieceType = _bagRandomizer.GetNextPieceType();
-        _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(nextPieceType);
-        
-        TetriON.DebugLog($"SpawnNextPiece: Spawned {spawnedPiece}, added {nextPieceType} to queue");
-        
-        // Reset position and state
-        _tetrominoPoint = new Point(_gameSettings.GridWidth / 2 - 2, -2); // Spawn slightly above visible area
-        _timingManager.Reset();
-        _canHold = true;
-        _areInProgress = false;
-        _nextPieceReady = true;
-        
-        UpdateCachedValues();
-        
-        // Check if new piece can be placed (game over condition)
-        if (IsGameOver()) {
-            _gameOver = true;
-            _soundEffects["topout"].Play();
-            TetriON.DebugLog($"SpawnNextPiece: GAME OVER! Cannot place {spawnedPiece} at spawn position");
         }
     }
 
@@ -800,43 +772,45 @@ public class TetrisGame {
             _keyPressed[keyBind] = false; // Don't trigger immediate actions during ARE
         }
     }
-    
+
     private void SpawnNextPieceWithIRS() {
+        // Check if new piece can be placed (game over condition)
+        if (_gameOver) return;
+
         // Get next piece
         _currentTetromino = _nextTetrominos[0];
         for (var i = 0; i < _nextTetrominos.Length - 1; i++) {
             _nextTetrominos[i] = _nextTetrominos[i + 1];
         }
         _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
-        
+
         // Apply IRS rotation
         for (int i = 0; i < _irsRotation; i++) {
-            var spawnPoint = new Point(_gameSettings.GridWidth / 2 - 2, -_gameSettings.BufferZoneHeight);
+            var spawnPoint = new Point(_gameSettings.GridWidth / 2 - 2, -2);
             var (rotatedPos, _) = _currentTetromino.RotateRight(_grid, spawnPoint);
             // If IRS rotation fails, spawn in original orientation
         }
-        
+
         // Reset position and state
-        _tetrominoPoint = new Point(_gameSettings.GridWidth / 2 - 2, -_gameSettings.BufferZoneHeight);
+        _tetrominoPoint = new Point(_gameSettings.GridWidth / 2 - 2, -2); // Spawn slightly above visible area
+        TetriON.DebugLog($"SpawnNextPieceWithIRS: SPAWN - {_currentTetromino.GetType().Name} at Position: ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
         _timingManager.Reset();
         _canHold = !_irsHoldRequested; // If hold was requested during ARE, disable hold for this piece
         _areInProgress = false;
         _nextPieceReady = true;
-        
+
         // Reset IRS state
         _irsRotation = 0;
         var holdRequested = _irsHoldRequested;
         _irsHoldRequested = false;
-        
+
         // Initialize DAS/ARR for any held movement keys
         if (_keyHeld[KeyBind.MoveLeft] || _keyHeld[KeyBind.MoveRight]) _timingManager.StartAutoRepeat();
         UpdateCachedValues();
-        
+
         // Apply IRS hold if requested
         if (holdRequested && _canHold) Hold();
 
-
-        // Check if new piece can be placed (game over condition)
         if (IsGameOver()) {
             _gameOver = true;
             _soundEffects["topout"].Play();
@@ -885,6 +859,7 @@ public class TetrisGame {
     
     public bool IsGameOver() {
         // Check if the new piece can be placed at spawn position
+        if (_gameOver) return true;
         return !_grid.CanPlaceTetromino(_tetrominoPoint, _currentTetromino.GetMatrix());
     }
     
@@ -1061,6 +1036,158 @@ public class TetrisGame {
                 }
             }
         }
+        
+        // Draw next pieces and held piece
+        DrawNextPieces();
+        DrawHeldPiece();
+    }
+    
+    /// <summary>
+    /// Draw the next tetromino queue (first piece normal size, next 3 pieces smaller)
+    /// </summary>
+    private void DrawNextPieces() {
+        if (_nextTetrominos == null) return;
+        
+        var scaledTileSize = (int)(Grid.TILE_SIZE * _grid.GetSizeMultiplier());
+        var gridBounds = GetPlayFieldBounds();
+        
+        // Position next pieces to the right of the grid
+        var nextAreaX = gridBounds.Right + 20; // 20 pixels margin from grid
+        var nextAreaY = gridBounds.Y + 50;     // Start below the top
+        
+        // Size multipliers for different next pieces
+        var primaryNextSize = _grid.GetSizeMultiplier() * 0.8f;  // Normal size for first next piece
+        var secondaryNextSize = _grid.GetSizeMultiplier() * 0.6f; // Smaller size for 2nd-4th next pieces
+        
+        // Draw up to 4 next pieces (first one larger, rest smaller)
+        var maxNextToShow = Math.Min(_nextTetrominos.Length, 4);
+        
+        for (int i = 0; i < maxNextToShow; i++) {
+            if (_nextTetrominos[i] == null) continue;
+            
+            var sizeMultiplier = (i == 0) ? primaryNextSize : secondaryNextSize;
+            var pieceScaledTileSize = (int)(Grid.TILE_SIZE * sizeMultiplier);
+            
+            // Calculate vertical spacing between pieces
+            int yOffset;
+            if (i == 0) {
+                // Primary piece: centered in its own area with more space
+                yOffset = 0;
+            } else {
+                // Secondary pieces: start after primary piece with larger gap
+                var primaryHeight = (int)(4 * Grid.TILE_SIZE * primaryNextSize);
+                var secondaryStartY = primaryHeight + 40; // 40px gap after primary piece
+                yOffset = secondaryStartY + ((i - 1) * 70); // 70px spacing between secondary pieces
+            }
+            
+            // Get piece matrix and calculate centering
+            var matrix = _nextTetrominos[i].GetMatrix();
+            var pieceWidth = matrix[0].Length * pieceScaledTileSize;
+            var pieceHeight = matrix.Length * pieceScaledTileSize;
+            
+            // Center the piece in a 4x4 tile area
+            var containerSize = 4 * pieceScaledTileSize;
+            var centerOffsetX = (containerSize - pieceWidth) / 2;
+            var centerOffsetY = (containerSize - pieceHeight) / 2;
+            
+            var drawPosition = new Point(
+                nextAreaX + centerOffsetX,
+                nextAreaY + yOffset + centerOffsetY
+            );
+            
+            // Draw the piece
+            _nextTetrominos[i].Draw(_spriteBatch, drawPosition, _tiles, sizeMultiplier);
+        }
+    }
+    
+    /// <summary>
+    /// Draw the held tetromino piece
+    /// </summary>
+    private void DrawHeldPiece() {
+        if (_holdTetromino == null) return;
+        
+        var scaledTileSize = (int)(Grid.TILE_SIZE * _grid.GetSizeMultiplier());
+        var gridBounds = GetPlayFieldBounds();
+        
+        // Position held piece to the left of the grid
+        var holdAreaX = gridBounds.Left - 120; // 120 pixels to the left of grid
+        var holdAreaY = gridBounds.Y + 50;      // Same height as first next piece
+        
+        // Size for held piece (same as primary next piece)
+        var holdSize = _grid.GetSizeMultiplier() * 0.8f;
+        var pieceScaledTileSize = (int)(Grid.TILE_SIZE * holdSize);
+        
+        // Get piece matrix and calculate centering
+        var matrix = _holdTetromino.GetMatrix();
+        var pieceWidth = matrix[0].Length * pieceScaledTileSize;
+        var pieceHeight = matrix.Length * pieceScaledTileSize;
+        
+        // Center the piece in a 4x4 tile area
+        var containerSize = 4 * pieceScaledTileSize;
+        var centerOffsetX = (containerSize - pieceWidth) / 2;
+        var centerOffsetY = (containerSize - pieceHeight) / 2;
+        
+        var drawPosition = new Point(
+            holdAreaX + centerOffsetX,
+            holdAreaY + centerOffsetY
+        );
+        
+        // Draw the piece with reduced opacity if hold is disabled
+        if (_canHold) {
+            _holdTetromino.Draw(_spriteBatch, drawPosition, _tiles, holdSize);
+        } else {
+            // Draw with reduced opacity when hold is disabled (after using hold once)
+            _holdTetromino.Draw(_spriteBatch, drawPosition, _tiles, holdSize);
+        }
+    }
+    
+    /// <summary>
+    /// Get the position where the first next piece is drawn
+    /// </summary>
+    public Point GetNextPiecePosition() {
+        var gridBounds = GetPlayFieldBounds();
+        return new Point(gridBounds.Right + 20, gridBounds.Y + 50);
+    }
+    
+    /// <summary>
+    /// Get the position where the held piece is drawn
+    /// </summary>
+    public Point GetHeldPiecePosition() {
+        var gridBounds = GetPlayFieldBounds();
+        return new Point(gridBounds.Left - 120, gridBounds.Y + 50);
+    }
+    
+    /// <summary>
+    /// Get the bounds rectangle for the next pieces area
+    /// </summary>
+    public Rectangle GetNextPiecesArea() {
+        var gridBounds = GetPlayFieldBounds();
+        var nextAreaX = gridBounds.Right + 20;
+        var nextAreaY = gridBounds.Y + 50;
+        
+        // Calculate area size based on 4 pieces with new spacing
+        var primarySize = _grid.GetSizeMultiplier() * 0.8f;
+        var primaryContainerSize = (int)(4 * Grid.TILE_SIZE * primarySize);
+        var secondaryContainerSize = (int)(4 * Grid.TILE_SIZE * _grid.GetSizeMultiplier() * 0.6f);
+        
+        // Height = primary container + gap + 3 secondary pieces with spacing
+        var totalHeight = primaryContainerSize + 40 + (3 * (secondaryContainerSize + 70)) - 70; // -70 to remove extra spacing after last piece
+        
+        return new Rectangle(nextAreaX, nextAreaY, primaryContainerSize, totalHeight);
+    }
+    
+    /// <summary>
+    /// Get the bounds rectangle for the held piece area
+    /// </summary>
+    public Rectangle GetHeldPieceArea() {
+        var gridBounds = GetPlayFieldBounds();
+        var holdAreaX = gridBounds.Left - 120;
+        var holdAreaY = gridBounds.Y + 50;
+        
+        var holdSize = _grid.GetSizeMultiplier() * 0.8f;
+        var containerSize = (int)(4 * Grid.TILE_SIZE * holdSize);
+        
+        return new Rectangle(holdAreaX, holdAreaY, containerSize, containerSize);
     }
     
     #region Unused Values Utilization Methods
