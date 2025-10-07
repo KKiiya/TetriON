@@ -124,7 +124,15 @@ public class L : Tetromino {
         return allDirectionsBlocked;
     }
     
-    private List<Point> GetPieceCoordinates(Point pivot) {
+    public override (Point? position, bool tSpin) Rotate180(Grid grid, Point currentPoint) {
+        return ApplyRotation(grid, currentPoint, 2); // +2 for 180-degree rotation
+    }
+    
+    public override int GetRotationState() {
+        return _rotation;
+    }
+    
+    private new List<Point> GetPieceCoordinates(Point pivot) {
         var coords = new List<Point>();
         for (int y = 0; y < _matrix.Length; y++) {
             for (int x = 0; x < _matrix[y].Length; x++) {

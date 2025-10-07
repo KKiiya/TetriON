@@ -24,6 +24,15 @@ namespace TetriON.Game {
         
         #endregion
         
+        #region Twist Detection Settings
+        
+        /// <summary>
+        /// Twist detection configuration
+        /// </summary>
+        public TwistDetectionConfig TwistDetection { get; set; } = new TwistDetectionConfig();
+        
+        #endregion
+        
         #region Input Timing Settings
         
         public int DAS { get; set; } = 170; // Delayed Auto Shift in milliseconds (accessed via GameTiming.GetAutoRepeatDelay())
@@ -188,7 +197,7 @@ namespace TetriON.Game {
             // Standard grid size
             GridWidth = 10;
             GridHeight = 20;
-            BufferZoneHeight = 20;
+            BufferZoneHeight = 4; // Standard buffer zone for piece spawning
             
             EnableGhostPiece = true;
             EnableHoldPiece = true;

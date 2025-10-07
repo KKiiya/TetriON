@@ -10,7 +10,7 @@ public class SoundWrapper : IDisposable {
     
     private readonly SoundEffect _soundEffect;
     private readonly string _path;
-    private readonly List<SoundEffectInstance> _activeInstances = new();
+    private readonly List<SoundEffectInstance> _activeInstances = [];
     private bool _disposed;
     
     public SoundWrapper(string path) {

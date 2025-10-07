@@ -74,6 +74,11 @@ public class T : Tetromino {
         var newRotation = (_rotation + 1) % 4; // Right rotation
         return ApplyRotation(grid, currentPoint, newRotation);
     }
+    
+    public override (Point? position, bool tSpin) Rotate180(Grid grid, Point currentPoint) {
+        var newRotation = (_rotation + 2) % 4; // 180-degree rotation
+        return ApplyRotation(grid, currentPoint, newRotation);
+    }
 
     private (Point? position, bool tSpin) ApplyRotation(Grid grid, Point currentPoint, int newRotation) {
         var newMatrix = _rotations[newRotation];
@@ -151,5 +156,12 @@ public class T : Tetromino {
     /// </summary>
     public void ResetTSpinState() {
         _isMiniTSpin = false;
+    }
+    
+    /// <summary>
+    /// Get current rotation state (0-3)
+    /// </summary>
+    public override int GetRotationState() {
+        return _rotation;
     }
 }

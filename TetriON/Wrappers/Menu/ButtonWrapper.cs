@@ -58,7 +58,7 @@ public class ButtonWrapper : IDisposable {
         if (_disposed || _texture?.GetTexture() == null) return false;
         
         var texture = _texture.GetTexture();
-        Rectangle bounds = new Rectangle((int)_position.X, (int)_position.Y, _texture.GetWidth(), _texture.GetHeight());
+        Rectangle bounds = new((int)_position.X, (int)_position.Y, _texture.GetWidth(), _texture.GetHeight());
         
         if (!bounds.Contains(mousePosition)) {
             return false;
@@ -151,7 +151,7 @@ public class ButtonWrapper : IDisposable {
     }
     
     public Vector2 GetPosition() => _position;
-    public Point GetPositionPoint() => new Point((int)_position.X, (int)_position.Y);
+    public Point GetPositionPoint() => new((int)_position.X, (int)_position.Y);
     public string GetId() => _id;
     public bool IsHovered() => _isHovered && !_disposed;
     public bool IsPressed() => _isPressed && !_disposed;

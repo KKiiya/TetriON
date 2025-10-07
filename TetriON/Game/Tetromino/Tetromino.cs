@@ -181,4 +181,47 @@ public abstract class Tetromino
     public abstract (Point? position, bool tSpin) RotateRight(Grid grid, Point currentPoint);
     
     public abstract (Point? position, bool tSpin) Rotate180(Grid grid, Point currentPoint);
+    
+    #region Twist Detection Support
+    
+    /// <summary>
+    /// Get piece coordinates at a specific position for collision detection
+    /// </summary>
+    public virtual List<Point> GetPieceCoordinates(Point position) {
+        var coords = new List<Point>();
+        var matrix = GetMatrix();
+        
+        for (int y = 0; y < matrix.Length; y++) {
+            for (int x = 0; x < matrix[y].Length; x++) {
+                if (matrix[y][x]) {
+                    coords.Add(new Point(position.X + x, position.Y + y));
+                }
+            }
+        }
+        
+        return coords;
+    }
+    
+    /// <summary>
+    /// Check if piece can fit at specified position
+    /// </summary>
+    public virtual bool CanFitAt(Grid grid, Point position) {
+        var coords = GetPieceCoordinates(position);
+        foreach (var coord in coords) {
+            if (coord.X < 0 || coord.X >= grid.GetWidth() || coord.Y >= grid.GetHeight()) {
+                return false;
+            }
+            if (coord.Y >= 0 && grid.GetCell(coord.X, coord.Y) != Grid.EMPTY_CELL) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /// <summary>
+    /// Get current rotation state (0-3)
+    /// </summary>
+    public abstract int GetRotationState();
+    
+    #endregion
 }

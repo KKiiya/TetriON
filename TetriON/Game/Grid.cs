@@ -19,25 +19,39 @@ public class Grid {
     #region Wall Kick Data
     
     private static readonly Dictionary<(int, int), Point[]> IWallKicks = new() {
-        [(0, 1)] = [new Point(0, 0), new Point(-2, 0), new Point(1, 0), new Point(-2, -1), new Point(1, 2)],
-        [(1, 0)] = [new Point(0, 0), new Point(2, 0), new Point(-1, 0), new Point(2, 1), new Point(-1, -2)],
-        [(1, 2)] = [new Point(0, 0), new Point(-1, 0), new Point(2, 0), new Point(-1, 2), new Point(2, -1)],
-        [(2, 1)] = [new Point(0, 0), new Point(1, 0), new Point(-2, 0), new Point(1, -2), new Point(-2, 1)],
-        [(2, 3)] = [new Point(0, 0), new Point(2, 0), new Point(-1, 0), new Point(2, 1), new Point(-1, -2)],
-        [(3, 2)] = [new Point(0, 0), new Point(-2, 0), new Point(1, 0), new Point(-2, -1), new Point(1, 2)],
-        [(3, 0)] = [new Point(0, 0), new Point(1, 0), new Point(-2, 0), new Point(1, -2), new Point(-2, 1)],
-        [(0, 3)] = [new Point(0, 0), new Point(-1, 0), new Point(2, 0), new Point(-1, 2), new Point(2, -1)]
+        // Standard 90-degree rotations
+        [(0, 1)] = [new(0, 0), new(-2, 0), new(1, 0), new(-2, -1), new(1, 2)],
+        [(1, 0)] = [new(0, 0), new(2, 0), new(-1, 0), new(2, 1), new(-1, -2)],
+        [(1, 2)] = [new (0, 0), new(-1, 0), new(2, 0), new(-1, 2), new(2, -1)],
+        [(2, 1)] = [new(0, 0), new(1, 0), new(-2, 0), new(1, -2), new(-2, 1)],
+        [(2, 3)] = [new(0, 0), new (2, 0), new(-1, 0), new(2, 1), new(-1, -2)],
+        [(3, 2)] = [new(0, 0), new(-2, 0), new(1, 0), new(-2, -1), new(1, 2)],
+        [(3, 0)] = [new(0, 0), new (1, 0), new(-2, 0), new(1, -2), new(-2, 1)],
+        [(0, 3)] = [new(0, 0), new(-1, 0), new(2, 0), new(-1, 2), new(2, -1)],
+        
+        // 180-degree rotations for I-piece
+        [(0, 2)] = [new(0, 0), new(-1, 0), new(2, 0), new(-1, 2), new(2, -1)],
+        [(1, 3)] = [new(0, 0), new(0, 1), new(0, -1), new(0, 2), new(0, -2)],
+        [(2, 0)] = [new(0, 0), new(1, 0), new(-2, 0), new(1, -2), new(-2, 1)],
+        [(3, 1)] = [new(0, 0), new(0, -1), new(0, 1), new(0, -2), new(0, 2)]
     };
     
     private static readonly Dictionary<(int, int), Point[]> WallKicks = new() {
-        [(0, 1)] = [new Point(0, 0), new Point(-1, 0), new Point(-1, 1), new Point(0, -2), new Point(-1, -2)],
-        [(1, 0)] = [new Point(0, 0), new Point(1, 0), new Point(1, -1), new Point(0, 2), new Point(1, 2)],
-        [(1, 2)] = [new Point(0, 0), new Point(1, 0), new Point(1, -1), new Point(0, 2), new Point(1, 2)],
-        [(2, 1)] = [new Point(0, 0), new Point(-1, 0), new Point(-1, 1), new Point(0, -2), new Point(-1, -2)],
-        [(2, 3)] = [new Point(0, 0), new Point(1, 0), new Point(1, 1), new Point(0, -2), new Point(1, -2)],
-        [(3, 2)] = [new Point(0, 0), new Point(-1, 0), new Point(-1, -1), new Point(0, 2), new Point(-1, 2)],
-        [(3, 0)] = [new Point(0, 0), new Point(-1, 0), new Point(-1, 1), new Point(0, -2), new Point(-1, -2)],
-        [(0, 3)] = [new Point(0, 0), new Point(1, 0), new Point(1, -1), new Point(0, 2), new Point(1, 2)]
+        // Standard 90-degree rotations
+        [(0, 1)] = [new(0, 0), new(-1, 0), new(-1, 1), new(0, -2), new(-1, -2)],
+        [(1, 0)] = [new(0, 0), new(1, 0), new(1, -1), new(0, 2), new(1, 2)],
+        [(1, 2)] = [new(0, 0), new(1, 0), new(1, -1), new(0, 2), new(1, 2)],
+        [(2, 1)] = [new(0, 0), new(-1, 0), new(-1, 1), new(0, -2), new(-1, -2)],
+        [(2, 3)] = [new(0, 0), new(1, 0), new(1, 1), new(0, -2), new(1, -2)],
+        [(3, 2)] = [new(0, 0), new(-1, 0), new(-1, -1), new(0, 2), new(-1, 2)],
+        [(3, 0)] = [new(0, 0), new(-1, 0), new(-1, 1), new(0, -2), new(-1, -2)],
+        [(0, 3)] = [new(0, 0), new(1, 0), new(1, -1), new(0, 2), new(1, 2)],
+        
+        // 180-degree rotations for standard pieces (T, J, L, S, Z, O)
+        [(0, 2)] = [new(0, 0), new(0, 1), new(1, 1), new(-1, 1), new(1, 0), new(-1, 0)],
+        [(1, 3)] = [new(0, 0), new(1, 0), new(1, 1), new(1, -1), new(0, 1), new(0, -1)],
+        [(2, 0)] = [new(0, 0), new(0, -1), new(-1, -1), new(1, -1), new(-1, 0), new(1, 0)],
+        [(3, 1)] = [new(0, 0), new(-1, 0), new(-1, -1), new(-1, 1), new(0, -1), new(0, 1)]
     };
 
     #endregion

@@ -72,6 +72,10 @@ public class TetrisGame {
     private bool _lastMoveWasTSpin;
     private bool _gameOver;
     
+    // Twist detection system
+    private TwistDetectionEngine _twistDetectionEngine;
+    private TwistResult _lastTwistResult;
+    
     /* 
         TODO: Replace Point and Texture2D with TetriON instance to obtain everything needed
         new constructor: public TetrisGame(TetriON game, Mode mode, Gamemode gamemode)
@@ -93,7 +97,7 @@ public class TetrisGame {
         
         // Center the visible grid area (without buffer zone adjustment)
         var centerX = (game.GetWindowResolution().X - gridPixelWidth) / 2;
-        var centerY = (game.GetWindowResolution().Y - gridPixelHeight) / 1;
+        var centerY = (game.GetWindowResolution().Y - gridPixelHeight) / 0.8;
 
         _point = new Point(centerX, (int)centerY);
         _tiles = game._skinManager.GetTextureAsset("tiles").GetTexture();
@@ -127,7 +131,7 @@ public class TetrisGame {
         _soundEffects["topout"] = game._skinManager.GetAudioAsset("topout");
         _soundEffects["finish"] = game._skinManager.GetAudioAsset("finish");
 
-        _tetrominoPoint = new Point(settings.GridWidth / 2 - 2, -settings.BufferZoneHeight); // Start centered in buffer zone
+        _tetrominoPoint = new Point(settings.GridWidth / 2 - 2, -2); // Start slightly above visible area
         _gameSettings = settings; // Store reference for spawn calculations
         _timingManager = new TimingManager(settings);
         _random = new Random();
@@ -143,6 +147,10 @@ public class TetrisGame {
 
         // Initialize modern lock delay for first piece
         _timingManager.InitializePiece();
+        
+        // Initialize twist detection engine
+        _twistDetectionEngine = new TwistDetectionEngine(settings.TwistDetection, _grid);
+        _lastTwistResult = new TwistResult();
 
         _canHold = settings.EnableHoldPiece;
         _level = settings.StartingLevel;
@@ -190,7 +198,7 @@ public class TetrisGame {
         }
     
         _canHold = false;
-        _tetrominoPoint = new Point(_gameSettings.GridWidth / 2 - 2, -_gameSettings.BufferZoneHeight);
+        _tetrominoPoint = new Point(_gameSettings.GridWidth / 2 - 2, -2); // Spawn slightly above visible area
         _timingManager.InitializePiece(); // New piece, initialize lock delay
         _lastMoveWasTSpin = false;
         
@@ -204,23 +212,22 @@ public class TetrisGame {
         var (newPosition, tSpin) = _currentTetromino.RotateLeft(_grid, _tetrominoPoint);
         if (newPosition.HasValue) {
             _tetrominoPoint = newPosition.Value;
-            _lastMoveWasTSpin = tSpin;
             
-            // Check for mini T-Spin if this is a T-piece
-            _isLastTSpinMini = false;
-            if (tSpin && _currentTetromino is T tPiece) {
-                _isLastTSpinMini = tPiece.IsLastTSpinMini();
-            }
+            // Use comprehensive twist detection system
+            _lastTwistResult = _twistDetectionEngine.DetectTwist(_currentTetromino, _tetrominoPoint, RotationType.Left);
+            _lastMoveWasTSpin = _lastTwistResult.IsTwist && (_lastTwistResult.TwistType == TwistType.TSpin || _lastTwistResult.TwistType == TwistType.MiniTSpin);
+            _isLastTSpinMini = _lastTwistResult.IsMini;
             
             UpdateCachedValues();
             
-            // Play appropriate sound
-            if (tSpin) {
+            // Play appropriate sound based on twist detection
+            if (_lastTwistResult.IsTwist) {
                 _soundEffects["spin"].Play();
-                var spinType = _isLastTSpinMini ? "MINI T-SPIN" : "T-SPIN";
-                TetriON.DebugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [{spinType}]");
+                var twistDesc = _lastTwistResult.IsMini ? $"MINI {_lastTwistResult.TwistType}" : _lastTwistResult.TwistType.ToString();
+                TetriON.DebugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [{twistDesc}]");
             } else {
                 _soundEffects["rotate"].Play();
+                //TetriON.DebugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
             }
             
             // Handle modern lock delay on player input
@@ -237,23 +244,22 @@ public class TetrisGame {
         var (newPosition, tSpin) = _currentTetromino.RotateRight(_grid, _tetrominoPoint);
         if (newPosition.HasValue) {
             _tetrominoPoint = newPosition.Value;
-            _lastMoveWasTSpin = tSpin;
             
-            // Check for mini T-Spin if this is a T-piece
-            _isLastTSpinMini = false;
-            if (tSpin && _currentTetromino is T tPiece) {
-                _isLastTSpinMini = tPiece.IsLastTSpinMini();
-            }
+            // Use comprehensive twist detection system
+            _lastTwistResult = _twistDetectionEngine.DetectTwist(_currentTetromino, _tetrominoPoint, RotationType.Right);
+            _lastMoveWasTSpin = _lastTwistResult.IsTwist && (_lastTwistResult.TwistType == TwistType.TSpin || _lastTwistResult.TwistType == TwistType.MiniTSpin);
+            _isLastTSpinMini = _lastTwistResult.IsMini;
             
             UpdateCachedValues();
             
-            // Play appropriate sound
-            if (tSpin) {
+            // Play appropriate sound based on twist detection
+            if (_lastTwistResult.IsTwist) {
                 _soundEffects["spin"].Play();
-                var spinType = _isLastTSpinMini ? "MINI T-SPIN" : "T-SPIN";
-                TetriON.DebugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [{spinType}]");
+                var twistDesc = _lastTwistResult.IsMini ? $"MINI {_lastTwistResult.TwistType}" : _lastTwistResult.TwistType.ToString();
+                TetriON.DebugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [{twistDesc}]");
             } else {
                 _soundEffects["rotate"].Play();
+                //TetriON.DebugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
             }
             
             // Handle modern lock delay on player input
@@ -267,7 +273,35 @@ public class TetrisGame {
     }
 
     public void Rotate180() {
-        
+        if (_gameOver) return;
+        var (newPosition, tSpin) = _currentTetromino.Rotate180(_grid, _tetrominoPoint);
+        if (newPosition.HasValue) {
+            _tetrominoPoint = newPosition.Value;
+            
+            // Use comprehensive twist detection system
+            _lastTwistResult = _twistDetectionEngine.DetectTwist(_currentTetromino, _tetrominoPoint, RotationType.Rotate180);
+            _lastMoveWasTSpin = _lastTwistResult.IsTwist && (_lastTwistResult.TwistType == TwistType.TSpin || _lastTwistResult.TwistType == TwistType.MiniTSpin);
+            _isLastTSpinMini = _lastTwistResult.IsMini;
+            
+            UpdateCachedValues();
+            
+            // Play appropriate sound based on twist detection
+            if (_lastTwistResult.IsTwist) {
+                _soundEffects["spin"].Play();
+                var twistDesc = _lastTwistResult.IsMini ? $"MINI {_lastTwistResult.TwistType}" : _lastTwistResult.TwistType.ToString();
+                TetriON.DebugLog($"TetrisGame: ROTATE 180 - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [{twistDesc}]");
+            } else {
+                _soundEffects["rotate"].Play();
+                //TetriON.DebugLog($"TetrisGame: ROTATE 180 - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
+            }
+            
+            // Handle modern lock delay on player input
+            if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
+                // Movement limit reached while on ground - force lock
+                Lock();
+                return;
+            }
+        }
     }
     
     public void MoveLeft()
@@ -356,7 +390,7 @@ public class TetrisGame {
         TetriON.DebugLog($"SpawnNextPiece: Spawned {spawnedPiece}, added {nextPieceType} to queue");
         
         // Reset position and state
-        _tetrominoPoint = new Point(_gameSettings.GridWidth / 2 - 2, -_gameSettings.BufferZoneHeight);
+        _tetrominoPoint = new Point(_gameSettings.GridWidth / 2 - 2, -2); // Spawn slightly above visible area
         _timingManager.Reset();
         _canHold = true;
         _areInProgress = false;
@@ -753,6 +787,7 @@ public class TetrisGame {
             [Keys.Space] = KeyBind.HardDrop,
             [Keys.X] = KeyBind.RotateClockwise,
             [Keys.Z] = KeyBind.RotateCounterClockwise,
+            [Keys.V] = KeyBind.Rotate180,
             [Keys.C] = KeyBind.Hold
         };
         
@@ -799,10 +834,14 @@ public class TetrisGame {
         
         // Apply IRS hold if requested
         if (holdRequested && _canHold) Hold();
-        
-        
+
+
         // Check if new piece can be placed (game over condition)
-        if (IsGameOver()) _gameOver = true;
+        if (IsGameOver()) {
+            _gameOver = true;
+            _soundEffects["topout"].Play();
+            TetriON.DebugLog($"SpawnNextPieceWithIRS: GAME OVER! Cannot place {_currentTetromino.GetType().Name} at spawn position");
+        }
     }
 
     
@@ -872,6 +911,7 @@ public class TetrisGame {
         _keyPressed[KeyBind.SoftDrop] = false;
         _keyPressed[KeyBind.RotateClockwise] = false;
         _keyPressed[KeyBind.RotateCounterClockwise] = false;
+        _keyPressed[KeyBind.Rotate180] = false;
         _keyPressed[KeyBind.Hold] = false;
         _keyPressed[KeyBind.HardDrop] = false;
     }
@@ -888,6 +928,7 @@ public class TetrisGame {
             // Classic Tetris rotation controls
             [Keys.X] = KeyBind.RotateClockwise,
             [Keys.Z] = KeyBind.RotateCounterClockwise,
+            [Keys.V] = KeyBind.Rotate180,
             
             // Game actions
             [Keys.C] = KeyBind.Hold
@@ -923,6 +964,9 @@ public class TetrisGame {
                     break;
                 case KeyBind.Hold:
                     Hold();
+                    break;
+                case KeyBind.Rotate180:
+                    Rotate180();
                     break;
                 case KeyBind.HardDrop:
                     Drop();

@@ -24,9 +24,9 @@ public abstract class InputHandler : IDisposable {
     public event InputActionEvent OnInputAction;
     
     // Input state tracking
-    protected readonly Dictionary<Keys, InputState> _keyStates = new();
-    protected readonly Dictionary<string, KeyBinding> _keyBindings = new();
-    protected readonly Dictionary<string, ComboBinding> _comboBindings = new();
+    protected readonly Dictionary<Keys, InputState> _keyStates = [];
+    protected readonly Dictionary<string, KeyBinding> _keyBindings = [];
+    protected readonly Dictionary<string, ComboBinding> _comboBindings = [];
     protected readonly List<InputEvent> _inputBuffer = new(32);
     
     // Configuration

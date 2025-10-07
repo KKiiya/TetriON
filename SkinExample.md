@@ -8,13 +8,13 @@ In your main game class (TetriON.cs), add the skin system:
 using TetriON.Skins;
 
 public class TetriON : Microsoft.Xna.Framework.Game {
-    private Skin _skinManager;
+    private SkinManager _skinManager;
     
     protected override void LoadContent() {
         SpriteBatch = new SpriteBatch(GraphicsDevice);
         
         // Initialize skin system
-        _skinManager = new Skin();
+        _skinManager = new SkinManager();
         _skinManager.Initialize(GraphicsDevice);
         
         // Set a custom skin (optional)
@@ -63,7 +63,7 @@ skins/
 ## 4. PNG Requirements
 
 - PNG files should be in the same format as your original textures
-- For tiles.png: typically a sprite sheet with all tetromino pieces
+- For tiles.png: typically a sprite sheet with all tetromino bricks
 - Transparency is supported
 - No size restrictions (but keep reasonable for performance)
 
@@ -78,23 +78,6 @@ _skinManager.SetSkin("neon");
 
 // Reload skins (if user adds new ones)
 _skinManager.ReloadSkins();
-```
-
-## 6. Example Integration in TetrisGame
-
-```csharp
-public class TetrisGame {
-    private Skin _skinManager;
-    
-    public TetrisGame(Point point, Skin skinManager, string mode, int difficulty) {
-        _skinManager = skinManager;
-        
-        // Load custom tiles texture
-        var tilesTexture = _skinManager.HasCustomTexture("tiles") 
-            ? _skinManager.LoadCustomTexture("tiles")
-            : defaultTilesTexture;
-    }
-}
 ```
 
 ## Benefits

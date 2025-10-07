@@ -13,9 +13,9 @@ namespace TetriON.Account;
 public class Settings : IDisposable
 {
     private readonly Credentials _credentials;
-    private readonly Dictionary<Setting, object> _settings = new();
-    private readonly Dictionary<Setting, object> _defaultValues = new();
-    private readonly Dictionary<KeyBind, Keys> _defaultKeyBindings = new();
+    private readonly Dictionary<Setting, object> _settings = [];
+    private readonly Dictionary<Setting, object> _defaultValues = [];
+    private readonly Dictionary<KeyBind, Keys> _defaultKeyBindings = [];
     private bool _isDirty;
     private bool _disposed;
     private readonly string _settingsFilePath;

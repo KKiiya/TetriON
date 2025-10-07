@@ -22,6 +22,7 @@ public class SkinManager : IDisposable {
     // Cache of available sound files per skin (paths only, no actual sounds loaded)
     // This will be populated dynamically by scanning the filesystem
     private readonly Dictionary<string, HashSet<string>> _availableSounds = [];
+
     private readonly Dictionary<string, SoundWrapper> _audioAssets = [];
     private readonly Dictionary<string, TextureWrapper> _textureAssets = [];
 
@@ -220,7 +221,7 @@ public class SkinManager : IDisposable {
         var extension = Path.GetExtension(filePath).ToLowerInvariant();
         
         // Only WAV files can be loaded directly from stream
-        if (extension == ".wav") {
+        if (extension == SupportedAudioExtension) {
             try {
                 using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
                 return SoundEffect.FromStream(fileStream);
@@ -510,7 +511,7 @@ public class SkinManager : IDisposable {
     /// Get list of all available skins
     /// </summary>
     public string[] GetAvailableSkins() {
-        return Skins.Keys.ToArray();
+        return [.. Skins.Keys];
     }
     
     /// <summary>

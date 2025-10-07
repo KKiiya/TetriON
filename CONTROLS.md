@@ -1,6 +1,6 @@
 # TetriON Controls
 
-## Classic Tetris Controls (Default)
+## Classic Tetris Controls (Default, Temporal)
 
 ### Movement
 - **←** (Left Arrow) - Move piece left
