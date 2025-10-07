@@ -77,10 +77,33 @@ public class I : Tetromino {
         // Try wall kick for I-piece
         var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, newRotation, true);
         if (newPosition.HasValue) {
+            var wasWallKick = !newPosition.Value.Equals(currentPoint);
             _rotation = newRotation;
             _matrix = newMatrix;
-            return (newPosition.Value, false); // I-piece cannot T-spin
+            
+            // Check for I-Spin after successful rotation
+            var isSpin = wasWallKick && IsSpin(grid, newPosition.Value);
+            
+            return (newPosition.Value, isSpin);
         }
         return (null, false);
+    }
+    
+    private bool IsSpin(Grid grid, Point pivot) {
+        // I-Spin detection for 4x4 matrix - uses different pivot logic
+        // I-piece has special rotation axis that varies by orientation
+        var centerX = pivot.X + 2; // I-piece center in 4x4 matrix
+        var centerY = pivot.Y + 2;
+        
+        var filledCorners = 0;
+        
+        // Check corners around the I-piece center
+        if (!grid.IsCellEmpty(centerX - 1, centerY - 1)) filledCorners++; // Top-left
+        if (!grid.IsCellEmpty(centerX + 1, centerY - 1)) filledCorners++; // Top-right
+        if (!grid.IsCellEmpty(centerX - 1, centerY + 1)) filledCorners++; // Bottom-left
+        if (!grid.IsCellEmpty(centerX + 1, centerY + 1)) filledCorners++; // Bottom-right
+
+        // An I-Spin requires at least 3 of the 4 corners to be occupied
+        return filledCorners >= 3;
     }
 }

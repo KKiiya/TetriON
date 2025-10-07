@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TetriON.game.tetromino;
+using TetriON.game.tetromino.pieces;
 using TetriON.Wrappers.Content;
 using TetriON.Account.Enums;
 using TetriON.Game;
@@ -47,6 +48,7 @@ public class TetrisGame {
     private bool _lastClearWasDifficult;  // For Back-to-Back tracking
     private int _comboCount;              // For combo scoring
     private long _softDropDistance;      // Accumulated soft drop distance
+    private bool _isLastTSpinMini;        // Track if last T-Spin was mini
     
     // Line clear animation state
     private bool _lineClearInProgress;    // True during line clear animation
@@ -203,12 +205,20 @@ public class TetrisGame {
         if (newPosition.HasValue) {
             _tetrominoPoint = newPosition.Value;
             _lastMoveWasTSpin = tSpin;
+            
+            // Check for mini T-Spin if this is a T-piece
+            _isLastTSpinMini = false;
+            if (tSpin && _currentTetromino is T tPiece) {
+                _isLastTSpinMini = tPiece.IsLastTSpinMini();
+            }
+            
             UpdateCachedValues();
             
             // Play appropriate sound
             if (tSpin) {
                 _soundEffects["spin"].Play();
-                TetriON.DebugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [T-SPIN]");
+                var spinType = _isLastTSpinMini ? "MINI T-SPIN" : "T-SPIN";
+                TetriON.DebugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [{spinType}]");
             } else {
                 _soundEffects["rotate"].Play();
             }
@@ -228,12 +238,20 @@ public class TetrisGame {
         if (newPosition.HasValue) {
             _tetrominoPoint = newPosition.Value;
             _lastMoveWasTSpin = tSpin;
+            
+            // Check for mini T-Spin if this is a T-piece
+            _isLastTSpinMini = false;
+            if (tSpin && _currentTetromino is T tPiece) {
+                _isLastTSpinMini = tPiece.IsLastTSpinMini();
+            }
+            
             UpdateCachedValues();
             
             // Play appropriate sound
             if (tSpin) {
                 _soundEffects["spin"].Play();
-                TetriON.DebugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [T-SPIN]");
+                var spinType = _isLastTSpinMini ? "MINI T-SPIN" : "T-SPIN";
+                TetriON.DebugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [{spinType}]");
             } else {
                 _soundEffects["rotate"].Play();
             }
@@ -285,7 +303,7 @@ public class TetrisGame {
             _softDropDistance++;
             // Handle modern lock delay on player input (soft drop)
             _timingManager.OnPlayerInput();
-        } else Lock();
+        } else _timingManager.OnGravityStep(true);
     }
 
     private void Lock() {

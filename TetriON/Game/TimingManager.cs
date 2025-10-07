@@ -15,6 +15,7 @@ public class TimingManager
     
     // Timing accumulators for various game events
     private float _pieceDropTimer;
+    private float _softDropTimer;         // Separate timer for soft drop
     private float _lineClearTimer;
     private float _autoRepeatTimer;
     private float _inputDelayTimer;
@@ -77,6 +78,7 @@ public class TimingManager
         if (_areActive) _areTimer += _deltaTime;
             
         _pieceDropTimer += _deltaTime;
+        _softDropTimer += _deltaTime;
         _inputDelayTimer += _deltaTime;
     }
     
@@ -108,8 +110,8 @@ public class TimingManager
     /// </summary>
     public bool ShouldSoftDrop() {
         var softDropInterval = 1.0f / GameTiming.SoftDropMultiplier;
-        if (_pieceDropTimer >= softDropInterval) {
-            _pieceDropTimer -= softDropInterval;
+        if (_softDropTimer >= softDropInterval) {
+            _softDropTimer -= softDropInterval;
             return true;
         }
         return false;
@@ -332,6 +334,7 @@ public class TimingManager
         _totalTime = 0;
         _deltaTime = 0;
         _pieceDropTimer = 0;
+        _softDropTimer = 0;
         _lineClearTimer = 0;
         _autoRepeatTimer = 0;
         _inputDelayTimer = 0;
