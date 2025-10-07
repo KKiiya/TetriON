@@ -180,8 +180,10 @@ public class TetriON : Microsoft.Xna.Framework.Game
     public bool IsFullscreen => _graphics.IsFullScreen;
     
     public static void DebugLog(string message) {
+        #if DEBUG 
         var logMessage = $"[TetriON] {message}";
         System.Diagnostics.Debug.WriteLine(logMessage);
         System.Console.WriteLine(logMessage);
+        #endif
     }
 }

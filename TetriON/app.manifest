@@ -39,5 +39,4 @@
       <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">permonitorv2,permonitor</dpiAwareness>
     </windowsSettings>
   </application>
-
 </assembly>

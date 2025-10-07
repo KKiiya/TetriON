@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
+        <OutputType>WinExe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <RollForward>Major</RollForward>
         <PublishReadyToRun>false</PublishReadyToRun>
+        <PublishTrimmed>true</PublishTrimmed>
         <TieredCompilation>false</TieredCompilation>
     </PropertyGroup>
     <PropertyGroup>
@@ -35,7 +36,7 @@
 	
 	<!-- Include skins directory and all its contents for publishing -->
 	<ItemGroup>
-		<Content Include="Content/skins/**/*">
+		<Content Include="skins/**/*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>

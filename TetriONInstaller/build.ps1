@@ -16,18 +16,20 @@ New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null
 # Build the game in release mode
 Write-Host "Building game..." -ForegroundColor Yellow
 Set-Location $GameProjectPath
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:PublishTrimmed=false -o "publish"
+dotnet build -c Release -p:PublishTrimmed=true -p:PublishReadyToRun=true
 
 # Create game files archive
 Write-Host "Creating game files archive..." -ForegroundColor Yellow
-$publishPath = ".\publish"
+$publishPath = ".\bin\Release\net8.0"
 $archivePath = "..\TetriONInstaller\game_files.zip"
 
 if (Test-Path $archivePath) {
     Remove-Item $archivePath
 }
 
-Compress-Archive -Path "$publishPath\*" -DestinationPath $archivePath -CompressionLevel Optimal
+# Get all items except win-x64 folder
+$itemsToInclude = Get-ChildItem -Path $publishPath | Where-Object { $_.Name -ne "win-x64" }
+Compress-Archive -Path $itemsToInclude.FullName -DestinationPath $archivePath -CompressionLevel Optimal
 
 # Copy icon
 Copy-Item "Icon.ico" "..\TetriONInstaller\installer_icon.ico" -Force
