@@ -551,7 +551,7 @@ public class Grid {
                 var sourceRect = new Rectangle(tilePosition.X, tilePosition.Y, TILE_SIZE, TILE_SIZE);
                 
                 // Draw buffer zone content with slight transparency to show it's "above"
-                spriteBatch.Draw(tiles, destRect, sourceRect, Color.White * 0.8f);
+                spriteBatch.Draw(tiles, destRect, sourceRect, Color.White);
             }
         }
     }
