@@ -37,6 +37,7 @@ namespace TetriON.Game {
         public int GridWidth { get; set; } = 10; // Play field width in cells (standard is 10)
         public int GridHeight { get; set; } = 20; // Play field height in cells (standard is 20, some modes use 40)
         public int BufferZoneHeight { get; set; } = 4; // Extra rows above visible area (for piece spawning)
+        public GridPresets.PresetType GridPreset { get; set; } = GridPresets.PresetType.Empty; // Starting grid pattern
         
         #endregion
         
@@ -274,6 +275,7 @@ namespace TetriON.Game {
             TargetLines = 0; // Clear all garbage
             TimeLimit = 0;
             StartingGarbageLines = 10; // Start with garbage
+            GridPreset = GridPresets.PresetType.Staggered; // Use staggered pattern for dig challenge
             EnableGhostPiece = true;
             EnableHoldPiece = true;
             EnableTSpin = true;
@@ -286,6 +288,7 @@ namespace TetriON.Game {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
+            GridPreset = GridPresets.PresetType.Random; // Use random pattern for puzzle challenge
             EnableGhostPiece = true;
             EnableHoldPiece = false; // Often disabled in puzzle modes
             EnableTSpin = true;
@@ -298,6 +301,7 @@ namespace TetriON.Game {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
+            GridPreset = GridPresets.PresetType.TSpinSetup; // Use T-Spin setup pattern
             EnableGhostPiece = true;
             EnableHoldPiece = true;
             EnableTSpin = true; // Obviously required
@@ -358,6 +362,7 @@ namespace TetriON.Game {
             GridWidth = 10;
             GridHeight = 20;
             BufferZoneHeight = 4;
+            GridPreset = GridPresets.PresetType.Empty; // Start with empty grid
             
             EnableGhostPiece = true;
             EnableHoldPiece = true;
@@ -390,6 +395,7 @@ namespace TetriON.Game {
             GridWidth = other.GridWidth;
             GridHeight = other.GridHeight;
             BufferZoneHeight = other.BufferZoneHeight;
+            GridPreset = other.GridPreset;
             
             EnableGhostPiece = other.EnableGhostPiece;
             EnableHoldPiece = other.EnableHoldPiece;
@@ -447,6 +453,43 @@ namespace TetriON.Game {
         /// Check if this gamemode starts with garbage
         /// </summary>
         public bool HasStartingGarbage => StartingGarbageLines > 0;
+        
+        /// <summary>
+        /// Check if this gamemode uses a custom grid preset
+        /// </summary>
+        public bool HasCustomGridPreset => GridPreset != GridPresets.PresetType.Empty;
+        
+        /// <summary>
+        /// Get a description of the current grid preset
+        /// </summary>
+        public string GetGridPresetDescription() {
+            return GridPreset switch {
+                GridPresets.PresetType.Empty => "Empty grid",
+                GridPresets.PresetType.Staggered => "Staggered pattern",
+                GridPresets.PresetType.HalfFilled => "Half-filled base",
+                GridPresets.PresetType.Random => "Random pattern",
+                GridPresets.PresetType.TSpinSetup => "T-Spin Double setup",
+                GridPresets.PresetType.TSpinDTCannon => "DT Cannon setup",
+                GridPresets.PresetType.TSpinLST => "LST stacking setup",
+                _ => "Custom pattern"
+            };
+        }
+        
+        /// <summary>
+        /// Set the grid preset for the current gamemode
+        /// </summary>
+        /// <param name="presetType">The grid preset to use</param>
+        public void SetGridPreset(GridPresets.PresetType presetType) {
+            GridPreset = presetType;
+        }
+        
+        /// <summary>
+        /// Get all available grid presets
+        /// </summary>
+        /// <returns>Array of all available preset types</returns>
+        public static GridPresets.PresetType[] GetAvailableGridPresets() {
+            return (GridPresets.PresetType[])Enum.GetValues(typeof(GridPresets.PresetType));
+        }
         
         /// <summary>
         /// Validate that settings are reasonable

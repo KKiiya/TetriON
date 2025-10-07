@@ -3,13 +3,14 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TetriON.game;
 using TetriON.game.tetromino;
+using TetriON.Game;
+using TetriON.Game.Enums;
 using TetriON.Input;
 using TetriON.Input.Support;
 using TetriON.Account;
 using KeyBoard = TetriON.Input.Support.KeyBoard;
 using Mouse = TetriON.Input.Mouse;
 using TetriON.session;
-using TetriON.Game.Enums;
 using TetriON.Skins;
 
 namespace TetriON;
@@ -103,7 +104,8 @@ public class TetriON : Microsoft.Xna.Framework.Game
 
 
             //_session = new GameSession(this);
-            _tetrisGame = new TetrisGame(this, Mode.Singleplayer, Gamemode.Marathon);
+            var gameSettings = new GameSettings(Mode.Singleplayer, Gamemode.Marathon);
+            _tetrisGame = new TetrisGame(this, gameSettings);
             DebugLog("TetriON: TetrisGame created successfully");
             
         } catch (System.Exception ex) {

@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TetriON.game.tetromino;
+using TetriON.Game;
 
 namespace TetriON.game;
 
@@ -74,10 +76,18 @@ public class Grid {
     private readonly float _sizeMultiplier;
     
     private readonly byte[][] _grid;
+    private readonly byte[][] _bufferGrid;
     private static Texture2D _pixelTexture;
     
-    
-    public Grid(Point point, int width, int height, float sizeMultiplier = 2, int bufferZoneHeight = 0) {
+    // Garbage animation state
+    private bool _garbageAnimating = false;
+    private float _garbageAnimationTimer = 0f;
+    private float _garbageAnimationDuration = 0f;
+    private byte[,] _pendingGarbage;
+    private byte[][] _preAnimationGrid; // Store grid state before animation
+
+
+    public Grid(Point point, int width, int height, float sizeMultiplier = 2, int bufferZoneHeight = 0, GridPresets.PresetType presetType = GridPresets.PresetType.Empty) {
         _point = point;
         _width = width;
         _height = height;
@@ -90,6 +100,82 @@ public class Grid {
         for (var i = 0; i < width; i++) {
             _grid[i] = new byte[_totalHeight];
         }
+
+        // Create buffer grid (width x bufferZoneHeight)
+        _bufferGrid = new byte[width][];
+        for (var i = 0; i < width; i++) {
+            _bufferGrid[i] = new byte[bufferZoneHeight];
+        }
+
+        // Apply preset after grid is initialized
+        ApplyPreset(presetType);
+    }
+
+    private void ApplyPreset(GridPresets.PresetType presetType) {
+        var preset = GridPresets.GetPreset(presetType, _height, _width);
+        for (var x = 0; x < _width; x++) {
+            for (var y = 0; y < _height; y++) {
+                if (preset[y, x]) SetCell(x, y, 0x08); // Fixed: use [y, x] to match preset array dimensions
+            }
+        }
+    }
+    
+    public void ReceiveGarbage(byte[,] layout, float animationTime = 500f) {
+        if (_garbageAnimating) return; // Don't accept new garbage while animating
+        
+        var rows = layout.GetLength(0);
+        var cols = layout.GetLength(1);
+        
+        if (rows <= 0 || cols != _width) return; // Invalid garbage layout
+        
+        // Store the pending garbage and animation settings
+        _pendingGarbage = new byte[rows, cols];
+        for (var y = 0; y < rows; y++) {
+            for (var x = 0; x < cols; x++) {
+                _pendingGarbage[y, x] = layout[y, x];
+            }
+        }
+        
+        // Store current grid state for animation interpolation
+        _preAnimationGrid = new byte[_width][];
+        for (var x = 0; x < _width; x++) {
+            _preAnimationGrid[x] = new byte[_totalHeight];
+            for (var y = 0; y < _totalHeight; y++) {
+                _preAnimationGrid[x][y] = _grid[x][y];
+            }
+        }
+        
+        // Start animation
+        _garbageAnimating = true;
+        _garbageAnimationTimer = 0f;
+        _garbageAnimationDuration = animationTime;
+        
+        // Immediately apply the final grid state (for collision detection during animation)
+        ApplyGarbageToGrid(layout);
+    }
+    
+    private void ApplyGarbageToGrid(byte[,] layout) {
+        var rows = layout.GetLength(0);
+        
+        // Shift existing rows up to make space for new garbage
+        for (var y = 0; y < _height - rows; y++) {
+            for (var x = 0; x < _width; x++) {
+                var sourceY = y + rows + _bufferZoneHeight;
+                var destY = y + _bufferZoneHeight;
+                _grid[x][destY] = _grid[x][sourceY];
+            }
+        }
+        
+        // Add new garbage rows at the bottom (only non-empty cells)
+        for (var y = 0; y < rows; y++) {
+            for (var x = 0; x < _width; x++) {
+                var cellValue = layout[y, x];
+                if (cellValue != EMPTY_CELL) {
+                    var gridY = _height - rows + y + _bufferZoneHeight;
+                    _grid[x][gridY] = cellValue;
+                }
+            }
+        }
     }
     
     public bool SetCell(int x, int y, byte color) {
@@ -98,9 +184,32 @@ public class Grid {
         if (x < 0 || x >= _width || gridY < 0 || gridY >= _totalHeight) {
             return false;
         }
-        
+
         _grid[x][gridY] = color;
         return true;
+    }
+    
+    /// <summary>
+    /// Set a cell directly in the buffer grid (for pieces that should appear above main grid)
+    /// </summary>
+    public bool SetBufferCell(int x, int bufferY, byte color) {
+        if (x < 0 || x >= _width || bufferY < 0 || bufferY >= _bufferZoneHeight) {
+            return false;
+        }
+        
+        _bufferGrid[x][bufferY] = color;
+        return true;
+    }
+    
+    /// <summary>
+    /// Get a cell from the buffer grid
+    /// </summary>
+    public byte GetBufferCell(int x, int bufferY) {
+        if (x < 0 || x >= _width || bufferY < 0 || bufferY >= _bufferZoneHeight) {
+            return EMPTY_CELL;
+        }
+        
+        return _bufferGrid[x][bufferY];
     }
     
     public byte GetCell(int x, int y) {
@@ -299,6 +408,37 @@ public class Grid {
         return _grid[x][gridY] == EMPTY_CELL;
     }
     
+    /// <summary>
+    /// Update garbage animation - call this from your main game loop
+    /// </summary>
+    public void UpdateGarbageAnimation(GameTime gameTime) {
+        if (!_garbageAnimating) return;
+        
+        _garbageAnimationTimer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+        
+        if (_garbageAnimationTimer >= _garbageAnimationDuration) {
+            // Animation complete
+            _garbageAnimating = false;
+            _garbageAnimationTimer = 0f;
+            _preAnimationGrid = null; // Clean up
+        }
+    }
+    
+    /// <summary>
+    /// Check if garbage animation is currently active
+    /// </summary>
+    public bool IsGarbageAnimating() {
+        return _garbageAnimating;
+    }
+    
+    /// <summary>
+    /// Get the current animation progress (0.0 to 1.0)
+    /// </summary>
+    public float GetGarbageAnimationProgress() {
+        if (!_garbageAnimating || _garbageAnimationDuration <= 0) return 1.0f;
+        return Math.Min(_garbageAnimationTimer / _garbageAnimationDuration, 1.0f);
+    }
+    
     public void Draw(SpriteBatch spriteBatch, Point location, Texture2D tiles) {
         var scaledTileSize = (int)(TILE_SIZE * _sizeMultiplier);
         
@@ -350,7 +490,18 @@ public class Grid {
             spriteBatch.Draw(_pixelTexture, lineRect, Color.Gray * 0.5f);
         }
         
-        // Draw filled cells (only visible area)
+        // Draw buffer zone content (above main grid)
+        DrawBufferZone(spriteBatch, location, tiles, scaledTileSize);
+        
+        // Draw filled cells (only visible area) with animation support
+        if (_garbageAnimating && _preAnimationGrid != null) {
+            DrawAnimatedGarbage(spriteBatch, location, tiles, scaledTileSize);
+        } else {
+            DrawStaticGrid(spriteBatch, location, tiles, scaledTileSize);
+        }
+    }
+    
+    private void DrawStaticGrid(SpriteBatch spriteBatch, Point location, Texture2D tiles, int scaledTileSize) {
         for (var x = 0; x < _width; x++) {
             for (var y = 0; y < _height; y++) {
                 // Convert to buffer zone coordinates to access the correct cell
@@ -371,6 +522,89 @@ public class Grid {
                 var sourceRect = new Rectangle(tilePosition.X, tilePosition.Y, TILE_SIZE, TILE_SIZE);
                 
                 spriteBatch.Draw(tiles, destRect, sourceRect, Color.White);
+            }
+        }
+    }
+    
+    private void DrawBufferZone(SpriteBatch spriteBatch, Point location, Texture2D tiles, int scaledTileSize) {
+        if (_bufferZoneHeight <= 0) return;
+        
+        // Draw buffer zone content above the main grid
+        for (var x = 0; x < _width; x++) {
+            for (var bufferY = 0; bufferY < _bufferZoneHeight; bufferY++) {
+                // Convert buffer zone coordinates to main grid coordinates
+                var gridY = bufferY; // Buffer zone is at indices 0 to _bufferZoneHeight-1
+                var color = _grid[x][gridY];
+                if (color == EMPTY_CELL) continue;
+                
+                if (!Tiles.TryGetValue(color, out var tile)) continue;
+                if (!_tilePositions.TryGetValue(tile, out var tilePosition)) continue;
+                
+                // Draw above the main grid (negative Y offset)
+                var destRect = new Rectangle(
+                    location.X + x * scaledTileSize,
+                    location.Y - (_bufferZoneHeight - bufferY) * scaledTileSize, // Above main grid
+                    scaledTileSize,
+                    scaledTileSize
+                );
+                
+                var sourceRect = new Rectangle(tilePosition.X, tilePosition.Y, TILE_SIZE, TILE_SIZE);
+                
+                // Draw buffer zone content with slight transparency to show it's "above"
+                spriteBatch.Draw(tiles, destRect, sourceRect, Color.White * 0.8f);
+            }
+        }
+    }
+    
+    private void DrawAnimatedGarbage(SpriteBatch spriteBatch, Point location, Texture2D tiles, int scaledTileSize) {
+        var progress = GetGarbageAnimationProgress();
+        var garbageRows = _pendingGarbage?.GetLength(0) ?? 0;
+        
+        // Calculate animation offset (how much to shift existing pieces up)
+        var animationOffset = (int)(progress * garbageRows * scaledTileSize);
+        
+        // Draw existing pieces (shifted up during animation)
+        for (var x = 0; x < _width; x++) {
+            for (var y = 0; y < _height - garbageRows; y++) {
+                var gridY = y + _bufferZoneHeight;
+                var color = _preAnimationGrid[x][gridY + garbageRows]; // Use pre-animation state
+                if (color == EMPTY_CELL) continue;
+                
+                if (!Tiles.TryGetValue(color, out var tile)) continue;
+                if (!_tilePositions.TryGetValue(tile, out var tilePosition)) continue;
+                
+                var destRect = new Rectangle(
+                    location.X + x * scaledTileSize,
+                    location.Y + y * scaledTileSize - animationOffset, // Animate upward
+                    scaledTileSize,
+                    scaledTileSize
+                );
+                
+                var sourceRect = new Rectangle(tilePosition.X, tilePosition.Y, TILE_SIZE, TILE_SIZE);
+                spriteBatch.Draw(tiles, destRect, sourceRect, Color.White);
+            }
+        }
+        
+        // Draw incoming garbage (rising from bottom)
+        if (_pendingGarbage != null) {
+            for (var x = 0; x < _width; x++) {
+                for (var y = 0; y < garbageRows; y++) {
+                    var color = _pendingGarbage[y, x];
+                    if (color == EMPTY_CELL) continue;
+                    
+                    if (!Tiles.TryGetValue(color, out var tile)) continue;
+                    if (!_tilePositions.TryGetValue(tile, out var tilePosition)) continue;
+                    
+                    var destRect = new Rectangle(
+                        location.X + x * scaledTileSize,
+                        location.Y + (_height - garbageRows + y) * scaledTileSize - animationOffset, // Animate upward
+                        scaledTileSize,
+                        scaledTileSize
+                    );
+                    
+                    var sourceRect = new Rectangle(tilePosition.X, tilePosition.Y, TILE_SIZE, TILE_SIZE);
+                    spriteBatch.Draw(tiles, destRect, sourceRect, Color.White);
+                }
             }
         }
     }
