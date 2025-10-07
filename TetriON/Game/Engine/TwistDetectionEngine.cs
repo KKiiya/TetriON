@@ -308,7 +308,7 @@ namespace TetriON.Game {
         
         #region Helper Methods
         
-        private List<Point> GetTCorners(T tPiece, Point position) {
+        private static List<Point> GetTCorners(T tPiece, Point position) {
             // Get the 4 corner positions around T-piece based on rotation
             var corners = new List<Point>{
                 // This would need to be implemented based on T-piece rotation state

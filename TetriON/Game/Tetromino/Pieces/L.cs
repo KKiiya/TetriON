@@ -99,29 +99,28 @@ public class L : Tetromino {
         
         // Check if moving the piece in ANY direction would cause a collision
         // If ALL directions are blocked, it's a valid all-spin
-        bool allDirectionsBlocked = true;
-        
         foreach (var direction in directions) {
             // Check if moving the piece in this direction would be valid
-            bool canMove = true;
+            bool canMoveInThisDirection = true;
             foreach (var coord in pieceCoords) {
                 var newX = coord.X + direction.X;
                 var newY = coord.Y + direction.Y;
                 
-                // If any mino of the piece can move in this direction, it's not blocked
-                if (grid.IsCellEmpty(newX, newY)) {
-                    canMove = false; // This direction is not blocked
+                // If any mino of the piece would collide, this direction is blocked
+                if (!grid.IsCellEmpty(newX, newY)) {
+                    canMoveInThisDirection = false;
                     break;
                 }
             }
             
-            if (!canMove) {
-                allDirectionsBlocked = false;
-                break;
+            // If we can move in any direction, it's not a spin
+            if (canMoveInThisDirection) {
+                return false;
             }
         }
         
-        return allDirectionsBlocked;
+        // All directions are blocked, it's a valid spin
+        return true;
     }
     
     public override (Point? position, bool tSpin) Rotate180(Grid grid, Point currentPoint) {

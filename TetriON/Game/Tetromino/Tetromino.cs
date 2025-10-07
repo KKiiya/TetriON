@@ -182,7 +182,12 @@ public abstract class Tetromino
     
     public abstract (Point? position, bool tSpin) Rotate180(Grid grid, Point currentPoint);
     
-    #region Twist Detection Support
+    #region T-Spin Detection Support
+    
+    // T-Spin tracking properties
+    public bool LastActionWasRotation { get; protected set; } = false;
+    public Point LastRotationOffset { get; protected set; } = Point.Zero;
+    public int PreviousOrientation { get; protected set; } = 0;
     
     /// <summary>
     /// Get piece coordinates at a specific position for collision detection
@@ -222,6 +227,22 @@ public abstract class Tetromino
     /// Get current rotation state (0-3)
     /// </summary>
     public abstract int GetRotationState();
+    
+    /// <summary>
+    /// Get rotation center position for T-Spin detection
+    /// </summary>
+    public virtual Point GetRotationCenter(Point position) {
+        // Default rotation center is at (1, 1) for 3x3 pieces
+        return new Point(position.X + 1, position.Y + 1);
+    }
+    
+    /// <summary>
+    /// Reset rotation tracking (called on non-rotation moves)
+    /// </summary>
+    public virtual void ResetRotationTracking() {
+        LastActionWasRotation = false;
+        LastRotationOffset = Point.Zero;
+    }
     
     #endregion
 }

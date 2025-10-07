@@ -214,18 +214,14 @@ public class TetrisGame {
         if (newPosition.HasValue) {
             _tetrominoPoint = newPosition.Value;
             
-            // Use comprehensive twist detection system
-            _lastTwistResult = _twistDetectionEngine.DetectTwist(_currentTetromino, _tetrominoPoint, RotationType.Left);
-            _lastMoveWasTSpin = _lastTwistResult.IsTwist && (_lastTwistResult.TwistType == TwistType.TSpin || _lastTwistResult.TwistType == TwistType.MiniTSpin);
-            _isLastTSpinMini = _lastTwistResult.IsMini;
-            
             UpdateCachedValues();
             
-            // Play appropriate sound based on twist detection
-            if (_lastTwistResult.IsTwist) {
+            // Play appropriate sound based on spin detection
+            // Only play spin sound for non-T pieces that use wall kicks
+            // T-Spin sound effects are handled when the piece locks
+            if (tSpin && !(_currentTetromino is T)) {
                 _soundEffects["spin"].Play();
-                var twistDesc = _lastTwistResult.IsMini ? $"MINI {_lastTwistResult.TwistType}" : _lastTwistResult.TwistType.ToString();
-                TetriON.DebugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [{twistDesc}]");
+                TetriON.DebugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
             } else {
                 _soundEffects["rotate"].Play();
                 //TetriON.DebugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
@@ -246,18 +242,14 @@ public class TetrisGame {
         if (newPosition.HasValue) {
             _tetrominoPoint = newPosition.Value;
             
-            // Use comprehensive twist detection system
-            _lastTwistResult = _twistDetectionEngine.DetectTwist(_currentTetromino, _tetrominoPoint, RotationType.Right);
-            _lastMoveWasTSpin = _lastTwistResult.IsTwist && (_lastTwistResult.TwistType == TwistType.TSpin || _lastTwistResult.TwistType == TwistType.MiniTSpin);
-            _isLastTSpinMini = _lastTwistResult.IsMini;
-            
             UpdateCachedValues();
             
-            // Play appropriate sound based on twist detection
-            if (_lastTwistResult.IsTwist) {
+            // Play appropriate sound based on spin detection
+            // Only play spin sound for non-T pieces that use wall kicks
+            // T-Spin sound effects are handled when the piece locks
+            if (tSpin && !(_currentTetromino is T)) {
                 _soundEffects["spin"].Play();
-                var twistDesc = _lastTwistResult.IsMini ? $"MINI {_lastTwistResult.TwistType}" : _lastTwistResult.TwistType.ToString();
-                TetriON.DebugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [{twistDesc}]");
+                TetriON.DebugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
             } else {
                 _soundEffects["rotate"].Play();
                 //TetriON.DebugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
@@ -279,18 +271,14 @@ public class TetrisGame {
         if (newPosition.HasValue) {
             _tetrominoPoint = newPosition.Value;
             
-            // Use comprehensive twist detection system
-            _lastTwistResult = _twistDetectionEngine.DetectTwist(_currentTetromino, _tetrominoPoint, RotationType.Rotate180);
-            _lastMoveWasTSpin = _lastTwistResult.IsTwist && (_lastTwistResult.TwistType == TwistType.TSpin || _lastTwistResult.TwistType == TwistType.MiniTSpin);
-            _isLastTSpinMini = _lastTwistResult.IsMini;
-            
             UpdateCachedValues();
             
-            // Play appropriate sound based on twist detection
-            if (_lastTwistResult.IsTwist) {
+            // Play appropriate sound based on spin detection
+            // Only play spin sound for non-T pieces that use wall kicks
+            // T-Spin sound effects are handled when the piece locks
+            if (tSpin && !(_currentTetromino is T)) {
                 _soundEffects["spin"].Play();
-                var twistDesc = _lastTwistResult.IsMini ? $"MINI {_lastTwistResult.TwistType}" : _lastTwistResult.TwistType.ToString();
-                TetriON.DebugLog($"TetrisGame: ROTATE 180 - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [{twistDesc}]");
+                TetriON.DebugLog($"TetrisGame: ROTATE 180 - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
             } else {
                 _soundEffects["rotate"].Play();
                 //TetriON.DebugLog($"TetrisGame: ROTATE 180 - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
@@ -309,6 +297,10 @@ public class TetrisGame {
         if (_gameOver || !CanMoveCurrentTo(-1, 0)) return;
         //TetriON.DebugLog($"TetrisGame: MOVE LEFT - {_currentTetromino.GetType().Name} from ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) to ({_tetrominoPoint.X - 1}, {_tetrominoPoint.Y})");
         _tetrominoPoint.X--;
+        
+        // Reset rotation tracking on movement (specification requirement)
+        _currentTetromino.ResetRotationTracking();
+        
         UpdateCachedValues();
         _soundEffects["move"].Play();
 
@@ -325,6 +317,10 @@ public class TetrisGame {
         if (_gameOver || !CanMoveCurrentTo(1, 0)) return;
         //TetriON.DebugLog($"TetrisGame: MOVE RIGHT - {_currentTetromino.GetType().Name} from ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) to ({_tetrominoPoint.X + 1}, {_tetrominoPoint.Y})");
         _tetrominoPoint.X++;
+        
+        // Reset rotation tracking on movement (specification requirement)
+        _currentTetromino.ResetRotationTracking();
+        
         UpdateCachedValues();
         _soundEffects["move"].Play();
         
@@ -340,6 +336,10 @@ public class TetrisGame {
         if (_gameOver) return;
         if (CanMoveCurrentTo(0, 1)) {
             _tetrominoPoint.Y++;
+            
+            // Reset rotation tracking on movement (specification requirement)
+            _currentTetromino.ResetRotationTracking();
+            
             UpdateCachedValues();
             // Track soft drop distance for scoring
             _softDropDistance++;
@@ -350,13 +350,42 @@ public class TetrisGame {
 
     private void Lock() {
         var pieceType = _currentTetromino.GetType().Name;
-        TetriON.DebugLog($"TetrisGame: LOCK - {pieceType} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})" +
-                        (_lastMoveWasTSpin ? " [T-SPIN SETUP]" : ""));
+        TetriON.DebugLog($"TetrisGame: LOCK - {pieceType} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
         
+        // Store T-piece reference for T-Spin detection
+        T tPiece = null;
+        if (_currentTetromino is T t) {
+            tPiece = t;
+        }
+        
+        // Place the piece on the grid first
         _grid.PlaceTetromino(_currentTetromino, _tetrominoPoint);
         
-        // Detect line clears without removing them yet
+        // Detect line clears
         var linesCleared = _grid.DetectFullLines();
+        
+        // Now detect T-Spin with the piece placed and correct line count
+        TSpinResult tSpinResult = new TSpinResult();
+        if (tPiece != null) {
+            var tSpinEngine = new TSpinDetectionEngine(_grid);
+            tSpinResult = tSpinEngine.DetectTSpinOnLock(tPiece, _tetrominoPoint, linesCleared);
+            
+            if (tSpinResult.IsTSpin) {
+                TetriON.DebugLog($"TetrisGame: T-SPIN DETECTED - {tSpinResult}");
+                _lastMoveWasTSpin = true;
+                _isLastTSpinMini = tSpinResult.IsMini;
+                
+                // Play T-Spin sound effect when actual T-Spin is confirmed
+                _soundEffects["spin"].Play();
+            } else {
+                _lastMoveWasTSpin = false;
+                _isLastTSpinMini = false;
+            }
+        } else {
+            _lastMoveWasTSpin = false;
+            _isLastTSpinMini = false;
+        }
+        
         if (linesCleared > 0) {
             // Start line clear animation - lines will be removed after animation
             _lineClearInProgress = true;
@@ -386,6 +415,12 @@ public class TetrisGame {
             _tetrominoPoint.Y++;
             dropDistance++;
         }
+        
+        // Reset rotation tracking on hard drop movement (specification requirement)
+        if (dropDistance > 0) {
+            _currentTetromino.ResetRotationTracking();
+        }
+        
         UpdateCachedValues();
         TetriON.DebugLog($"TetrisGame: HARD DROP - {_currentTetromino.GetType().Name} from Y={startY} to Y={_tetrominoPoint.Y}, distance: {dropDistance}");
         
@@ -531,6 +566,10 @@ public class TetrisGame {
         if (_timingManager.ShouldDropPiece((int)_level)) {
             if (CanMoveCurrentTo(0, 1)) {
                 _tetrominoPoint.Y++;
+                
+                // Reset rotation tracking on gravity movement (specification requirement)
+                _currentTetromino.ResetRotationTracking();
+                
                 UpdateCachedValues();
                 // Notify timing manager of gravity step (piece didn't collide)
                 _timingManager.OnGravityStep(false);
@@ -1056,8 +1095,8 @@ public class TetrisGame {
         var nextAreaY = gridBounds.Y + 50;     // Start below the top
         
         // Size multipliers for different next pieces
-        var primaryNextSize = _grid.GetSizeMultiplier() * 0.8f;  // Normal size for first next piece
-        var secondaryNextSize = _grid.GetSizeMultiplier() * 0.6f; // Smaller size for 2nd-4th next pieces
+        var primaryNextSize = _grid.GetSizeMultiplier() * 1f;  // Normal size for first next piece
+        var secondaryNextSize = _grid.GetSizeMultiplier() * 0.8f; // Smaller size for 2nd-4th next pieces
         
         // Draw up to 4 next pieces (first one larger, rest smaller)
         var maxNextToShow = Math.Min(_nextTetrominos.Length, 4);
@@ -1114,7 +1153,7 @@ public class TetrisGame {
         var holdAreaY = gridBounds.Y + 50;      // Same height as first next piece
         
         // Size for held piece (same as primary next piece)
-        var holdSize = _grid.GetSizeMultiplier() * 0.8f;
+        var holdSize = _grid.GetSizeMultiplier() * 1f;
         var pieceScaledTileSize = (int)(Grid.TILE_SIZE * holdSize);
         
         // Get piece matrix and calculate centering
