@@ -354,9 +354,7 @@ public class Grid {
     public bool IsEmpty() {
         for (var x = 0; x < _width; x++) {
             for (var y = 0; y < _height; y++) {
-                if (_grid[x][y] != EMPTY_CELL) {
-                    return false;
-                }
+                if (_grid[x][y] != EMPTY_CELL) return false;
             }
         }
         return true;
