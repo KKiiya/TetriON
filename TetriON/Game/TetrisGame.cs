@@ -93,9 +93,9 @@ public class TetrisGame {
         
         // Center the visible grid area (without buffer zone adjustment)
         var centerX = (game.GetWindowResolution().X - gridPixelWidth) / 2;
-        var centerY = (game.GetWindowResolution().Y - gridPixelHeight) / 2;
+        var centerY = (game.GetWindowResolution().Y - gridPixelHeight) / 1;
 
-        _point = new Point(centerX, centerY);
+        _point = new Point(centerX, (int)centerY);
         _tiles = game._skinManager.GetTextureAsset("tiles").GetTexture();
         _grid = new Grid(_point, settings.GridWidth, settings.GridHeight, sizeMultiplier, settings.BufferZoneHeight, settings.GridPreset);
 
@@ -265,15 +265,21 @@ public class TetrisGame {
             }
         }
     }
+
+    public void Rotate180() {
+        
+    }
     
-    public void MoveLeft() {
+    public void MoveLeft()
+    {
         if (_gameOver || !CanMoveCurrentTo(-1, 0)) return;
         _tetrominoPoint.X--;
         UpdateCachedValues();
         _soundEffects["move"].Play();
-        
+
         // Handle modern lock delay on player input
-        if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
+        if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1))
+        {
             // Movement limit reached while on ground - force lock
             Lock();
             return;

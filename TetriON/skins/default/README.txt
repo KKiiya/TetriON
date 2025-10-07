@@ -3,7 +3,7 @@ Custom Skin Instructions:
 
 1. Create a new folder in the 'skins' directory with your skin name
 2. Add PNG files for your custom textures:
-   - tiles.png (for tetromino blocks)
+   - tiles.png (for tetromino blocks, 29x29 with 1 pixel spacing)
    - background.png (optional background)
    - ui.png (optional UI elements)
 
