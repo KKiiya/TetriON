@@ -8,7 +8,7 @@ public class O : Tetromino {
     
     private readonly Color _color = Color.Yellow;
     private const string Shape = "O";
-    private readonly byte _id = 0x04;
+    private readonly byte _id = GetTileId(Shape);
     private int _rotation;
     private bool[][] _matrix = [
         [false, true, true, false],

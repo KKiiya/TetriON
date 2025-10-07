@@ -14,23 +14,16 @@ public abstract class Tetromino {
     private static readonly Dictionary<byte, string> Tiles = new() {
         [0x00] = "empty",
         [0x01] = "Z",
-        [0x02] = "S",
-        [0x03] = "J",
-        [0x04] = "O",
-        [0x05] = "T",
-        [0x06] = "L",
-        [0x07] = "I"
+        [0x02] = "L",
+        [0x03] = "O",
+        [0x04] = "S",
+        [0x05] = "I",
+        [0x06] = "J",
+        [0x07] = "T",
+        [0x08] = "garbage"
     };
-    
-    private readonly Dictionary<string, Point> _tilePositions = new() {
-        ["J"] = new Point(0, 0),
-        ["T"] = new Point(31, 0),
-        ["Z"] = new Point(62, 0),
-        ["S"] = new Point(93, 0),
-        ["O"] = new Point(124, 0),
-        ["I"] = new Point(155, 0),
-        ["L"] = new Point(186, 0)
-    };
+
+    private static readonly Dictionary<string, Point> _tilePositionsCache = [];
 
     protected Tetromino() {
         Bag.Add(this);
@@ -87,8 +80,9 @@ public abstract class Tetromino {
     public void Draw(SpriteBatch spriteBatch, Point location, Texture2D texture, float size) {
         var matrix = GetMatrix();
         var shape = GetShape();
-        if (!_tilePositions.TryGetValue(shape, out var tilePosition)) return;
-        
+        var tilePosition = GetTilePosition(GetTileId(shape));
+        if (tilePosition == new Point(-1, -1)) return;
+
         const int tileSize = 30;
         var scaledSize = (int)(tileSize * size);
         var sourceRect = new Rectangle(tilePosition.X, tilePosition.Y, tileSize, tileSize);
@@ -112,12 +106,13 @@ public abstract class Tetromino {
     public void DrawGhost(SpriteBatch spriteBatch, Point location, Texture2D texture, float size) {
         var matrix = GetMatrix();
         var shape = GetShape();
-        if (!_tilePositions.TryGetValue(shape, out var tilePosition)) return;
-        
+        var tilePosition = GetTilePosition(GetTileId(shape));
+        if (tilePosition == new Point(-1, -1)) return;
+
         const int tileSize = 30;
         var scaledSize = (int)(tileSize * size);
         var sourceRect = new Rectangle(tilePosition.X, tilePosition.Y, tileSize, tileSize);
-        
+
         for (var y = 0; y < matrix.Length; y++) {
             for (var x = 0; x < matrix[y].Length; x++) {
                 if (!matrix[y][x]) continue;
@@ -132,6 +127,24 @@ public abstract class Tetromino {
                 spriteBatch.Draw(texture, destRect, sourceRect, Color.White * 0.25f);
             }
         }
+    }
+
+    public static string GetTileName(byte id) {
+        return Tiles.TryGetValue(id, out var name) ? name : string.Empty;
+    }
+
+    public static byte GetTileId(string name) {
+        return Tiles.FirstOrDefault(kv => kv.Value == name).Key;
+    }
+
+    public static Point GetTilePosition(byte id) {
+        var name = GetTileName(id);
+        Point position = _tilePositionsCache.TryGetValue(name, out var cachedPosition) ? cachedPosition : new Point(-1, -1);
+        if (position == new Point(-1, -1)) {
+            _tilePositionsCache[name] = new Point((id-1) % 8 * 31, (id-1) / 8 * 31);
+            position = _tilePositionsCache[name];
+        }
+        return position;
     }
 
 

@@ -42,30 +42,6 @@ public class Grid {
 
     #endregion
 
-
-    private static readonly Dictionary<byte, string> Tiles = new() {
-        [0x00] = "empty",
-        [0x01] = "Z",
-        [0x02] = "S",
-        [0x03] = "J",
-        [0x04] = "O",
-        [0x05] = "T",
-        [0x06] = "L",
-        [0x07] = "I",
-        [0x08] = "garbage"
-    };
-    
-    private readonly Dictionary<string, Point> _tilePositions = new() {
-        ["J"] = new Point(0, 0),
-        ["T"] = new Point(31, 0),
-        ["Z"] = new Point(62, 0),
-        ["S"] = new Point(93, 0),
-        ["O"] = new Point(124, 0),
-        ["I"] = new Point(155, 0),
-        ["L"] = new Point(186, 0),
-        ["garbage"] = new Point(248, 0)
-    };
-
     private readonly Point _point;
 
     private readonly int _height;        // Visible grid height
@@ -526,8 +502,10 @@ public class Grid {
                 var color = _grid[x][gridY];
                 if (color == EMPTY_CELL) continue;
             
-                if (!Tiles.TryGetValue(color, out var tile)) continue;
-                if (!_tilePositions.TryGetValue(tile, out var tilePosition)) continue;
+                var tile = Tetromino.GetTileName(color);
+                if (string.IsNullOrEmpty(tile)) continue;
+                var tilePosition = Tetromino.GetTilePosition(color);
+                if (tilePosition == new Point(-1, -1)) continue;
                 
                 var destRect = new Rectangle(
                     location.X + x * scaledTileSize,
@@ -553,10 +531,13 @@ public class Grid {
                 var gridY = bufferY; // Buffer zone is at indices 0 to _bufferZoneHeight-1
                 var color = _grid[x][gridY];
                 if (color == EMPTY_CELL) continue;
-                
-                if (!Tiles.TryGetValue(color, out var tile)) continue;
-                if (!_tilePositions.TryGetValue(tile, out var tilePosition)) continue;
-                
+
+                var tile = Tetromino.GetTileName(color);
+                if (string.IsNullOrEmpty(tile)) continue;
+
+                var tilePosition = Tetromino.GetTilePosition(color);
+                if (tilePosition == new Point(-1, -1)) continue;
+
                 // Draw above the main grid (negative Y offset)
                 var destRect = new Rectangle(
                     location.X + x * scaledTileSize,
@@ -586,10 +567,13 @@ public class Grid {
                 var gridY = y + _bufferZoneHeight;
                 var color = _preAnimationGrid[x][gridY + garbageRows]; // Use pre-animation state
                 if (color == EMPTY_CELL) continue;
-                
-                if (!Tiles.TryGetValue(color, out var tile)) continue;
-                if (!_tilePositions.TryGetValue(tile, out var tilePosition)) continue;
-                
+
+                var tile = Tetromino.GetTileName(color);
+                if (string.IsNullOrEmpty(tile)) continue;
+
+                var tilePosition = Tetromino.GetTilePosition(color);
+                if (tilePosition == new Point(-1, -1)) continue;
+
                 var destRect = new Rectangle(
                     location.X + x * scaledTileSize,
                     location.Y + y * scaledTileSize - animationOffset, // Animate upward
@@ -609,8 +593,11 @@ public class Grid {
                     var color = _pendingGarbage[y, x];
                     if (color == EMPTY_CELL) continue;
                     
-                    if (!Tiles.TryGetValue(color, out var tile)) continue;
-                    if (!_tilePositions.TryGetValue(tile, out var tilePosition)) continue;
+                    var tile = Tetromino.GetTileName(color);
+                    if (string.IsNullOrEmpty(tile)) continue;
+
+                    var tilePosition = Tetromino.GetTilePosition(color);
+                    if (tilePosition == new Point(-1, -1)) continue;
                     
                     var destRect = new Rectangle(
                         location.X + x * scaledTileSize,

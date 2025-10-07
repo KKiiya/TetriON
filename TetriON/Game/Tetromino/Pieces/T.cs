@@ -8,7 +8,7 @@ public class T : Tetromino {
     
     private readonly Color _color = Color.Purple;
     private const string Shape = "T";
-    private readonly byte _id = 0x05;
+    private readonly byte _id = GetTileId(Shape);
     private int _rotation;
     private bool _isMiniTSpin = false; // Track if last rotation was a mini T-Spin
     private bool[][] _matrix = [
