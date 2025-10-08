@@ -8,8 +8,7 @@ using static TetriON.game.tetromino.Kicks;
 
 namespace TetriON.game;
 
-public class Grid
-{
+public class Grid {
 
     #region Constants
 
@@ -76,7 +75,7 @@ public class Grid
         var preset = GridPresets.GetPreset(presetType, _height, _width);
         for (var x = 0; x < _width; x++) {
             for (var y = 0; y < _height; y++) {
-                if (preset[y, x]) SetCell(x, y, 0x08); // Fixed: use [y, x] to match preset array dimensions
+                if (preset[y, x]) SetCell(x, y, Tetromino.GetTileId("garbage")); // Fixed: use [y, x] to match preset array dimensions
             }
         }
     }
