@@ -55,8 +55,7 @@ public class GridPresets {
             grid[rows - 3, c] = true;  // Third row from bottom right side
         }
 
-        for (int c = 0; c < 4; c++)
-        {
+        for (int c = 0; c < 4; c++) {
             grid[rows - 2, c] = true;  // Second row from bottom left side
         }
 
