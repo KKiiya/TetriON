@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TetriON.game.tetromino;
 using TetriON.Game;
+using static TetriON.game.tetromino.Kicks;
 
 namespace TetriON.game;
 
@@ -19,7 +20,7 @@ public class Grid
 
     #region Wall Kick Data
 
-    private static readonly KickSystem KICKS = Kicks.Get("SRS");
+    private static KickSystem KICKS;
 
     #endregion
 
@@ -35,7 +36,7 @@ public class Grid
     private readonly byte[][] _grid;
     private readonly byte[][] _bufferGrid;
     private static Texture2D _pixelTexture;
-    private Dictionary<string, Point[]> lastKick;
+    private readonly Dictionary<string, Point[]> lastKick;
 
     // Garbage animation state
     private bool _garbageAnimating = false;
@@ -45,14 +46,15 @@ public class Grid
     private byte[][] _preAnimationGrid; // Store grid state before animation
 
 
-    public Grid(Point point, int width, int height, float sizeMultiplier = 2, int bufferZoneHeight = 0, GridPresets.PresetType presetType = GridPresets.PresetType.Empty)
-    {
+    public Grid(Point point, int width, int height, float sizeMultiplier = 2, int bufferZoneHeight = 0, string kickType = null, GridPresets.PresetType presetType = GridPresets.PresetType.Empty) {
+        kickType ??= KickType.SRS;
         _point = point;
         _width = width;
         _height = height;
         _bufferZoneHeight = bufferZoneHeight;
         _totalHeight = height + bufferZoneHeight;
         _sizeMultiplier = sizeMultiplier;
+        KICKS = Get(kickType);
 
         // Create grid with total height (visible + buffer zone)
         _grid = new byte[width][];
@@ -665,14 +667,32 @@ public class Grid
 
     public Point? TryWallKick(Point currentPosition, bool[][] matrix, int fromRotation, int toRotation, bool isI) {
         var wallKicks = GetWallKicks(isI);
-        if (!wallKicks.TryGetValue($"{fromRotation}{toRotation}", out var offsets)) return null;
+        var kickKey = $"{fromRotation}{toRotation}";
+        
+        TetriON.DebugLog($"Wall kick: Trying rotation {fromRotation}→{toRotation} (isI: {isI}), key: {kickKey}");
+        
+        if (!wallKicks.TryGetValue(kickKey, out var offsets)) {
+            TetriON.DebugLog($"Wall kick: No kick offsets found for key {kickKey}");
+            return null;
+        }
 
-        foreach (var offset in offsets) {
+        TetriON.DebugLog($"Wall kick: Found {offsets.Length} offsets to try");
+        
+        for (int i = 0; i < offsets.Length; i++) {
+            var offset = offsets[i];
             var testPosition = new Point(currentPosition.X + offset.X, currentPosition.Y + offset.Y);
+            
+            TetriON.DebugLog($"Wall kick: Testing offset {i}: ({offset.X}, {offset.Y}) → position ({testPosition.X}, {testPosition.Y})");
+            
             if (CanPlaceTetromino(testPosition, matrix)) {
+                TetriON.DebugLog($"Wall kick: Success! Using position ({testPosition.X}, {testPosition.Y})");
                 return testPosition;
+            } else {
+                TetriON.DebugLog($"Wall kick: Position ({testPosition.X}, {testPosition.Y}) failed collision test");
             }
         }
+        
+        TetriON.DebugLog($"Wall kick: All offsets failed");
         return null;
     }
 

@@ -4,9 +4,24 @@ using Microsoft.Xna.Framework;
 namespace TetriON.game.tetromino;
 
 public static class Kicks {
-    public static readonly Dictionary<string, KickSystem> KICKS = new() {
-        ["SRS"] = new KickSystem {
-            Kicks = new Dictionary<string, Point[]>  {
+
+    public static class KickType {
+        public static readonly string None = "none";
+        public static readonly string SRS = "SRS";
+        public static readonly string SRSPlus = "SRS+";
+        public static readonly string SRSX = "SRS-X";
+        public static readonly string TETRAX = "TETRA-X";
+        public static readonly string ARS = "ARS";
+        public static readonly string ASC = "ASC";
+        public static readonly string NRS = "NRS";
+    }
+
+    public static readonly Dictionary<string, KickSystem> KICKS = new()
+    {
+        ["SRS"] = new KickSystem
+        {
+            Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-1, 0), new(-1, -1), new(0, 2), new(-1, 2)],
                 ["10"] = [new(1, 0), new(1, 1), new(0, -2), new(1, -2)],
                 ["12"] = [new(1, 0), new(1, 1), new(0, -2), new(1, -2)],
@@ -510,7 +525,7 @@ public static class Kicks {
             }
         }
     };
-    
+
     public static KickSystem Get(string name) {
         if (KICKS.TryGetValue(name, out KickSystem value)) return value;
         return KICKS["none"];

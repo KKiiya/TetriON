@@ -135,8 +135,7 @@ public class TimingManager {
         if (pieceCollidesWithGround) {
             _isGrounded = true;
             // Lock timer starts running (counts down in UpdateTimers)
-        }
-        else {
+        } else {
             _isGrounded = false;
             // Reset lock timer/counter because piece is airborne again
             _lockDelayTimer = _lockDelayLimit;

@@ -3,8 +3,9 @@ using Microsoft.Xna.Framework;
 
 namespace TetriON.game.tetromino.pieces;
 
-public class O : Tetromino {
-    
+public class O : Tetromino
+{
+
     private readonly Color _color = Color.Yellow;
     private const string Shape = "O";
     private readonly byte _id = GetTileId(Shape);
@@ -34,7 +35,10 @@ public class O : Tetromino {
         ]
     };
 
-
+    public override (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection direction) {
+        return (currentPoint, false); // O-piece does not rotate
+    }
+    
     public override byte GetId() {
         return _id;
     }
@@ -51,20 +55,13 @@ public class O : Tetromino {
         return _matrix;
     }
 
-    public override (Point? position, bool tSpin) RotateLeft(Grid grid, Point currentPoint) {
-        return (currentPoint, false); // O-piece does not rotate
-    }
-
-    public override (Point? position, bool tSpin) RotateRight(Grid grid, Point currentPoint) {
-        return (currentPoint, false); // O-piece does not rotate
-    }
-    
-    public override (Point? position, bool tSpin) Rotate180(Grid grid, Point currentPoint) {
-        return (currentPoint, false); // O-piece does not rotate
-    }
-    
     public override int GetRotationState() {
         return _rotation;
+    }
+
+    public override void SetRotationState(int rotation) {
+        _rotation = rotation;
+        _matrix = _rotations[_rotation];
     }
 
     public override void ResetOrientation() {
@@ -74,5 +71,13 @@ public class O : Tetromino {
 
     public override Point GetLastKickOffset() {
         return _lastKickOffset;
+    }
+
+    public override void SetLastKickOffset(Point offset) {
+        _lastKickOffset = offset;
+    }
+
+    public override Dictionary<int, bool[][]> GetRotations() {
+        return _rotations;
     }
 }

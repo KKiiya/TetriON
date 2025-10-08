@@ -45,34 +45,9 @@ public class I : Tetromino {
         ]
     };
 
-
-    public override byte GetId() {
-        return _id;
-    }
-
-    public override Color GetColor() {
-        return _color;
-    }
-
-    public override string GetShape() {
-        return Shape;
-    }
-
-    public override bool[][] GetMatrix() {
-        return _matrix;
-    }
-
-    public override (Point? position, bool tSpin) RotateLeft(Grid grid, Point currentPoint) {
-        return ApplyRotation(grid, currentPoint, -1); // -1 for left rotation
-    }
-
-    public override (Point? position, bool tSpin) RotateRight(Grid grid, Point currentPoint) {
-        return ApplyRotation(grid, currentPoint, 1); // 1 for right rotation
-    }
-
-    private (Point? position, bool tSpin) ApplyRotation(Grid grid, Point currentPoint, int direction) {
+    public override (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection direction) {
         var oldRotation = _rotation;
-        var newRotation = (_rotation + direction + 4) % 4;
+        var newRotation = (_rotation + (int)direction + 4) % 4;
         var newMatrix = _rotations[newRotation];
 
         // Try wall kick for I-piece
@@ -131,12 +106,29 @@ public class I : Tetromino {
         return true;
     }
     
-    public override (Point? position, bool tSpin) Rotate180(Grid grid, Point currentPoint) {
-        return ApplyRotation(grid, currentPoint, 2); // +2 for 180-degree rotation
+    public override byte GetId() {
+        return _id;
     }
-    
+
+    public override Color GetColor() {
+        return _color;
+    }
+
+    public override string GetShape() {
+        return Shape;
+    }
+
+    public override bool[][] GetMatrix() {
+        return _matrix;
+    }
+
     public override int GetRotationState() {
         return _rotation;
+    }
+
+    public override void SetRotationState(int rotation) {
+        _rotation = rotation;
+        _matrix = _rotations[_rotation];
     }
 
     public override void ResetOrientation() {
@@ -146,5 +138,13 @@ public class I : Tetromino {
 
     public override Point GetLastKickOffset() {
         return _lastKickOffset;
+    }
+
+    public override void SetLastKickOffset(Point offset) {
+        _lastKickOffset = offset;
+    }
+
+    public override Dictionary<int, bool[][]> GetRotations() {
+        return _rotations;
     }
 }

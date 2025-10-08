@@ -23,7 +23,6 @@ public class TetrisGame {
     private readonly Dictionary<int, SoundWrapper> _comboSounds = [];
 
     private readonly SpriteBatch _spriteBatch;
-    private readonly Texture2D _tiles;
     private readonly GameSettings _gameSettings; // Store for spawn position calculations
     
     private readonly Point _point;
@@ -98,7 +97,7 @@ public class TetrisGame {
 
         _textures["tiles"] = game._skinManager.GetTextureAsset("tiles");
         _point = new Point(centerX, (int)centerY);
-        _grid = new Grid(_point, settings.GridWidth, settings.GridHeight, sizeMultiplier, settings.BufferZoneHeight, settings.GridPreset);
+        _grid = new Grid(_point, settings.GridWidth, settings.GridHeight, sizeMultiplier, settings.BufferZoneHeight, Kicks.KickType.SRS, settings.GridPreset);
 
         // Initialize sound effects
 
@@ -180,8 +179,7 @@ public class TetrisGame {
             _holdTetromino = _currentTetromino;
             _currentTetromino = _nextTetrominos[0];
             // Shift next pieces
-            for (var i = 0; i < _nextTetrominos.Length - 1; i++)
-            {
+            for (var i = 0; i < _nextTetrominos.Length - 1; i++) {
                 _nextTetrominos[i] = _nextTetrominos[i + 1];
             }
             _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
@@ -201,86 +199,36 @@ public class TetrisGame {
         _soundEffects["hold"].Play();
         UpdateCachedValues();
     }
-    
-    public void RotateLeft() {
+
+    public void Rotate(RotationDirection direction) {
         if (_gameOver) return;
-        var (newPosition, tSpin) = _currentTetromino.RotateLeft(_grid, _tetrominoPoint);
+        
+        TetriON.DebugLog($"TetrisGame: Rotate({direction}) called - Current piece: {_currentTetromino.GetShape()} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
+        
+        var (newPosition, tSpin) = _currentTetromino.Rotate(_grid, _tetrominoPoint, direction);
         if (newPosition.HasValue) {
             _tetrominoPoint = newPosition.Value;
-            
+
             UpdateCachedValues();
-            
+
             // Play appropriate sound based on spin detection from piece rotation
             // tSpin is already correctly determined by the piece's rotation logic
             if (tSpin) {
                 _soundEffects["spin"].Play();
-                TetriON.DebugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
+                TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
             } else {
                 _soundEffects["rotate"].Play();
-                //TetriON.DebugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
+                TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
             }
-            
+
             // Handle modern lock delay on player input
             if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
                 // Movement limit reached while on ground - force lock
                 Lock();
                 return;
             }
-        }
-    }
-    
-    public void RotateRight() {
-        if (_gameOver) return;
-        var (newPosition, tSpin) = _currentTetromino.RotateRight(_grid, _tetrominoPoint);
-        if (newPosition.HasValue) {
-            _tetrominoPoint = newPosition.Value;
-            
-            UpdateCachedValues();
-
-            // Play appropriate sound based on spin detection from piece rotation
-            // tSpin is already correctly determined by the piece's rotation logic
-            if (tSpin) {
-                _soundEffects["spin"].Play();
-                TetriON.DebugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
-            } else {
-                _soundEffects["rotate"].Play();
-                //TetriON.DebugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
-            }
-            
-            // Handle modern lock delay on player input
-            if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1))
-            {
-                // Movement limit reached while on ground - force lock
-                Lock();
-                return;
-            }
-        }
-    }
-
-    public void Rotate180() {
-        if (_gameOver) return;
-        var (newPosition, tSpin) = _currentTetromino.Rotate180(_grid, _tetrominoPoint);
-        if (newPosition.HasValue) {
-            _tetrominoPoint = newPosition.Value;
-            
-            UpdateCachedValues();
-
-            // Play appropriate sound based on spin detection from piece rotation
-            // tSpin is already correctly determined by the piece's rotation logic
-            if (tSpin) {
-                _soundEffects["spin"].Play();
-                TetriON.DebugLog($"TetrisGame: ROTATE 180 - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
-            } else {
-                _soundEffects["rotate"].Play();
-                //TetriON.DebugLog($"TetrisGame: ROTATE 180 - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
-            }
-            
-            // Handle modern lock delay on player input
-            if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
-                // Movement limit reached while on ground - force lock
-                Lock();
-                return;
-            }
+        } else {
+            TetriON.DebugLog($"TetrisGame: ROTATE FAILED - {_currentTetromino.GetType().Name} could not rotate {direction}");
         }
     }
     
@@ -293,8 +241,7 @@ public class TetrisGame {
         _soundEffects["move"].Play();
 
         // Handle modern lock delay on player input
-        if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1))
-        {
+        if (!_timingManager.OnPlayerInput() && !CanMoveCurrentTo(0, 1)) {
             // Movement limit reached while on ground - force lock
             Lock();
             return;
@@ -772,7 +719,7 @@ public class TetrisGame {
         // Apply IRS rotation
         for (int i = 0; i < _irsRotation; i++) {
             var spawnPoint = new Point(_gameSettings.GridWidth / 2 - 2, -2);
-            var (rotatedPos, _) = _currentTetromino.RotateRight(_grid, spawnPoint);
+            var (rotatedPos, _) = _currentTetromino.Rotate(_grid, spawnPoint, RotationDirection.CW);
             // If IRS rotation fails, spawn in original orientation
         }
 
@@ -917,16 +864,19 @@ public class TetrisGame {
             
             switch (keyBind) {
                 case KeyBind.RotateCounterClockwise:
-                    RotateLeft();
+                    TetriON.DebugLog($"TetrisGame: HandleInput - RotateCounterClockwise pressed");
+                    Rotate(RotationDirection.CCW);
                     break;
                 case KeyBind.RotateClockwise:
-                    RotateRight();
+                    TetriON.DebugLog($"TetrisGame: HandleInput - RotateClockwise pressed");
+                    Rotate(RotationDirection.CW);
                     break;
                 case KeyBind.Hold:
                     Hold();
                     break;
                 case KeyBind.Rotate180:
-                    Rotate180();
+                    TetriON.DebugLog($"TetrisGame: HandleInput - Rotate180 pressed");
+                    Rotate(RotationDirection.Flip);
                     break;
                 case KeyBind.HardDrop:
                     Drop();
@@ -988,7 +938,7 @@ public class TetrisGame {
     }
     
     public void Draw() {
-        _grid.Draw(_spriteBatch, _point, _tiles);
+        _grid.Draw(_spriteBatch, _point, _textures["tiles"].GetTexture());
         
         // Don't draw the current piece if we're hiding it for line clear animation
         if (!_hidePieceForLineClear && !_areInProgress) {
@@ -1004,7 +954,7 @@ public class TetrisGame {
                     _point.X + _tetrominoPoint.X * scaledTileSize,
                     _point.Y + _tetrominoPoint.Y * scaledTileSize  // Negative Y will naturally place above visible grid
                 );
-                _currentTetromino.Draw(_spriteBatch, tetrominoPixelPos, _tiles, _grid.GetSizeMultiplier());
+                _currentTetromino.Draw(_spriteBatch, tetrominoPixelPos, _textures["tiles"].GetTexture(), _grid.GetSizeMultiplier());
             }
             
             // Ghost piece - calculate and draw if current piece is visible
@@ -1017,7 +967,7 @@ public class TetrisGame {
                         _point.X + ghostPos.X * scaledTileSize,
                         _point.Y + ghostPos.Y * scaledTileSize  // This will handle negative Y (buffer zone) correctly
                     );
-                    _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, _tiles, _grid.GetSizeMultiplier());
+                    _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, _textures["tiles"].GetTexture(), _grid.GetSizeMultiplier());
                 }
             }
         }
@@ -1081,7 +1031,7 @@ public class TetrisGame {
             );
             
             // Draw the piece
-            _nextTetrominos[i].Draw(_spriteBatch, drawPosition, _tiles, sizeMultiplier);
+            _nextTetrominos[i].Draw(_spriteBatch, drawPosition, _textures["tiles"].GetTexture(), sizeMultiplier);
         }
     }
     
@@ -1119,10 +1069,10 @@ public class TetrisGame {
         
         // Draw the piece with reduced opacity if hold is disabled
         if (_canHold) {
-            _holdTetromino.Draw(_spriteBatch, drawPosition, _tiles, holdSize);
+            _holdTetromino.Draw(_spriteBatch, drawPosition, _textures["tiles"].GetTexture(), holdSize);
         } else {
             // Draw with reduced opacity when hold is disabled (after using hold once)
-            _holdTetromino.Draw(_spriteBatch, drawPosition, _tiles, holdSize);
+            _holdTetromino.Draw(_spriteBatch, drawPosition, _textures["tiles"].GetTexture(), holdSize);
         }
     }
     

@@ -41,105 +41,52 @@ public class L : Tetromino {
     };
 
 
-    public override byte GetId() {
+    public override byte GetId()
+    {
         return _id;
     }
 
-    public override Color GetColor() {
+    public override Color GetColor()
+    {
         return _color;
     }
 
-    public override string GetShape() {
+    public override string GetShape()
+    {
         return Shape;
     }
 
-    public override bool[][] GetMatrix() {
+    public override bool[][] GetMatrix()
+    {
         return _matrix;
     }
-    
-    public override (Point? position, bool tSpin) RotateLeft(Grid grid, Point currentPoint) {
-        return ApplyRotation(grid, currentPoint, -1);
-    }
 
-    public override (Point? position, bool tSpin) RotateRight(Grid grid, Point currentPoint) {
-        return ApplyRotation(grid, currentPoint, 1);
-    }
-
-    private (Point? position, bool tSpin) ApplyRotation(Grid grid, Point currentPoint, int direction) {
-        var oldRotation = _rotation;
-        var newRotation = (_rotation + direction + 4) % 4;
-        var newMatrix = _rotations[newRotation];
-
-        // Try wall kick for standard pieces
-        var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, newRotation, false);
-        var kickOffset = newPosition.HasValue ? new Point(newPosition.Value.X - currentPoint.X, newPosition.Value.Y - currentPoint.Y) : new Point(0, 0);
-        _lastKickOffset = kickOffset;
-        if (newPosition.HasValue) {
-            var wasWallKick = !newPosition.Value.Equals(currentPoint);
-            _rotation = newRotation;
-            _matrix = newMatrix;
-
-            // Check for L-Spin after successful rotation
-            var isSpin = wasWallKick && IsSpin(grid, newPosition.Value);
-
-            return (newPosition.Value, isSpin);
-        }
-        return (null, false);
-    }
-    
-    private bool IsSpin(Grid grid, Point pivot) {
-        // All-spin detection: check if piece is completely surrounded in all 4 directions
-        // Get all coordinates of the current piece
-        var pieceCoords = GetPieceCoordinates(pivot);
-        
-        // Define the four directions: right, down, left, up
-        var directions = new Point[] { 
-            new(1, 0),   // Right
-            new(0, 1),   // Down
-            new(-1, 0),  // Left
-            new(0, -1)   // Up
-        };
-        
-        // Check if moving the piece in ANY direction would cause a collision
-        // If ALL directions are blocked, it's a valid all-spin
-        foreach (var direction in directions) {
-            // Check if moving the piece in this direction would be valid
-            bool canMoveInThisDirection = true;
-            foreach (var coord in pieceCoords) {
-                var newX = coord.X + direction.X;
-                var newY = coord.Y + direction.Y;
-                
-                // If any mino of the piece would collide, this direction is blocked
-                if (!grid.IsCellEmpty(newX, newY)) {
-                    canMoveInThisDirection = false;
-                    break;
-                }
-            }
-            
-            // If we can move in any direction, it's not a spin
-            if (canMoveInThisDirection) {
-                return false;
-            }
-        }
-        
-        // All directions are blocked, it's a valid spin
-        return true;
-    }
-    
-    public override (Point? position, bool tSpin) Rotate180(Grid grid, Point currentPoint) {
-        return ApplyRotation(grid, currentPoint, 2); // +2 for 180-degree rotation
-    }
-    
-    public override int GetRotationState() {
+    public override int GetRotationState()
+    {
         return _rotation;
     }
 
-    public override void ResetOrientation() {
+    public override void SetRotationState(int rotation) {
+        _rotation = rotation;
+        _matrix = _rotations[_rotation];
+    }
+
+    public override void ResetOrientation()
+    {
         _rotation = 0;
         _matrix = _rotations[_rotation];
     }
 
     public override Point GetLastKickOffset() {
         return _lastKickOffset;
+    }
+
+    public override void SetLastKickOffset(Point offset) {
+        _lastKickOffset = offset;
+    }
+
+    public override Dictionary<int, bool[][]> GetRotations()
+    {
+        return _rotations;
     }
 }
