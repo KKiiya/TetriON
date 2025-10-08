@@ -4,16 +4,18 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TetriON.game.tetromino;
-using TetriON.game.tetromino.pieces;
 using TetriON.Wrappers.Content;
 using TetriON.Account.Enums;
 using TetriON.Game;
 using TetriON.Game.Enums;
-using static TetriON.Game.GridPresets;
+using TetriON.Wrappers.Texture;
 
 namespace TetriON.game;
 
 public class TetrisGame {
+
+    // === TEXTURES ===
+    private readonly Dictionary<string, TextureWrapper> _textures = [];
 
     // === SOUND EFFECTS ===
     private readonly Dictionary<string, SoundWrapper> _soundEffects = [];
@@ -48,7 +50,6 @@ public class TetrisGame {
     private bool _lastClearWasDifficult;  // For Back-to-Back tracking
     private int _comboCount;              // For combo scoring
     private long _softDropDistance;      // Accumulated soft drop distance
-    private bool _isLastTSpinMini;        // Track if last T-Spin was mini
     
     // Line clear animation state
     private bool _lineClearInProgress;    // True during line clear animation
@@ -71,10 +72,6 @@ public class TetrisGame {
     private bool _canHold;
     private bool _lastMoveWasTSpin;
     private bool _gameOver;
-    
-    // Twist detection system
-    private TwistDetectionEngine _twistDetectionEngine;
-    private TwistResult _lastTwistResult;
     
     /* 
         TODO: Replace Point and Texture2D with TetriON instance to obtain everything needed
@@ -99,8 +96,8 @@ public class TetrisGame {
         var centerX = (game.GetWindowResolution().X - gridPixelWidth) / 2;
         var centerY = (game.GetWindowResolution().Y - gridPixelHeight) / 0.8;
 
+        _textures["tiles"] = game._skinManager.GetTextureAsset("tiles");
         _point = new Point(centerX, (int)centerY);
-        _tiles = game._skinManager.GetTextureAsset("tiles").GetTexture();
         _grid = new Grid(_point, settings.GridWidth, settings.GridHeight, sizeMultiplier, settings.BufferZoneHeight, settings.GridPreset);
 
         // Initialize sound effects
@@ -148,10 +145,6 @@ public class TetrisGame {
 
         // Initialize modern lock delay for first piece
         _timingManager.InitializePiece();
-        
-        // Initialize twist detection engine
-        _twistDetectionEngine = new TwistDetectionEngine(settings.TwistDetection, _grid);
-        _lastTwistResult = new TwistResult();
 
         _canHold = settings.EnableHoldPiece;
         _level = settings.StartingLevel;
@@ -341,25 +334,12 @@ public class TetrisGame {
     private void Lock() {
         var pieceType = _currentTetromino.GetType().Name;
         TetriON.DebugLog($"TetrisGame: LOCK - {pieceType} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
-        
-        // Store T-piece reference for T-Spin detection
-        T tPiece = null;
-        if (_currentTetromino is T t) {
-            tPiece = t;
-        }
-        
+
         // Place the piece on the grid first
         _grid.PlaceTetromino(_currentTetromino, _tetrominoPoint);
         
         // Detect line clears
         var linesCleared = _grid.DetectFullLines();
-        
-        // Now detect T-Spin with the piece placed and correct line count
-        if (tPiece != null) {
-            
-        } else {
-            _lastTwistResult = new TwistResult(); // Reset if not T-piece
-        }
         
         if (linesCleared > 0) {
             // Start line clear animation - lines will be removed after animation
@@ -1433,24 +1413,6 @@ public class TetrisGame {
             _point.Y,
             _grid.GetWidth() * scaledTileSize,
             _grid.GetHeight() * scaledTileSize
-        );
-    }
-    
-    /// <summary>Convert grid position to pixel position</summary>
-    public Point GridToPixelPosition(Point gridPos) {
-        var scaledTileSize = (int)(Grid.TILE_SIZE * _grid.GetSizeMultiplier());
-        return new Point(
-            _point.X + gridPos.X * scaledTileSize,
-            _point.Y + gridPos.Y * scaledTileSize
-        );
-    }
-    
-    /// <summary>Convert pixel position to grid position</summary>
-    public Point PixelToGridPosition(Point pixelPos) {
-        var scaledTileSize = (int)(Grid.TILE_SIZE * _grid.GetSizeMultiplier());
-        return new Point(
-            (pixelPos.X - _point.X) / scaledTileSize,
-            (pixelPos.Y - _point.Y) / scaledTileSize
         );
     }
     

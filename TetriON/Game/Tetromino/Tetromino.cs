@@ -9,8 +9,6 @@ namespace TetriON.game.tetromino;
 
 public abstract class Tetromino {
 
-    private static readonly List<Tetromino> Bag = [];
-
     // Tile ID to name mapping (coloring)
     private static readonly Dictionary<byte, string> Tiles = new() {
         [0x00] = "empty",
@@ -26,10 +24,6 @@ public abstract class Tetromino {
 
     private static readonly Dictionary<string, Point> _tilePositionsCache = [];
 
-    protected Tetromino() {
-        Bag.Add(this);
-    }
-
     public static void Initialize() {
         _ = new I();
         _ = new J();
@@ -39,46 +33,6 @@ public abstract class Tetromino {
         _ = new T();
         _ = new Z();
     }
-
-    public static Tetromino GetRandom(Random random, Tetromino previous) {
-        ArgumentNullException.ThrowIfNull(random);
-
-        Tetromino next;
-        do next = Bag[random.Next(Bag.Count)];
-        while (next == previous && Bag.Count > 1); // Avoid infinite loop if only one piece type
-        return next;
-    }
-
-    public static Tetromino GetRandom(Random random) {
-        ArgumentNullException.ThrowIfNull(random);
-        return Bag[random.Next(Bag.Count)];
-    }
-
-    public static Tetromino[] GetRandom(Random random, Tetromino previous, int count) {
-        ArgumentNullException.ThrowIfNull(random);
-
-        var tetrominos = new Tetromino[count];
-        for (var i = 0; i < count; i++)
-        {
-            if (i == 0) tetrominos[i] = GetRandom(random, previous);
-            else tetrominos[i] = GetRandom(random, tetrominos[i - 1]);
-        }
-        return tetrominos;
-    }
-
-    public static Tetromino[] GetRandom(Random random, int count) {
-        ArgumentNullException.ThrowIfNull(random);
-
-        var tetrominos = new Tetromino[count];
-        for (var i = 0; i < count; i++)
-        {
-            if (i == 0) tetrominos[i] = GetRandom(random);
-            else tetrominos[i] = GetRandom(random, tetrominos[i - 1]);
-        }
-        return tetrominos;
-    }
-
-
 
     public void Draw(SpriteBatch spriteBatch, Point location, Texture2D texture, float size) {
         var matrix = GetMatrix();
@@ -155,18 +109,6 @@ public abstract class Tetromino {
     }
 
     /// <summary>
-    /// Collision action types for detailed collision detection
-    /// </summary>
-    public enum CollisionAction {
-        RIGHT,
-        LEFT,
-        DOWN,
-        ROTATE,
-        PLACE,
-        SPAWN
-    }
-
-    /// <summary>
     /// Get all placed minos of a specific type from the grid
     /// </summary>
     /// <param name="grid">The game grid</param>
@@ -232,26 +174,6 @@ public abstract class Tetromino {
         }
         
         return false;
-    }
-
-    /// <summary>
-    /// Instance method for collision detection using the current piece's coordinates
-    /// </summary>
-    /// <param name="position">Current position of this tetromino</param>
-    /// <param name="action">The action being performed</param>
-    /// <param name="grid">The game grid</param>
-    /// <param name="collider">Optional specific collision points, defaults to "S" piece minos</param>
-    /// <returns>True if collision detected, false otherwise</returns>
-    public virtual bool CheckCollision(Point position, CollisionAction action, Grid grid, List<Point> collider = null) {
-        var coords = GetPieceCoordinates(position);
-        return CheckCollision(coords, action, grid, collider);
-    }
-
-    /// <summary>
-    /// Mechanics state for T-Spin detection
-    /// </summary>
-    public static class Mechanics {
-        public static bool IsMini { get; set; } = false;
     }
 
     /// <summary>
@@ -357,26 +279,6 @@ public abstract class Tetromino {
         return CheckTSpin(GetRotationState(), position, kickOffset, grid, this);
     }
 
-
-    public abstract byte GetId();
-
-    public abstract Color GetColor();
-
-    public abstract string GetShape();
-
-    public abstract bool[][] GetMatrix();
-
-    public abstract void ResetOrientation();
-
-    public abstract Point GetLastKickOffset();
-
-    public abstract (Point? position, bool tSpin) RotateLeft(Grid grid, Point currentPoint);
-
-    public abstract (Point? position, bool tSpin) RotateRight(Grid grid, Point currentPoint);
-    
-    public abstract (Point? position, bool tSpin) Rotate180(Grid grid, Point currentPoint);
-    
-    
     /// <summary>
     /// Get piece coordinates at a specific position for collision detection
     /// </summary>
@@ -412,15 +314,53 @@ public abstract class Tetromino {
     }
     
     /// <summary>
-    /// Get current rotation state (0-3)
-    /// </summary>
-    public abstract int GetRotationState();
-    
-    /// <summary>
     /// Get rotation center position for T-Spin detection
     /// </summary>
     public virtual Point GetRotationCenter(Point position) {
         // Default rotation center is at (1, 1) for 3x3 pieces
         return new Point(position.X + 1, position.Y + 1);
     } 
+
+    /// <summary>
+    /// Mechanics state for T-Spin detection
+    /// </summary>
+    public static class Mechanics {
+        public static bool IsMini { get; set; } = false;
+    }
+
+    /// <summary>
+    /// Collision action types for detailed collision detection
+    /// </summary>
+    public enum CollisionAction {
+        RIGHT,
+        LEFT,
+        DOWN,
+        ROTATE,
+        PLACE,
+        SPAWN
+    }
+
+
+    public abstract byte GetId();
+
+    public abstract Color GetColor();
+
+    public abstract string GetShape();
+
+    public abstract bool[][] GetMatrix();
+
+    public abstract void ResetOrientation();
+
+    public abstract Point GetLastKickOffset();
+
+    /// <summary>
+    /// Get current rotation state (0-3)
+    /// </summary>
+    public abstract int GetRotationState();
+
+    public abstract (Point? position, bool tSpin) RotateLeft(Grid grid, Point currentPoint);
+
+    public abstract (Point? position, bool tSpin) RotateRight(Grid grid, Point currentPoint);
+    
+    public abstract (Point? position, bool tSpin) Rotate180(Grid grid, Point currentPoint);
 }

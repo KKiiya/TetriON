@@ -1,6 +1,6 @@
 using System;
 
-namespace TetriON.Game;
+namespace TetriON.game;
 
 /// <summary>
 /// Manages all timing-related game mechanics to ensure consistent gameplay

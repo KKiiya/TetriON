@@ -137,7 +137,8 @@ public class TetriON : Microsoft.Xna.Framework.Game
         base.Update(gameTime);
     }
 
-    protected override void Draw(GameTime gameTime) {
+    protected override void Draw(GameTime gameTime)
+    {
         GraphicsDevice.Clear(Color.CornflowerBlue); // Changed to blue to see if game is running
         SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
         _tetrisGame?.Draw();

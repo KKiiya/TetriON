@@ -4,7 +4,6 @@ using TetriON.Account;
 using TetriON.Session.Menu.MainMenu;
 using TetriON.Skins;
 using TetriON.Wrappers.Menu;
-using TetriON.Wrappers.Texture;
 
 namespace TetriON.session;
 

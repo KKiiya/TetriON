@@ -326,10 +326,8 @@ public class Grid
         var cols = matrix[0].Length;
         var tetrominoId = tetromino.GetId();
 
-        for (var row = 0; row < rows; row++)
-        {
-            for (var col = 0; col < cols; col++)
-            {
+        for (var row = 0; row < rows; row++) {
+            for (var col = 0; col < cols; col++) {
                 if (!matrix[row][col]) continue;
 
                 var x = position.X + col;
@@ -341,40 +339,32 @@ public class Grid
         }
     }
 
-    private void RemoveLine(int index)
-    {
+    private void RemoveLine(int index) {
         var gridY = index + _bufferZoneHeight;
 
         // Move all lines above down by one (including buffer zone)
-        for (var i = gridY; i > 0; i--)
-        {
-            for (var j = 0; j < _width; j++)
-            {
+        for (var i = gridY; i > 0; i--) {
+            for (var j = 0; j < _width; j++) {
                 _grid[j][i] = _grid[j][i - 1];
             }
         }
 
         // Clear the top row (top of buffer zone)
-        for (var j = 0; j < _width; j++)
-        {
+        for (var j = 0; j < _width; j++) {
             _grid[j][0] = EMPTY_CELL;
         }
     }
 
-    public Point GetPoint()
-    {
+    public Point GetPoint() {
         return _point;
     }
 
     /// <summary>
     /// Clear the entire grid
     /// </summary>
-    public void Clear()
-    {
-        for (var x = 0; x < _width; x++)
-        {
-            for (var y = 0; y < _height; y++)
-            {
+    public void Clear() {
+        for (var x = 0; x < _width; x++) {
+            for (var y = 0; y < _height; y++) {
                 _grid[x][y] = EMPTY_CELL;
             }
         }
@@ -383,12 +373,9 @@ public class Grid
     /// <summary>
     /// Check if the grid is completely empty
     /// </summary>
-    public bool IsEmpty()
-    {
-        for (var x = 0; x < _width; x++)
-        {
-            for (var y = 0; y < _height; y++)
-            {
+    public bool IsEmpty() {
+        for (var x = 0; x < _width; x++) {
+            for (var y = 0; y < _height; y++) {
                 if (_grid[x][y] != EMPTY_CELL) return false;
             }
         }
@@ -398,30 +385,21 @@ public class Grid
     /// <summary>
     /// Get the highest occupied row (for game over detection)
     /// </summary>
-    public int GetHighestOccupiedRow()
-    {
-        for (var y = 0; y < _height; y++)
-        {
-            for (var x = 0; x < _width; x++)
-            {
-                if (_grid[x][y] != EMPTY_CELL)
-                {
-                    return y;
-                }
+    public int GetHighestOccupiedRow() {
+        for (var y = 0; y < _height; y++) {
+            for (var x = 0; x < _width; x++) {
+                if (_grid[x][y] != EMPTY_CELL) return y;
             }
         }
         return _height; // No occupied cells
     }
 
-    public bool CanPlaceTetromino(Point position, bool[][] matrix)
-    {
+    public bool CanPlaceTetromino(Point position, bool[][] matrix) {
         var rows = matrix.Length;
         var cols = matrix[0].Length;
 
-        for (var row = 0; row < rows; row++)
-        {
-            for (var col = 0; col < cols; col++)
-            {
+        for (var row = 0; row < rows; row++) {
+            for (var col = 0; col < cols; col++) {
                 if (!matrix[row][col]) continue; // Ignore empty parts of the Tetromino
 
                 var x = position.X + col; // Convert relative position to grid coordinates
@@ -441,25 +419,22 @@ public class Grid
         return true;
     }
 
-    public bool IsCellEmpty(int x, int y)
-    {
+    public bool IsCellEmpty(int x, int y) {
         // Convert to buffer zone coordinates
         var gridY = y + _bufferZoneHeight;
         if (x < 0 || x >= _width || gridY < 0 || gridY >= _totalHeight) return false;
         return _grid[x][gridY] == EMPTY_CELL;
     }
 
-    /// <summary>
     /// Update garbage animation - call this from your main game loop
+    /// <summary>
     /// </summary>
-    public void UpdateGarbageAnimation(GameTime gameTime)
-    {
+    public void UpdateGarbageAnimation(GameTime gameTime) {
         if (!_garbageAnimating) return;
 
         _garbageAnimationTimer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
-        if (_garbageAnimationTimer >= _garbageAnimationDuration)
-        {
+        if (_garbageAnimationTimer >= _garbageAnimationDuration)  {
             // Animation complete
             _garbageAnimating = false;
             _garbageAnimationTimer = 0f;
@@ -470,8 +445,7 @@ public class Grid
     /// <summary>
     /// Check if garbage animation is currently active
     /// </summary>
-    public bool IsGarbageAnimating()
-    {
+    public bool IsGarbageAnimating() {
         return _garbageAnimating;
     }
 

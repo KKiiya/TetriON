@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using TetriON.Game;
 using TetriON.Game.Enums;
 
-namespace TetriON.Game {
+namespace TetriON.game {
     public class GameSettings {
         
         #region Core Game Configuration
@@ -25,11 +27,6 @@ namespace TetriON.Game {
         #endregion
         
         #region Twist Detection Settings
-        
-        /// <summary>
-        /// Twist detection configuration
-        /// </summary>
-        public TwistDetectionConfig TwistDetection { get; set; } = new TwistDetectionConfig();
         
         #endregion
         
@@ -94,91 +91,93 @@ namespace TetriON.Game {
         }
         
         #endregion
-        
+
         #region Gamemode Presets
-        
+
         /// <summary>
         /// Apply preset settings based on gamemode
         /// </summary>
-        public void ApplyGamemodePreset(Gamemode gamemode) {
+        public void ApplyGamemodePreset(Gamemode gamemode)
+        {
             Gamemode = gamemode;
-            
-            switch (gamemode) {
+
+            switch (gamemode)
+            {
                 // === CLASSIC MODES ===
                 case Gamemode.Marathon:
                     ApplyMarathonPreset();
                     break;
-                    
+
                 case Gamemode.Sprint:
                 case Gamemode.Sprint20:
                     ApplySprintPreset(20);
                     break;
-                    
+
                 case Gamemode.Sprint40:
                     ApplySprintPreset(40);
                     break;
-                    
+
                 case Gamemode.Sprint100:
                     ApplySprintPreset(100);
                     break;
-                    
+
                 case Gamemode.Ultra:
                     ApplyUltraPreset(120); // 2 minutes
                     break;
-                    
+
                 case Gamemode.Ultra3:
                     ApplyUltraPreset(180); // 3 minutes
                     break;
-                    
+
                 case Gamemode.Blitz:
                     ApplyUltraPreset(120); // 2 minutes blitz
                     break;
-                    
+
                 // === COMPETITIVE MODES ===
                 case Gamemode.Versus:
                     ApplyVersusPreset();
                     break;
-                    
+
                 case Gamemode.BattleRoyale:
                     ApplyBattleRoyalePreset();
                     break;
-                    
+
                 // === CHALLENGE MODES ===
                 case Gamemode.Master:
                     ApplyMasterPreset();
                     break;
-                    
+
                 case Gamemode.Death:
                     ApplyDeathPreset();
                     break;
-                    
+
                 case Gamemode.Dig:
                     ApplyDigPreset();
                     break;
-                    
+
                 // === PUZZLE MODES ===
                 case Gamemode.Puzzle:
                     ApplyPuzzlePreset();
                     break;
-                    
+
                 case Gamemode.TSpin:
                     ApplyTSpinPreset();
                     break;
-                    
+
                 // === SPECIAL MODES ===
                 case Gamemode.Invisible:
                     ApplyInvisiblePreset();
                     break;
-                    
+
                 case Gamemode.Big:
                     ApplyBigPreset();
                     break;
-                    
+
                 // === TRAINING MODES ===
                 case Gamemode.Training:
                     ApplyTrainingPreset();
                     break;
-                    
+
                 default:
                     ApplyDefaultPreset();
                     break;
@@ -514,6 +513,303 @@ namespace TetriON.Game {
                    (TimeLimit == 0 || (TimeLimit >= 10 && TimeLimit <= 3600)) &&
                    TargetLines >= 0 && TargetLines <= 1000 &&
                    StartingGarbageLines >= 0 && StartingGarbageLines <= 15;
+        }
+        
+        #endregion
+        
+        #region Game Mode Configuration
+        
+        /// <summary>
+        /// Game mode configuration data structure
+        /// </summary>
+        public class GameModeConfig {
+            public Dictionary<string, object> Settings { get; set; } = new();
+            public Dictionary<string, object> Handling { get; set; } = new();
+            public string DisplayName { get; set; } = "";
+            public string ObjectiveText { get; set; } = "";
+            public string GoalStat { get; set; } = "";
+            public string Target { get; set; } = "";
+            public string Result { get; set; } = "";
+            public string Music { get; set; } = "";
+            public string CompMusic { get; set; } = "";
+            public string StartBoard { get; set; } = "";
+            public List<string> Effects { get; set; } = new();
+        }
+        
+        /// <summary>
+        /// Game mode configurations based on TETR.IO standards
+        /// </summary>
+        public static readonly Dictionary<string, GameModeConfig> GAMEMODES = new() {
+            ["*"] = new GameModeConfig {
+                Settings = new Dictionary<string, object> {
+                    ["gravitySpeed"] = 950,
+                    ["lockDelay"] = 600,
+                    ["maxLockMovements"] = 15,
+                    ["nextPieces"] = 5,
+                    ["allowLockout"] = false,
+                    ["preserveARR"] = true,
+                    ["allowHold"] = true,
+                    ["infiniteHold"] = false,
+                    ["allowQueueModify"] = false,
+                    ["allspin"] = false,
+                    ["allspinminis"] = false,
+                    ["history"] = false,
+                    ["sidebar"] = new List<string> { "time", "apm", "pps" },
+                    ["stride"] = false,
+                    ["clearDelay"] = 0,
+                    ["randomiser"] = "7-bag",
+                    ["kicktable"] = "SRS+",
+                    ["readysetgo"] = true,
+                    ["garbageTravelTime"] = 0.5
+                },
+                Handling = new Dictionary<string, object>(),
+                DisplayName = "Unset",
+                ObjectiveText = "",
+                GoalStat = "",
+                Target = "",
+                Result = "",
+                Music = "",
+                CompMusic = "",
+                StartBoard = "",
+                Effects = new List<string>()
+            },
+            
+            ["custom"] = new GameModeConfig {
+                DisplayName = "Zen / Custom"
+            },
+            
+            ["sprint"] = new GameModeConfig {
+                DisplayName = "Sprint",
+                ObjectiveText = "Lines",
+                GoalStat = "clearlines",
+                Target = "requiredLines",
+                Result = "time",
+                Settings = new Dictionary<string, object> {
+                    ["requiredLines"] = 40,
+                    ["stride"] = true
+                }
+            },
+            
+            ["ultra"] = new GameModeConfig {
+                DisplayName = "Ultra",
+                ObjectiveText = "Score",
+                GoalStat = "time",
+                Target = "timeLimit",
+                Result = "score",
+                Settings = new Dictionary<string, object> {
+                    ["timeLimit"] = 120,
+                    ["sidebar"] = new List<string> { "time", "score", "pps" }
+                }
+            },
+            
+            ["attacker"] = new GameModeConfig {
+                DisplayName = "Attacker",
+                ObjectiveText = "Damage",
+                GoalStat = "attack",
+                Target = "requiredAttack",
+                Result = "time",
+                Settings = new Dictionary<string, object> {
+                    ["requiredAttack"] = 100
+                }
+            },
+            
+            ["digger"] = new GameModeConfig {
+                DisplayName = "Digger",
+                ObjectiveText = "Remaining",
+                GoalStat = "cleargarbage",
+                Target = "requiredGarbage",
+                Result = "time",
+                Settings = new Dictionary<string, object> {
+                    ["requiredGarbage"] = 100,
+                    ["sidebar"] = new List<string> { "time", "dss", "pps" }
+                }
+            },
+            
+            ["survival"] = new GameModeConfig {
+                DisplayName = "Survival",
+                ObjectiveText = "received",
+                GoalStat = "clearlines",
+                Target = "gameEnd",
+                Result = "time",
+                Settings = new Dictionary<string, object> {
+                    ["survivalRate"] = 60,
+                    ["sidebar"] = new List<string> { "time", "lpm", "pps" },
+                    ["readysetgo"] = false
+                }
+            },
+            
+            ["backfire"] = new GameModeConfig {
+                DisplayName = "Backfire",
+                ObjectiveText = "Sent",
+                GoalStat = "attack",
+                Target = "requiredAttack",
+                Result = "time",
+                Settings = new Dictionary<string, object> {
+                    ["requiredAttack"] = 100,
+                    ["backfireMulti"] = 1
+                }
+            },
+            
+            ["combo"] = new GameModeConfig {
+                DisplayName = "4w / Combo",
+                ObjectiveText = "Time",
+                GoalStat = "time",
+                Target = "combobreak",
+                Result = "maxCombo",
+                Settings = new Dictionary<string, object> {
+                    ["allspin"] = true,
+                    ["allspinminis"] = false,
+                    ["sidebar"] = new List<string> { "combo", "pps" },
+                    ["readysetgo"] = false
+                }
+            },
+            
+            ["lookahead"] = new GameModeConfig {
+                DisplayName = "Lookahead",
+                ObjectiveText = "Lines",
+                GoalStat = "clearlines",
+                Target = "requiredLines",
+                Result = "time",
+                Settings = new Dictionary<string, object> {
+                    ["requiredLines"] = 40,
+                    ["lookAheadPieces"] = 3,
+                    ["gravitySpeed"] = 1001,
+                    ["sidebar"] = new List<string> { "time", "kpp", "pps" }
+                }
+            },
+            
+            ["race"] = new GameModeConfig {
+                DisplayName = "Race",
+                ObjectiveText = "Level",
+                GoalStat = "tgm_level",
+                Target = "raceTarget",
+                Result = "grade",
+                Settings = new Dictionary<string, object> {
+                    ["raceTarget"] = 999,
+                    ["gravitySpeed"] = 0,
+                    ["clearDelay"] = 420,
+                    ["nextPieces"] = 3,
+                    ["maxLockMovements"] = 8,
+                    ["randomiser"] = "tgm"
+                }
+            },
+            
+            ["zenith"] = new GameModeConfig {
+                DisplayName = "Climb",
+                ObjectiveText = "Altitude",
+                GoalStat = "altitude",
+                Target = "requiredAltitude",
+                Result = "time",
+                Settings = new Dictionary<string, object> {
+                    ["requiredAltitude"] = 1650,
+                    ["gravitySpeed"] = 950,
+                    ["allspin"] = true,
+                    ["allspinminis"] = true,
+                    ["garbageTravelTime"] = 1
+                }
+            },
+            
+            ["puzzle"] = new GameModeConfig {
+                DisplayName = "PC Puzzle",
+                ObjectiveText = "PC",
+                Settings = new Dictionary<string, object> {
+                    ["gravitySpeed"] = 1001
+                }
+            },
+            
+            ["classic"] = new GameModeConfig {
+                DisplayName = "Classic",
+                ObjectiveText = "Score",
+                GoalStat = "score",
+                Target = "clearlines",
+                Result = "score",
+                Settings = new Dictionary<string, object> {
+                    ["requiredLines"] = 999,
+                    ["gravitySpeed"] = 999,
+                    ["lockDelay"] = 30,
+                    ["maxLockMovements"] = 1,
+                    ["nextPieces"] = 1,
+                    ["allowHold"] = false,
+                    ["sidebar"] = new List<string> { "clearlines", "score" },
+                    ["clearDelay"] = 500,
+                    ["randomiser"] = "classic",
+                    ["kicktable"] = "NRS"
+                },
+                Handling = new Dictionary<string, object> {
+                    ["das"] = 200,
+                    ["arr"] = 100,
+                    ["sdarr"] = 150
+                }
+            }
+        };
+        
+        /// <summary>
+        /// Get game mode configuration by name
+        /// </summary>
+        /// <param name="modeName">Name of the game mode</param>
+        /// <returns>Game mode configuration or default if not found</returns>
+        public static GameModeConfig GetGameModeConfig(string modeName) {
+            return GAMEMODES.TryGetValue(modeName, out var config) ? config : GAMEMODES["*"];
+        }
+        
+        /// <summary>
+        /// Apply game mode configuration to current settings
+        /// </summary>
+        /// <param name="modeName">Name of the game mode to apply</param>
+        public void ApplyGameModeConfig(string modeName) {
+            var config = GetGameModeConfig(modeName);
+            var defaultConfig = GAMEMODES["*"];
+            
+            // Merge default settings with mode-specific settings
+            var mergedSettings = new Dictionary<string, object>(defaultConfig.Settings);
+            foreach (var setting in config.Settings) {
+                mergedSettings[setting.Key] = setting.Value;
+            }
+            
+            // Apply relevant settings to current GameSettings instance
+            if (mergedSettings.TryGetValue("gravitySpeed", out var gravity)) {
+                Gravity = Convert.ToInt32(gravity);
+            }
+            if (mergedSettings.TryGetValue("lockDelay", out var lockDelay)) {
+                LockDelay = Convert.ToInt32(lockDelay);
+            }
+            // Note: maxLockMovements setting would need a corresponding property in GameSettings
+            // if (mergedSettings.TryGetValue("maxLockMovements", out var maxLockMovements)) {
+            //     MaxLockResets = Convert.ToInt32(maxLockMovements);
+            // }
+            if (mergedSettings.TryGetValue("allowHold", out var allowHold)) {
+                EnableHoldPiece = Convert.ToBoolean(allowHold);
+            }
+            if (mergedSettings.TryGetValue("requiredLines", out var requiredLines)) {
+                TargetLines = Convert.ToInt64(requiredLines);
+            }
+            if (mergedSettings.TryGetValue("timeLimit", out var timeLimit)) {
+                TimeLimit = Convert.ToInt32(timeLimit);
+            }
+            if (mergedSettings.TryGetValue("clearDelay", out var clearDelay)) {
+                LineClearDelay = Convert.ToInt32(clearDelay);
+            }
+            
+            // Apply handling settings if available
+            var mergedHandling = new Dictionary<string, object>(defaultConfig.Handling);
+            foreach (var handling in config.Handling) {
+                mergedHandling[handling.Key] = handling.Value;
+            }
+            
+            if (mergedHandling.TryGetValue("das", out var das)) {
+                DAS = Convert.ToInt32(das);
+            }
+            if (mergedHandling.TryGetValue("arr", out var arr)) {
+                ARR = Convert.ToInt32(arr);
+            }
+        }
+        
+        /// <summary>
+        /// Get all available game mode names
+        /// </summary>
+        /// <returns>Array of game mode names</returns>
+        public static string[] GetAvailableGameModes() {
+            return [.. GAMEMODES.Keys.Where(k => k != "*")];
         }
         
         #endregion

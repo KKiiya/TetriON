@@ -1,15 +1,13 @@
 using System;
 using Microsoft.Xna.Framework;
 
-namespace TetriON.Game;
+namespace TetriON.game;
 
 /// <summary>
 /// Helper class for managing frame-rate independent timing in game sessions.
 /// Tracks elapsed time and provides utilities for consistent timing across different refresh rates.
 /// </summary>
-public class TimingManager
-{
-    private readonly GameTime _gameTime;
+public class TimingManager {
     private float _totalTime;
     private float _deltaTime;
     

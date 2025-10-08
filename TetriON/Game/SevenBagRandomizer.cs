@@ -40,7 +40,7 @@ public class SevenBagRandomizer {
     /// Useful for displaying upcoming pieces.
     /// </summary>
     public Type[] PeekNextPieceTypes(int count) {
-        if (count <= 0) return Array.Empty<Type>();
+        if (count <= 0) return [];
         
         var result = new Type[count];
         var tempBag = new Queue<Type>(_bag);
