@@ -336,8 +336,8 @@ public class SkinManager : IDisposable {
     /// </summary>
     public TextureWrapper GetTextureAsset(string textureName) {
         if (!ValidTextureNames.Contains(textureName)) {
-            TetriON.DebugLog($"SkinManager: ✗ Attempted to get invalid texture '{textureName}'. Valid names: [{string.Join(", ", ValidTextureNames)}]");
-            throw new ArgumentException($"Texture name '{textureName}' is not in the list of valid texture names.");
+            TetriON.DebugLog($"SkinManager: ✗ Attempted to get invalid texture '{textureName}', returning missing_texture. Valid names: [{string.Join(", ", ValidTextureNames)}]");
+            return GetTextureAsset("missing_texture");
         }
 
         if (_textureAssets.TryGetValue(textureName, out var textureWrapper)) {
@@ -355,7 +355,6 @@ public class SkinManager : IDisposable {
     public SoundWrapper GetAudioAsset(string soundName) {
         if (!ValidSoundNames.Contains(soundName)) {
             TetriON.DebugLog($"SkinManager: ✗ Attempted to get invalid sound '{soundName}'. Valid names: [{string.Join(", ", ValidSoundNames)}]");
-            throw new ArgumentException($"Sound name '{soundName}' is not in the list of valid sound names.");
         }
 
         if (_audioAssets.TryGetValue(soundName, out var soundWrapper)) {

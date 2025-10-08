@@ -45,7 +45,6 @@ public class Settings : IDisposable
         
         // === VISUAL SETTINGS ===
         _defaultValues[Setting.Skin] = "Default";
-        _defaultValues[Setting.Theme] = "Classic";
         _defaultValues[Setting.Resolution] = "1920x1080";
         _defaultValues[Setting.Fullscreen] = false;
         _defaultValues[Setting.VSync] = true;

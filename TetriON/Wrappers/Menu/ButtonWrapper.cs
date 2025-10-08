@@ -1,15 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using TetriON.Input;
-using TetriON.Wrappers.Texture;
+using TetriON.session;
+using TetriON.Wrappers.Content;
 
 namespace TetriON.Wrappers.Menu;
 
-public class ButtonWrapper : IDisposable {
-    private readonly string _id;
-    private TextureWrapper _texture;
-    private Vector2 _position;
+public class ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string id = "", Dictionary<string, InterfaceTextureWrapper> textures = null) : IDisposable {
+    private readonly string _id = id ?? string.Empty;
+    private readonly GameSession _session = menu.GetGameSession() ?? throw new ArgumentNullException(nameof(menu));
+    private InterfaceTextureWrapper _texture = textures?["original"];
+    private Vector2 _normalizedPosition = normalizedPosition;
     private Color _color = Color.White;
     private Color _hoverColor = Color.LightGray;
     private Color _pressedColor = Color.Gray;
@@ -27,16 +29,14 @@ public class ButtonWrapper : IDisposable {
     public event Action<ButtonWrapper> OnClicked;
     public event Action<ButtonWrapper> OnHoverEnter;
     public event Action<ButtonWrapper> OnHoverExit;
-    
-    public ButtonWrapper(TextureWrapper texture, Vector2 position, string id = "") {
-        _texture = texture ?? throw new ArgumentNullException(nameof(texture));
-        _position = position;
-        _id = id ?? string.Empty;
+
+    public ButtonWrapper(MenuWrapper menu, string id = "", InterfaceTextureWrapper texture = null)
+        : this(menu, Vector2.Zero, id, new Dictionary<string, InterfaceTextureWrapper> { { "original", texture } }) {
     }
     
     // Constructor for compatibility with Point-based positioning
-    public ButtonWrapper(TextureWrapper texture, Point position, string id = "") 
-        : this(texture, new Vector2(position.X, position.Y), id) {
+    public ButtonWrapper(MenuWrapper menu, Point normalizedPosition, string id = "", Dictionary<string, InterfaceTextureWrapper> textures = null)
+        : this(menu, new Vector2(normalizedPosition.X, normalizedPosition.Y), id, textures) {
     }
     
     public void Update(GameTime gameTime, Mouse mouseInput) {
@@ -58,15 +58,17 @@ public class ButtonWrapper : IDisposable {
         if (_disposed || _texture?.GetTexture() == null) return false;
         
         var texture = _texture.GetTexture();
-        Rectangle bounds = new((int)_position.X, (int)_position.Y, _texture.GetWidth(), _texture.GetHeight());
-        
+        var renderRes = _session.GetGameInstance().GetRenderResolution();
+        Vector2 screenPos = _normalizedPosition * new Vector2(renderRes.X, renderRes.Y);
+        Rectangle bounds = new((int)screenPos.X, (int)screenPos.Y, _texture.GetWidth(), _texture.GetHeight());
+
         if (!bounds.Contains(mousePosition)) {
             return false;
         }
         
         // Pixel-perfect collision detection using TextureWrapper method
-        int pixelX = (int)(mousePosition.X - _position.X);
-        int pixelY = (int)(mousePosition.Y - _position.Y);
+        int pixelX = (int)(mousePosition.X - screenPos.X);
+        int pixelY = (int)(mousePosition.Y - screenPos.Y);
         
         return !_texture.IsPixelTransparent(pixelX, pixelY);
     }
@@ -87,14 +89,20 @@ public class ButtonWrapper : IDisposable {
         if (_disposed || _texture == null || !_isVisible) return;
         
         Color drawColor = GetCurrentColor();
-        _texture.Draw(_position, drawColor);
+        var renderRes = _session.GetGameInstance().GetRenderResolution();
+        var screenPos = _normalizedPosition * new Vector2(renderRes.X, renderRes.Y);
+        var scale = _texture.GetScale();
+        _texture.Draw(screenPos, drawColor, scale);
     }
     
     public void Draw(float transparency) {
         if (_disposed || _texture == null || !_isVisible) return;
         
         Color drawColor = GetCurrentColor() * transparency;
-        _texture.Draw(_position, drawColor);
+        var renderRes = _session.GetGameInstance().GetRenderResolution();
+        var screenPos = _normalizedPosition * new Vector2(renderRes.X, renderRes.Y);
+        var scale = _texture.GetScale();
+        _texture.Draw(screenPos, drawColor, scale);
     }
     
     private Color GetCurrentColor() {
@@ -107,15 +115,15 @@ public class ButtonWrapper : IDisposable {
     
     #region Properties and Setters
     
-    public void SetPosition(Vector2 position) {
-        if (!_disposed) _position = position;
+    public void SetPosition(Vector2 normalizedPosition) {
+        if (!_disposed) _normalizedPosition = normalizedPosition;
     }
     
     public void SetPosition(Point position) {
-        if (!_disposed) _position = new Vector2(position.X, position.Y);
+        if (!_disposed) _normalizedPosition = new Vector2(position.X, position.Y);
     }
     
-    public void SetTexture(TextureWrapper texture) {
+    public void SetTexture(InterfaceTextureWrapper texture) {
         if (!_disposed) _texture = texture ?? throw new ArgumentNullException(nameof(texture));
     }
     
@@ -140,18 +148,8 @@ public class ButtonWrapper : IDisposable {
         if (!_disposed) _isVisible = visible;
     }
     
-    public void SetSize(float multiplier) {
-        if (_disposed || _texture == null) return;
-        
-        var originalTexture = _texture.GetTexture();
-        int newWidth = (int)(_texture.GetWidth() * multiplier);
-        int newHeight = (int)(_texture.GetHeight() * multiplier);
-        
-        _texture = new TextureWrapper(originalTexture, newHeight, newWidth);
-    }
-    
-    public Vector2 GetPosition() => _position;
-    public Point GetPositionPoint() => new((int)_position.X, (int)_position.Y);
+    public Vector2 GetNormalizedPosition() => _normalizedPosition;
+    public Point GetPositionPoint() => new((int)_normalizedPosition.X, (int)_normalizedPosition.Y);
     public string GetId() => _id;
     public bool IsHovered() => _isHovered && !_disposed;
     public bool IsPressed() => _isPressed && !_disposed;

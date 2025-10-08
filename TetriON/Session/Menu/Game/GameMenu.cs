@@ -6,14 +6,14 @@ using TetriON.Wrappers.Texture;
 
 namespace TetriON.session.Menu.Game;
 
-public class GameMenu(GameSession session, TextureWrapper background) : MenuWrapper(session, background) {
+public class GameMenu : MenuWrapper {
     
     private readonly TetrisGame _game;
-    
-    public GameMenu(GameSession session, TetrisGame game) : this(session, new TextureWrapper("assets/backgrounds/game_bg")) {
-        _game = game;
-        var resumeButton = new ResumeB(new TextureWrapper("assets/textures/buttons/resume"), new Vector2(100, 100));
-        var exitButton = new ExitB(new TextureWrapper("assets/textures/buttons/exit"), new Vector2(100, 200));
+
+    public GameMenu(GameSession session) : base(session) {
+        //_game = game;
+        var resumeButton = new ResumeB(this, new Vector2(0.5f, 0.3f));
+        var exitButton = new ExitB(this, new Vector2(0.5f, 0f));
         AddButton(resumeButton);
         AddButton(exitButton);
     }

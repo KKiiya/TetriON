@@ -158,6 +158,22 @@ public class TextureWrapper : IDisposable {
         if (_disposed) throw new ObjectDisposedException(nameof(TextureWrapper));
         Sb.Draw(_texture, position, _size, Color.White);
     }
+
+    public void Draw(Vector2 position, Vector2 scale) {
+        if (_disposed) throw new ObjectDisposedException(nameof(TextureWrapper));
+        Sb.Draw(_texture, position, _size, Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+    }
+
+    public void Draw(Vector2 position, Color color, Vector2 scale) {
+        if (_disposed) throw new ObjectDisposedException(nameof(TextureWrapper));
+        Sb.Draw(_texture, position, _size, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+    }
+
+    public void Draw(Vector2 position, float transparency, float scale)
+    {
+        if (_disposed) throw new ObjectDisposedException(nameof(TextureWrapper));
+        Sb.Draw(_texture, position, _size, Color.White * Math.Clamp(transparency, 0f, 1f), 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+    }
     
     public void Draw(Vector2 position, float transparency) {
         if (_disposed) throw new ObjectDisposedException(nameof(TextureWrapper));

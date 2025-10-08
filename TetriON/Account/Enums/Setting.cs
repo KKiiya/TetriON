@@ -9,7 +9,6 @@ public enum Setting {
     
     // === VISUAL SETTINGS ===
     Skin,
-    Theme,
     Resolution,
     Fullscreen,
     VSync,
@@ -24,7 +23,7 @@ public enum Setting {
     ScreenShake,
     
     // === GAMEPLAY SETTINGS ===
-    // Note: Timing settings (delays, speeds) are managed by GameSession for consistent mechanics
+    // TODO: Add proper gameplay settings (timings etc.)
     
     // === CONTROL SETTINGS ===
     ControlScheme,          // Primary/Alternative/Custom control schemes

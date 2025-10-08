@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using TetriON.Skins;
+using TetriON.Wrappers.Content;
 using TetriON.Wrappers.Menu;
-using TetriON.Wrappers.Texture;
 
 namespace TetriON.Session.Menu.MainMenu.Buttons;
 
@@ -9,26 +11,26 @@ public class SingleplayerB : ButtonWrapper {
     
     public event Action OnSingleplayerButtonPressed;
     
-    private readonly TextureWrapper _originalTexture;
-    private readonly TextureWrapper _hoverTexture;
-    private readonly TextureWrapper _clickTexture;
-    private readonly TextureWrapper _disabledTexture;
-    
-    public SingleplayerB(TextureWrapper texture, Vector2 position, string id = "singleplayer") 
-        : base(texture, position, id) {
-        
-        _originalTexture = texture;
+    private readonly InterfaceTextureWrapper _originalTexture;
+    private readonly InterfaceTextureWrapper _hoverTexture;
+    private readonly InterfaceTextureWrapper _clickTexture;
+    private readonly InterfaceTextureWrapper _disabledTexture;
+
+    public SingleplayerB(MenuWrapper menu, Vector2 position, string id = "singleplayer", Dictionary<string, InterfaceTextureWrapper> textures = null) 
+        : base(menu, position, id, textures) {
+        SkinManager skinManager = menu.GetGameSession().GetSkinManager() ?? throw new Exception("SkinManager is null");
+        _originalTexture = new InterfaceTextureWrapper(skinManager.GetTextureAsset("singleplayer_b"), Vector2.Zero);
         
         // Load different state textures
         try {
-            _clickTexture = new TextureWrapper("buttons/singleplayer_click");
-            _hoverTexture = new TextureWrapper("buttons/singleplayer_hover");
-            _disabledTexture = new TextureWrapper("buttons/singleplayer_disabled");
+            _clickTexture = new InterfaceTextureWrapper(skinManager.GetTextureAsset("singleplayer_b_click"), Vector2.Zero);
+            _hoverTexture = new InterfaceTextureWrapper(skinManager.GetTextureAsset("singleplayer_b_hover"), Vector2.Zero);
+            _disabledTexture = new InterfaceTextureWrapper(skinManager.GetTextureAsset("singleplayer_b_disabled"), Vector2.Zero);
         } catch {
             // Fallback to color variations if textures don't exist
-            _clickTexture = texture;
-            _hoverTexture = texture;
-            _disabledTexture = texture;
+            _clickTexture = _originalTexture;
+            _hoverTexture = _originalTexture;
+            _disabledTexture = _originalTexture;
         }
         
         // Set up color variations for different states
@@ -54,24 +56,17 @@ public class SingleplayerB : ButtonWrapper {
     }
     
     private void HandleHoverEnter(ButtonWrapper button) {
-        if (IsEnabled()) {
-            SetTexture(_hoverTexture);
-        }
+        if (IsEnabled()) SetTexture(_hoverTexture);
     }
     
     private void HandleHoverExit(ButtonWrapper button) {
-        if (IsEnabled()) {
-            SetTexture(_originalTexture);
-        }
+        if (IsEnabled()) SetTexture(_originalTexture);
     }
     
     public void SetEnabledState(bool enabled) {
         SetEnabled(enabled);
-        if (enabled) {
-            SetTexture(_originalTexture);
-        } else {
-            SetTexture(_disabledTexture);
-        }
+        if (enabled) SetTexture(_originalTexture);
+        else SetTexture(_disabledTexture);
     }
     
     protected override void Dispose(bool disposing) {

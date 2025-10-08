@@ -20,7 +20,6 @@ public class TetriON : Microsoft.Xna.Framework.Game
 
     public static readonly string Version = "0.1.0";
     public static TetriON Instance { get; private set; }
-    private readonly GameSession _session;
 
     public static readonly InputHandler Controller = new Controller();
     public static readonly KeyBoard Keyboard = new();
@@ -28,8 +27,8 @@ public class TetriON : Microsoft.Xna.Framework.Game
 
     private readonly GraphicsDeviceManager _graphics;
 
+    private GameSession _session;
     private TetrisGame _tetrisGame;
-    private Point _position;
     private KeyboardState _previousKeyboardState;
 
     public SkinManager _skinManager { get; private set; }
@@ -51,7 +50,6 @@ public class TetriON : Microsoft.Xna.Framework.Game
 
     protected override void Initialize() {
         DebugLog("TetriON: Initialize() started");
-        _position = new Point(10, 5);
         _graphics.IsFullScreen = false;
         _graphics.PreferredBackBufferWidth = 1366;
         _graphics.PreferredBackBufferHeight = 768;
@@ -103,9 +101,9 @@ public class TetriON : Microsoft.Xna.Framework.Game
 
 
 
-            //_session = new GameSession(this);
+            _session = new GameSession(this);
             var gameSettings = new GameSettings(Mode.Singleplayer, Gamemode.Marathon);
-            _tetrisGame = new TetrisGame(this, gameSettings);
+            //_tetrisGame = new TetrisGame(this, gameSettings);
             DebugLog("TetriON: TetrisGame created successfully");
             
         } catch (System.Exception ex) {
@@ -128,12 +126,12 @@ public class TetriON : Microsoft.Xna.Framework.Game
         // Keyboard?.Update(gameTime);
         // Mouse?.Update(gameTime);
 
-        //_session?.Update(gameTime);
+        _session?.Update(gameTime);
 
         // Update TetrisGame with keyboard states
         var currentKeyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
         // TODO: MOVE THIS TO GAMESESSION TO HANDLE
-        _tetrisGame?.Update(gameTime, currentKeyboard, _previousKeyboardState);
+        //_tetrisGame?.Update(gameTime, currentKeyboard, _previousKeyboardState);
         _previousKeyboardState = currentKeyboard;
 
         base.Update(gameTime);
@@ -142,8 +140,8 @@ public class TetriON : Microsoft.Xna.Framework.Game
     protected override void Draw(GameTime gameTime) {
         GraphicsDevice.Clear(Color.CornflowerBlue); // Changed to blue to see if game is running
         SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
-        //_session?.Draw();
-        _tetrisGame?.Draw();
+        //_tetrisGame?.Draw();
+        _session?.Draw();
         SpriteBatch.End();
     }
 

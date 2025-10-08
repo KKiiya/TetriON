@@ -10,10 +10,10 @@ using TetriON.Wrappers.Texture;
 
 namespace TetriON.Wrappers.Menu;
 
-public abstract class MenuWrapper : IDisposable {
-    private readonly GameSession _session;
-    private readonly List<InterfaceTextureWrapper> _textures;
-    private readonly List<ButtonWrapper> _buttons;
+public abstract class MenuWrapper(GameSession session) : IDisposable {
+    private readonly GameSession _session = session ?? throw new ArgumentNullException(nameof(session));
+    private readonly List<InterfaceTextureWrapper> _textures = new(16);
+    private readonly List<ButtonWrapper> _buttons = new(8);
     
     private TextureWrapper _background;
     private bool _isActive;
@@ -31,17 +31,8 @@ public abstract class MenuWrapper : IDisposable {
     
     // Navigation
     private int _selectedButtonIndex = -1;
-    
-    protected MenuWrapper(GameSession session, TextureWrapper background = null) {
-        _session = session ?? throw new ArgumentNullException(nameof(session));
-        _background = background;
-        
-        // Initialize collections with reasonable capacity
-        _textures = new List<InterfaceTextureWrapper>(16);
-        _buttons = new List<ButtonWrapper>(8);
-    }
     #region Input Integration
-    
+
     public void SetInputHandlers(Mouse mouse, KeyBoard keyboard) {
         // Unsubscribe from old handlers
         if (_mouseInput != null) {
@@ -265,7 +256,10 @@ public abstract class MenuWrapper : IDisposable {
             
             // Draw textures first (background elements)
             foreach (var texture in _textures) {
-                texture?.Draw();
+                var renderRes = _session.GetGameInstance().GetRenderResolution();
+                var screenPos = texture.GetNormalizedPosition() * new Vector2(renderRes.X, renderRes.Y);
+                var scale = texture.GetScale();
+                texture?.Draw(screenPos, scale);
             }
             
             // Draw buttons on top
