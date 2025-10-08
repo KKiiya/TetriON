@@ -97,6 +97,7 @@ public class TetrisGame {
         var centerY = (game.GetWindowResolution().Y - gridPixelHeight) / 0.8;
 
         _textures["tiles"] = game._skinManager.GetTextureAsset("tiles");
+        _textures["ghost_tiles"] = game._skinManager.GetTextureAsset("ghost_tiles");
         _point = new Point(centerX, (int)centerY);
         _grid = new Grid(_point, settings.GridWidth, settings.GridHeight, sizeMultiplier, settings.BufferZoneHeight, Kicks.KickType.SRS, settings.GridPreset);
 
@@ -939,7 +940,9 @@ public class TetrisGame {
     }
     
     public void Draw() {
-        _grid.Draw(_spriteBatch, _point, _textures["tiles"].GetTexture());
+        Texture2D tiles = _textures["tiles"].GetTexture();
+        Texture2D ghostTiles = _textures["ghost_tiles"].GetTexture();
+        _grid.Draw(_spriteBatch, _point, tiles);
         
         // Don't draw the current piece if we're hiding it for line clear animation
         if (!_hidePieceForLineClear && !_areInProgress) {
@@ -955,7 +958,7 @@ public class TetrisGame {
                     _point.X + _tetrominoPoint.X * scaledTileSize,
                     _point.Y + _tetrominoPoint.Y * scaledTileSize  // Negative Y will naturally place above visible grid
                 );
-                _currentTetromino.Draw(_spriteBatch, tetrominoPixelPos, _textures["tiles"].GetTexture(), _grid.GetSizeMultiplier());
+                _currentTetromino.Draw(_spriteBatch, tetrominoPixelPos, tiles, _grid.GetSizeMultiplier());
             }
             
             // Ghost piece - calculate and draw if current piece is visible
@@ -968,7 +971,7 @@ public class TetrisGame {
                         _point.X + ghostPos.X * scaledTileSize,
                         _point.Y + ghostPos.Y * scaledTileSize  // This will handle negative Y (buffer zone) correctly
                     );
-                    _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, _textures["tiles"].GetTexture(), _grid.GetSizeMultiplier());
+                    _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, ghostTiles, _grid.GetSizeMultiplier());
                 }
             }
         }

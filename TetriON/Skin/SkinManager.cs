@@ -28,7 +28,7 @@ public class SkinManager : IDisposable {
 
     // Valid asset names that are allowed to be loaded (security/validation)
     private static readonly HashSet<string> ValidTextureNames = [
-        "tiles", "missing_texture", "background", "ui", "logo", "particles", "effects"
+        "tiles", "ghost_tiles", "missing_texture",
     ];
     
     private static readonly HashSet<string> ValidSoundNames = [

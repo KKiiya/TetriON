@@ -69,11 +69,16 @@ public class GridPresets {
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
         };
     }
-    
 
-    public enum PresetType {
+
+    public enum PresetType
+    {
         Empty,
         TSpinSetup,
-        LSpinSetup
+        LSpinSetup,
+        JSpinSetup,
+        SSpinSetup,
+        ZSpinSetup,
+        ISpinSetup
     }
 }

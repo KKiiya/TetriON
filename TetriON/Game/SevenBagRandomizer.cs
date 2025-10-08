@@ -13,13 +13,18 @@ public class SevenBagRandomizer {
     private readonly Random _random;
     private readonly Queue<Type> _bag = new();
     
-    // All 7 standard Tetris piece types
-    private static readonly Type[] PieceTypes =  [
+    // All 7 standard Tetris piece types (default)
+    private static readonly Type[] DefaultPieceTypes = [
         typeof(I), typeof(J), typeof(L), typeof(O), typeof(S), typeof(T), typeof(Z)
     ];
     
-    public SevenBagRandomizer(Random random = null) {
+    private readonly Type[] _pieceTypes;
+
+    public SevenBagRandomizer(Random random = null, Type[] enabledPieceTypeNames = null) {
         _random = random ?? new Random();
+        _pieceTypes = (enabledPieceTypeNames != null && enabledPieceTypeNames.Length > 0)
+            ? enabledPieceTypeNames
+            : DefaultPieceTypes;
         RefillBag();
     }
     
@@ -89,25 +94,25 @@ public class SevenBagRandomizer {
     }
     
     private Type[] CreateShuffledBag() {
-        var shuffledBag = new Type[PieceTypes.Length];
-        Array.Copy(PieceTypes, shuffledBag, PieceTypes.Length);
-        
+        var shuffledBag = new Type[_pieceTypes.Length];
+        Array.Copy(_pieceTypes, shuffledBag, _pieceTypes.Length);
+
         // Fisher-Yates shuffle algorithm
-        for (var i = shuffledBag.Length - 1; i > 0; i--) {
+        for (var i = shuffledBag.Length - 1; i > 0; i--)
+        {
             var j = _random.Next(i + 1);
             (shuffledBag[i], shuffledBag[j]) = (shuffledBag[j], shuffledBag[i]);
         }
-        
+
         return shuffledBag;
     }
     
     /// <summary>
     /// Get statistics about piece distribution for debugging.
-    /// </summary>
     public Dictionary<Type, int> GetDistributionStats() {
         var stats = new Dictionary<Type, int>();
         
-        foreach (var pieceType in PieceTypes)  {
+        foreach (var pieceType in _pieceTypes)  {
             stats[pieceType] = 0;
         }
         

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TetriON.game.tetromino.pieces;
 using TetriON.Game;
 using TetriON.Game.Enums;
 
@@ -23,15 +24,16 @@ namespace TetriON.game {
         public bool EnableWallKicks { get; set; } = true;
         public bool EnableSoftDrop { get; set; } = true;
         public bool EnableHardDrop { get; set; } = true;
+        public Type[] EnabledPieceTypes { get; set; } = [typeof(I), typeof(J), typeof(L), typeof(O), typeof(S), typeof(T), typeof(Z)]; // Default to all 7 standard pieces
         
         #endregion
-        
+
         #region Twist Detection Settings
-        
+
         #endregion
-        
+
         #region Input Timing Settings
-        
+
         public int DAS { get; set; } = 170; // Delayed Auto Shift in milliseconds (accessed via GameTiming.GetAutoRepeatDelay())
         public int ARR { get; set; } = 30;  // Auto Repeat Rate in milliseconds (accessed via GameTiming.GetAutoRepeatRate())
         public int SoftDropSpeed { get; set; } = 50; // Soft drop speed in milliseconds
@@ -308,6 +310,7 @@ namespace TetriON.game {
             TargetLines = 0;
             TimeLimit = 0;
             GridPreset = GridPresets.PresetType.TSpinSetup; // Use T-Spin setup pattern
+            EnabledPieceTypes = [typeof(T)]; // All pieces available
             EnableGhostPiece = true;
             EnableHoldPiece = true;
             EnableTSpin = true; // Obviously required
@@ -316,7 +319,64 @@ namespace TetriON.game {
             LockDelay = 750; // Extra time for T-spin setups
         }
         
-        private void ApplyInvisiblePreset() {
+        private void ApplyZSpinPreset() {
+            StartingLevel = 1;
+            TargetLines = 0;
+            TimeLimit = 0;
+            GridPreset = GridPresets.PresetType.ZSpinSetup; // Use Z-Spin setup pattern
+            EnabledPieceTypes = [typeof(Z)]; // All pieces available
+            EnableGhostPiece = true;
+            EnableHoldPiece = true;
+            EnableTSpin = false; // Z-Spins are not T-Spins
+            DAS = 170;
+            ARR = 30;
+            LockDelay = 750; // Extra time for Z-spin setups
+        }
+
+        private void ApplySSpinPreset() {
+            StartingLevel = 1;
+            TargetLines = 0;
+            TimeLimit = 0;
+            GridPreset = GridPresets.PresetType.SSpinSetup; // Use S-Spin setup pattern
+            EnabledPieceTypes = [typeof(S)]; // All pieces available
+            EnableGhostPiece = true;
+            EnableHoldPiece = true;
+            EnableTSpin = false; // S-Spins are not T-Spins
+            DAS = 170;
+            ARR = 30;
+            LockDelay = 750; // Extra time for S-spin setups
+        }
+
+        private void ApplyJSpinPreset() {
+            StartingLevel = 1;
+            TargetLines = 0;
+            TimeLimit = 0;
+            GridPreset = GridPresets.PresetType.JSpinSetup; // Use J-Spin setup pattern
+            EnabledPieceTypes = [typeof(J)]; // All pieces available
+            EnableGhostPiece = true;
+            EnableHoldPiece = true;
+            EnableTSpin = false; // J-Spins are not T-Spins
+            DAS = 170;
+            ARR = 30;
+            LockDelay = 750; // Extra time for J-spin setups
+        }
+
+        private void ApplyLSpinPreset() {
+            StartingLevel = 1;
+            TargetLines = 0;
+            TimeLimit = 0;
+            GridPreset = GridPresets.PresetType.LSpinSetup; // Use L-Spin setup pattern
+            EnabledPieceTypes = [typeof(L)]; // All pieces available
+            EnableGhostPiece = true;
+            EnableHoldPiece = true;
+            EnableTSpin = false; // L-Spins are not T-Spins
+            DAS = 170;
+            ARR = 30;
+            LockDelay = 750; // Extra time for L-spin setups
+        }
+        
+        private void ApplyInvisiblePreset()
+        {
             StartingLevel = 1;
             TargetLines = 40; // Common invisible challenge
             TimeLimit = 0;
