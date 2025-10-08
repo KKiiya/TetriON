@@ -243,7 +243,8 @@ public abstract class Tetromino {
         }
 
         // If in-place rotation failed, try wall kicks
-        var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, newRotation, false);
+        var isI = GetShape() == "I";
+        var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, newRotation, isI);
         if (newPosition.HasValue) {
             var kickOffset = new Point(newPosition.Value.X - currentPoint.X, newPosition.Value.Y - currentPoint.Y);
             SetLastKickOffset(kickOffset);
