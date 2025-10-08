@@ -132,8 +132,7 @@ public class TetrisGame {
         _gameSettings = settings; // Store reference for spawn calculations
         TetriON.DebugLog($"TetrisGame: INITIAL SPAWN - Position: ({_tetrominoPoint.X}, {_tetrominoPoint.Y}), GridWidth: {settings.GridWidth}");
         _timingManager = new TimingManager(settings);
-        _random = new Random();
-        _bagRandomizer = new SevenBagRandomizer(_random);
+        _bagRandomizer = new SevenBagRandomizer();
 
         // Initialize with proper 7-bag randomizer
         _currentTetromino = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
