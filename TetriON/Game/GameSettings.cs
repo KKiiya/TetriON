@@ -62,7 +62,6 @@ namespace TetriON.game {
         
         public long TargetLines { get; set; } = 0; // Target lines for sprint modes (0 = endless)
         public float TimeLimit { get; set; } = 0; // Time limit in seconds (0 = no limit)
-        public int StartingGarbageLines { get; set; } = 0; // Starting garbage lines for challenge modes
         
         #endregion
         
@@ -284,7 +283,6 @@ namespace TetriON.game {
             StartingLevel = 1;
             TargetLines = 0; // Clear all garbage
             TimeLimit = 0;
-            StartingGarbageLines = 10; // Start with garbage
             EnableGhostPiece = true;
             EnableHoldPiece = true;
             EnableTSpin = true;
@@ -422,7 +420,6 @@ namespace TetriON.game {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
-            StartingGarbageLines = 0;
             
             // Standard grid size
             GridWidth = 10;
@@ -478,7 +475,6 @@ namespace TetriON.game {
             EntryDelay = other.EntryDelay;
             TargetLines = other.TargetLines;
             TimeLimit = other.TimeLimit;
-            StartingGarbageLines = other.StartingGarbageLines;
         }
         
         /// <summary>
@@ -497,7 +493,6 @@ namespace TetriON.game {
                 Gamemode.BattleRoyale => "Battle Royale - Last player standing",
                 Gamemode.Master => "Master - Survive increasing speeds",
                 Gamemode.Death => "Death - Extreme speed challenge",
-                Gamemode.Dig => $"Dig - Clear {StartingGarbageLines} garbage lines",
                 Gamemode.Invisible => "Invisible - Pieces disappear after placing",
                 Gamemode.Big => "Big - Play with 4x4 pieces",
                 Gamemode.Training => "Training - Practice with relaxed timing",
@@ -514,11 +509,6 @@ namespace TetriON.game {
         /// Check if this gamemode has a line target
         /// </summary>
         public bool HasLineTarget => TargetLines > 0;
-        
-        /// <summary>
-        /// Check if this gamemode starts with garbage
-        /// </summary>
-        public bool HasStartingGarbage => StartingGarbageLines > 0;
         
         /// <summary>
         /// Check if this gamemode uses a custom grid preset
@@ -556,8 +546,7 @@ namespace TetriON.game {
                    LineClearDelay >= 0 && LineClearDelay <= 1000 &&
                    EntryDelay >= 0 && EntryDelay <= 1000 &&
                    (TimeLimit == 0 || (TimeLimit >= 10 && TimeLimit <= 3600)) &&
-                   TargetLines >= 0 && TargetLines <= 1000 &&
-                   StartingGarbageLines >= 0 && StartingGarbageLines <= 15;
+                   TargetLines >= 0 && TargetLines <= 1000;
         }
         
         #endregion
