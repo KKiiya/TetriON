@@ -533,13 +533,13 @@ public static class Kicks {
 }
 
 public class KickSystem {
-    public Dictionary<string, Point[]> Kicks { get; set; } = new();
-    public Dictionary<string, Point[]> IKicks { get; set; } = new();
-    public Dictionary<string, Point[]> I2Kicks { get; set; } = new();
-    public Dictionary<string, Point[]> I3Kicks { get; set; } = new();
-    public Dictionary<string, Point[]> L3Kicks { get; set; } = new();
-    public Dictionary<string, Point[]> I5Kicks { get; set; } = new();
-    public Dictionary<string, Point[]> OoKicks { get; set; } = new();
-    public Dictionary<string, string> ColorOverrides { get; set; } = new();
-    public Dictionary<string, int> SpawnRotation { get; set; } = new();
+    public Dictionary<string, Point[]> Kicks { get; set; } = [];
+    public Dictionary<string, Point[]> IKicks { get; set; } = [];
+    public Dictionary<string, Point[]> I2Kicks { get; set; } = [];
+    public Dictionary<string, Point[]> I3Kicks { get; set; } = [];
+    public Dictionary<string, Point[]> L3Kicks { get; set; } = [];
+    public Dictionary<string, Point[]> I5Kicks { get; set; } = [];
+    public Dictionary<string, Point[]> OoKicks { get; set; } = [];
+    public Dictionary<string, string> ColorOverrides { get; set; } = [];
+    public Dictionary<string, int> SpawnRotation { get; set; } = [];
 }

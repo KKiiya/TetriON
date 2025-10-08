@@ -87,8 +87,7 @@ public class Grid {
         }
     }
 
-    public void ReceiveGarbage(byte[,] layout, float animationTime = 500f)
-    {
+    public void ReceiveGarbage(byte[,] layout, float animationTime = 500f) {
         if (_garbageAnimating) return; // Don't accept new garbage while animating
 
         var rows = layout.GetLength(0);
