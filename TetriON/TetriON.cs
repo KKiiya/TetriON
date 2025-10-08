@@ -98,9 +98,6 @@ public class TetriON : Microsoft.Xna.Framework.Game
 
             // Center the grid better on a 1366x768 screen with reasonable sizing
 
-
-
-
             //_session = new GameSession(this);
             var gameSettings = new GameSettings(Mode.Singleplayer, Gamemode.Marathon);
             _tetrisGame = new TetrisGame(this, gameSettings);

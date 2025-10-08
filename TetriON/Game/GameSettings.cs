@@ -283,7 +283,6 @@ namespace TetriON.game {
             TargetLines = 0; // Clear all garbage
             TimeLimit = 0;
             StartingGarbageLines = 10; // Start with garbage
-            GridPreset = GridPresets.PresetType.Staggered; // Use staggered pattern for dig challenge
             EnableGhostPiece = true;
             EnableHoldPiece = true;
             EnableTSpin = true;
@@ -296,7 +295,6 @@ namespace TetriON.game {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
-            GridPreset = GridPresets.PresetType.Random; // Use random pattern for puzzle challenge
             EnableGhostPiece = true;
             EnableHoldPiece = false; // Often disabled in puzzle modes
             EnableTSpin = true;
@@ -466,22 +464,6 @@ namespace TetriON.game {
         /// Check if this gamemode uses a custom grid preset
         /// </summary>
         public bool HasCustomGridPreset => GridPreset != GridPresets.PresetType.Empty;
-        
-        /// <summary>
-        /// Get a description of the current grid preset
-        /// </summary>
-        public string GetGridPresetDescription() {
-            return GridPreset switch {
-                GridPresets.PresetType.Empty => "Empty grid",
-                GridPresets.PresetType.Staggered => "Staggered pattern",
-                GridPresets.PresetType.HalfFilled => "Half-filled base",
-                GridPresets.PresetType.Random => "Random pattern",
-                GridPresets.PresetType.TSpinSetup => "T-Spin Double setup",
-                GridPresets.PresetType.TSpinDTCannon => "DT Cannon setup",
-                GridPresets.PresetType.TSpinLST => "LST stacking setup",
-                _ => "Custom pattern"
-            };
-        }
         
         /// <summary>
         /// Set the grid preset for the current gamemode
