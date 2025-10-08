@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TetriON.game.tetromino;
 using TetriON.game.tetromino.pieces;
 using TetriON.Game;
 using TetriON.Game.Enums;
@@ -45,6 +46,7 @@ namespace TetriON.game {
         public int GridWidth { get; set; } = 10; // Play field width in cells (standard is 10)
         public int GridHeight { get; set; } = 20; // Play field height in cells (standard is 20, some modes use 40)
         public int BufferZoneHeight { get; set; } = 4; // Extra rows above visible area (for piece spawning)
+        public string KickType { get; set; } = Kicks.KickType.SRS; 
         public GridPresets.PresetType GridPreset { get; set; } = GridPresets.PresetType.Empty; // Starting grid pattern
         
         #endregion

@@ -86,7 +86,7 @@ public class TetrisGame {
         _spriteBatch = game.SpriteBatch;
         _textures["tiles"] = game._skinManager.GetTextureAsset("tiles");
         _textures["ghost_tiles"] = game._skinManager.GetTextureAsset("ghost_tiles");
-        _grid = new Grid(game, _settings.GridWidth, _settings.GridHeight, sizeMultiplier, _settings.BufferZoneHeight, Kicks.KickType.SRS, _settings.GridPreset);
+        _grid = new Grid(game, _settings, sizeMultiplier);
 
         // Initialize sound effects
 

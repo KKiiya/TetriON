@@ -24,6 +24,7 @@ public class Grid {
     #endregion
 
     private readonly TetriON _game;
+    private readonly GameSettings _settings;
     private Point _point;
     private Vector2 _lastScreenRes;
 
@@ -47,36 +48,34 @@ public class Grid {
     private byte[][] _preAnimationGrid; // Store grid state before animation
 
 
-    public Grid(TetriON game, int width, int height, float sizeMultiplier = 2, int bufferZoneHeight = 0, string kickType = null, GridPresets.PresetType presetType = GridPresets.PresetType.Empty) {
-        kickType ??= KickType.SRS;
+    public Grid(TetriON game, GameSettings settings, float sizeMultiplier = 2) {
         _game = game;
+        _settings = settings;
+        _width = _settings.GridWidth;
+        _height = _settings.GridHeight;
         _lastScreenRes = new Vector2(_game.Window.ClientBounds.Width, _game.Window.ClientBounds.Height);
-        var centerX = (_lastScreenRes.X / 2) - (width * TILE_SIZE * sizeMultiplier / 2);
-        var centerY = (_lastScreenRes.Y / 2) - (height * TILE_SIZE * sizeMultiplier / 2);
+        var centerX = (_lastScreenRes.X / 2) - (_width * TILE_SIZE * sizeMultiplier / 2);
+        var centerY = (_lastScreenRes.Y / 2) - (_height * TILE_SIZE * sizeMultiplier / 2);
         _point = new Point((int)centerX, (int)centerY);
-        _width = width;
-        _height = height;
-        _bufferZoneHeight = bufferZoneHeight;
-        _totalHeight = height + bufferZoneHeight;
+        _bufferZoneHeight = _settings.BufferZoneHeight;
+        _totalHeight = _height + _bufferZoneHeight;
         _sizeMultiplier = sizeMultiplier;
-        KICKS = Get(kickType);
+        KICKS = Get(_settings.KickType);
 
         // Create grid with total height (visible + buffer zone)
-        _grid = new byte[width][];
-        for (var i = 0; i < width; i++)
-        {
+        _grid = new byte[_width][];
+        for (var i = 0; i < _width; i++) {
             _grid[i] = new byte[_totalHeight];
         }
 
         // Create buffer grid (width x bufferZoneHeight)
-        _bufferGrid = new byte[width][];
-        for (var i = 0; i < width; i++)
-        {
-            _bufferGrid[i] = new byte[bufferZoneHeight];
+        _bufferGrid = new byte[_width][];
+        for (var i = 0; i < _width; i++) {
+            _bufferGrid[i] = new byte[_bufferZoneHeight];
         }
 
         // Apply preset after grid is initialized
-        ApplyPreset(presetType);
+        ApplyPreset(_settings.GridPreset);
     }
 
     private void ApplyPreset(GridPresets.PresetType presetType) {
