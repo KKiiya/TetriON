@@ -151,7 +151,7 @@ TetriON/
 ## 🚀 **Getting Started**
 
 ### **📋 Prerequisites**
-- Windows 10/11
+- Windows 10/11 (UNTESTED WITH PREVIOUS VERSIONS)
 - .NET 8.0 Runtime
 - DirectX 11 compatible graphics
 
