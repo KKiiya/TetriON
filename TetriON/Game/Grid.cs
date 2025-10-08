@@ -60,7 +60,7 @@ public class Grid {
         _bufferZoneHeight = _settings.BufferZoneHeight;
         _totalHeight = _height + _bufferZoneHeight;
         _sizeMultiplier = sizeMultiplier;
-        KICKS = Get(_settings.KickType);
+        KICKS = GetKicks(_settings.KickType);
 
         // Create grid with total height (visible + buffer zone)
         _grid = new byte[_width][];

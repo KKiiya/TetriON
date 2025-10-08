@@ -526,7 +526,7 @@ public static class Kicks {
         }
     };
 
-    public static KickSystem Get(string name) {
+    public static KickSystem GetKicks(string name) {
         if (KICKS.TryGetValue(name, out KickSystem value)) return value;
         return KICKS["none"];
     }
