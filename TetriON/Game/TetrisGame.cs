@@ -79,7 +79,7 @@ public class TetrisGame {
     public TetrisGame(TetriON game, GameSettings settings = null) {
         // Create settings if not provided, applying gamemode preset
         settings ??= new GameSettings();
-        settings.SetGridPreset(GridPresets.PresetType.LSpinSetup);
+        settings.SetGridPreset(GridPresets.PresetType.Empty);
         
         _spriteBatch = game.SpriteBatch;
         
@@ -216,10 +216,10 @@ public class TetrisGame {
             // tSpin is already correctly determined by the piece's rotation logic
             if (tSpin) {
                 _soundEffects["spin"].Play();
-                TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
+                //TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
             } else {
                 _soundEffects["rotate"].Play();
-                TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
+                //TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
             }
 
             // Handle modern lock delay on player input
