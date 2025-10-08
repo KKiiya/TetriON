@@ -379,7 +379,20 @@ public class Grid {
     /// </summary>
     public bool IsEmpty() {
         for (var x = 0; x < _width; x++) {
-            for (var y = 0; y < _height; y++) {
+            for (var y = 0; y < _height + _bufferZoneHeight; y++) {
+                if (_grid[x][y] != EMPTY_CELL) return false;
+            }
+        }
+        return true;
+    }
+    
+    /// <summary>
+    /// Check if the visible playfield is empty (for perfect clear detection)
+    /// This only checks the visible grid, not the buffer zone
+    /// </summary>
+    public bool IsPlayfieldEmpty() {
+        for (var x = 0; x < _width; x++) {
+            for (var y = _bufferZoneHeight; y < _height + _bufferZoneHeight; y++) {
                 if (_grid[x][y] != EMPTY_CELL) return false;
             }
         }
@@ -390,12 +403,12 @@ public class Grid {
     /// Get the highest occupied row (for game over detection)
     /// </summary>
     public int GetHighestOccupiedRow() {
-        for (var y = 0; y < _height; y++) {
+        for (var y = 0; y < _height + _bufferZoneHeight; y++) {
             for (var x = 0; x < _width; x++) {
                 if (_grid[x][y] != EMPTY_CELL) return y;
             }
         }
-        return _height; // No occupied cells
+        return _height + _bufferZoneHeight; // No occupied cells
     }
 
     public bool CanPlaceTetromino(Point position, bool[][] matrix) {

@@ -82,18 +82,8 @@ public class TetrisGame {
         // Create settings if not provided, applying gamemode preset
         _settings = settings ??= new GameSettings();
         _settings.SetGridPreset(GridPresets.PresetType.Empty);
-
+        var sizeMultiplier = 1f;
         _spriteBatch = game.SpriteBatch;
-        
-        // Use grid dimensions from settings
-        var gridWidth = _settings.GridWidth;
-        var gridHeight = _settings.GridHeight;
-        var tileSize = 30;
-        var sizeMultiplier = 1f; // Consistent size multiplier
-        var scaledTileSize = (int)(tileSize * sizeMultiplier);
-        var gridPixelWidth = gridWidth * scaledTileSize;
-        var gridPixelHeight = gridHeight * scaledTileSize;
-
         _textures["tiles"] = game._skinManager.GetTextureAsset("tiles");
         _textures["ghost_tiles"] = game._skinManager.GetTextureAsset("ghost_tiles");
         _grid = new Grid(game, _settings.GridWidth, _settings.GridHeight, sizeMultiplier, _settings.BufferZoneHeight, Kicks.KickType.SRS, _settings.GridPreset);
@@ -524,8 +514,8 @@ public class TetrisGame {
     /// Play appropriate line clear sound based on lines cleared and special conditions
     /// </summary>
     private void PlayLineClearSound(int linesCleared, bool wasTSpin, bool wasDifficult) {
-        // Check for perfect clear (all clear)
-        if (_grid.IsEmpty()) {
+        // Check for perfect clear (all clear) - only check visible playfield, not buffer zone
+        if (_grid.IsPlayfieldEmpty()) {
             _soundEffects["allclear"].Play();
             return;
         }
@@ -662,7 +652,7 @@ public class TetrisGame {
     }
     
     private bool IsGridEmpty() {
-        return _grid.IsEmpty();
+        return _grid.IsPlayfieldEmpty();
     }
     
     private void HandleIRSInput(KeyboardState currentKeyboard, KeyboardState previousKeyboard) {
