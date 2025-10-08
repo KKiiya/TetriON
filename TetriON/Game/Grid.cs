@@ -23,7 +23,9 @@ public class Grid {
 
     #endregion
 
-    private readonly Point _point;
+    private readonly TetriON _game;
+    private Point _point;
+    private Vector2 _lastScreenRes;
 
     private readonly int _height;        // Visible grid height
     private readonly int _width;
@@ -45,9 +47,13 @@ public class Grid {
     private byte[][] _preAnimationGrid; // Store grid state before animation
 
 
-    public Grid(Point point, int width, int height, float sizeMultiplier = 2, int bufferZoneHeight = 0, string kickType = null, GridPresets.PresetType presetType = GridPresets.PresetType.Empty) {
+    public Grid(TetriON game, int width, int height, float sizeMultiplier = 2, int bufferZoneHeight = 0, string kickType = null, GridPresets.PresetType presetType = GridPresets.PresetType.Empty) {
         kickType ??= KickType.SRS;
-        _point = point;
+        _game = game;
+        _lastScreenRes = new Vector2(_game.Window.ClientBounds.Width, _game.Window.ClientBounds.Height);
+        var centerX = (_lastScreenRes.X / 2) - (width * TILE_SIZE * sizeMultiplier / 2);
+        var centerY = (_lastScreenRes.Y / 2) - (height * TILE_SIZE * sizeMultiplier / 2);
+        _point = new Point((int)centerX, (int)centerY);
         _width = width;
         _height = height;
         _bufferZoneHeight = bufferZoneHeight;
@@ -57,13 +63,15 @@ public class Grid {
 
         // Create grid with total height (visible + buffer zone)
         _grid = new byte[width][];
-        for (var i = 0; i < width; i++) {
+        for (var i = 0; i < width; i++)
+        {
             _grid[i] = new byte[_totalHeight];
         }
 
         // Create buffer grid (width x bufferZoneHeight)
         _bufferGrid = new byte[width][];
-        for (var i = 0; i < width; i++) {
+        for (var i = 0; i < width; i++)
+        {
             _bufferGrid[i] = new byte[bufferZoneHeight];
         }
 
@@ -448,34 +456,39 @@ public class Grid {
     /// <summary>
     /// Get the current animation progress (0.0 to 1.0)
     /// </summary>
-    public float GetGarbageAnimationProgress()
-    {
+    public float GetGarbageAnimationProgress() {
         if (!_garbageAnimating || _garbageAnimationDuration <= 0) return 1.0f;
         return Math.Min(_garbageAnimationTimer / _garbageAnimationDuration, 1.0f);
     }
 
-    public void Draw(SpriteBatch spriteBatch, Point location, Texture2D tiles)
-    {
+    public void Draw(SpriteBatch spriteBatch, Point location, Texture2D tiles, bool gridLines = true) {
         var scaledTileSize = (int)(TILE_SIZE * _sizeMultiplier);
+        if (_lastScreenRes.X != _game.Window.ClientBounds.Width || _lastScreenRes.Y != _game.Window.ClientBounds.Height) {
+            // Recalculate grid position if screen resolution has changed
+            var centerX = (_game.Window.ClientBounds.Width / 2) - (_width * TILE_SIZE * _sizeMultiplier / 2);
+            var centerY = (_game.Window.ClientBounds.Height / 2) - (_height * TILE_SIZE * _sizeMultiplier / 2);
+            _point = new Point((int)centerX, (int)centerY);
+            _lastScreenRes = new Vector2(_game.Window.ClientBounds.Width, _game.Window.ClientBounds.Height);
+        }
 
         // Initialize pixel texture if needed
-        if (_pixelTexture == null)
-        {
+        if (_pixelTexture == null) {
             _pixelTexture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
             _pixelTexture.SetData([Color.White]);
         }
 
         // Draw grid background/border with thicker border for better visibility
-        var borderThickness = 3;
-        var gridRect = new Rectangle(
-            location.X - borderThickness,
-            location.Y - borderThickness,
-            _width * scaledTileSize + (borderThickness * 2),
-            _height * scaledTileSize + (borderThickness * 2)
-        );
-
-        // Draw thick black border
-        spriteBatch.Draw(_pixelTexture, gridRect, Color.Black);
+        if (gridLines) {
+            var borderThickness = 3;
+            var gridRect = new Rectangle(
+                location.X - borderThickness,
+                location.Y - borderThickness,
+                _width * scaledTileSize + (borderThickness * 2),
+                _height * scaledTileSize + (borderThickness * 2)
+            );
+            // Draw thick black border
+            spriteBatch.Draw(_pixelTexture, gridRect, Color.Black);
+        }
 
         // Draw inner background with darker color for better contrast
         var innerRect = new Rectangle(

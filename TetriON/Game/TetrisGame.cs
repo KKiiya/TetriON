@@ -22,10 +22,10 @@ public class TetrisGame {
     // Combo sounds (1-16)
     private readonly Dictionary<int, SoundWrapper> _comboSounds = [];
 
+    private readonly GameSettings _settings;
+
     private readonly SpriteBatch _spriteBatch;
     private readonly GameSettings _gameSettings; // Store for spawn position calculations
-    
-    private readonly Point _point;
     
     private readonly Grid _grid;
     private Point _tetrominoPoint;
@@ -39,7 +39,6 @@ public class TetrisGame {
     private long _targetLines; // For modes with line targets
     
     private readonly TimingManager _timingManager;
-    private readonly Random _random;
     private readonly SevenBagRandomizer _bagRandomizer;
     private readonly Dictionary<KeyBind, bool> _keyHeld = [];
     private readonly Dictionary<KeyBind, bool> _keyPressed = [];
@@ -58,6 +57,9 @@ public class TetrisGame {
     // ARE (Entry Delay) state
     private bool _areInProgress;          // True during ARE delay
     private bool _nextPieceReady;         // True when next piece is ready to spawn
+    
+    // Soft drop state tracking
+    private bool _wasSoftDropHeldLastFrame; // Track previous frame soft drop state
     
     // IRS (Initial Rotation System) state
     private int _irsRotation;             // Rotation to apply when piece spawns
@@ -78,28 +80,23 @@ public class TetrisGame {
     */
     public TetrisGame(TetriON game, GameSettings settings = null) {
         // Create settings if not provided, applying gamemode preset
-        settings ??= new GameSettings();
-        settings.SetGridPreset(GridPresets.PresetType.Empty);
-        
+        _settings = settings ??= new GameSettings();
+        _settings.SetGridPreset(GridPresets.PresetType.Empty);
+
         _spriteBatch = game.SpriteBatch;
         
         // Use grid dimensions from settings
-        var gridWidth = settings.GridWidth;
-        var gridHeight = settings.GridHeight; 
+        var gridWidth = _settings.GridWidth;
+        var gridHeight = _settings.GridHeight;
         var tileSize = 30;
         var sizeMultiplier = 1f; // Consistent size multiplier
         var scaledTileSize = (int)(tileSize * sizeMultiplier);
         var gridPixelWidth = gridWidth * scaledTileSize;
         var gridPixelHeight = gridHeight * scaledTileSize;
-        
-        // Center the visible grid area (without buffer zone adjustment)
-        var centerX = (game.GetWindowResolution().X - gridPixelWidth) / 2;
-        var centerY = (game.GetWindowResolution().Y - gridPixelHeight) / 0.8;
 
         _textures["tiles"] = game._skinManager.GetTextureAsset("tiles");
         _textures["ghost_tiles"] = game._skinManager.GetTextureAsset("ghost_tiles");
-        _point = new Point(centerX, (int)centerY);
-        _grid = new Grid(_point, settings.GridWidth, settings.GridHeight, sizeMultiplier, settings.BufferZoneHeight, Kicks.KickType.SRS, settings.GridPreset);
+        _grid = new Grid(game, _settings.GridWidth, _settings.GridHeight, sizeMultiplier, _settings.BufferZoneHeight, Kicks.KickType.SRS, _settings.GridPreset);
 
         // Initialize sound effects
 
@@ -461,7 +458,8 @@ public class TetrisGame {
         HandleInput(currentKeyboard, previousKeyboard);
         
         // Apply gravity - handle modern lock delay for gravity steps
-        if (_timingManager.ShouldDropPiece((int)_level)) {
+        // Skip natural gravity if soft drop is active (soft drop handles its own timing)
+        if (!_keyHeld[KeyBind.SoftDrop] && _timingManager.ShouldDropPiece((int)_level)) {
             if (CanMoveCurrentTo(0, 1)) {
                 _tetrominoPoint.Y++;
                 
@@ -866,18 +864,18 @@ public class TetrisGame {
             
             switch (keyBind) {
                 case KeyBind.RotateCounterClockwise:
-                    TetriON.DebugLog($"TetrisGame: HandleInput - RotateCounterClockwise pressed");
+                    //TetriON.DebugLog($"TetrisGame: HandleInput - RotateCounterClockwise pressed");
                     Rotate(RotationDirection.CCW);
                     break;
                 case KeyBind.RotateClockwise:
-                    TetriON.DebugLog($"TetrisGame: HandleInput - RotateClockwise pressed");
+                    //TetriON.DebugLog($"TetrisGame: HandleInput - RotateClockwise pressed");
                     Rotate(RotationDirection.CW);
                     break;
                 case KeyBind.Hold:
                     Hold();
                     break;
                 case KeyBind.Rotate180:
-                    TetriON.DebugLog($"TetrisGame: HandleInput - Rotate180 pressed");
+                    //TetriON.DebugLog($"TetrisGame: HandleInput - Rotate180 pressed");
                     Rotate(RotationDirection.Flip);
                     break;
                 case KeyBind.HardDrop:
@@ -931,18 +929,32 @@ public class TetrisGame {
             _timingManager.StopAutoRepeat();
         }
         
-        // Soft drop - immediate and continuous
-        if (_keyHeld[KeyBind.SoftDrop]) {
-            if (_keyPressed[KeyBind.SoftDrop] || _timingManager.ShouldSoftDrop()) {
-                MoveDown();
-            }
+        // Soft drop - immediate response on press, then consistent timing
+        bool softDropPressed = _keyPressed[KeyBind.SoftDrop];
+        bool softDropHeld = _keyHeld[KeyBind.SoftDrop];
+        
+        if (softDropPressed) {
+            // Immediate response when first pressed
+            MoveDown();
+            // Reset timer to prevent double movement on first frame
+            _timingManager.ResetSoftDropTimer();
+        } else if (softDropHeld && _timingManager.ShouldSoftDrop()) {
+            // Consistent timing for continued holding
+            MoveDown();
         }
+        
+        // Check if soft drop was just released (was held in previous frame but not current frame)
+        if (_wasSoftDropHeldLastFrame && !softDropHeld) {
+            // Soft drop was just released - reset natural gravity timer to prevent double movement
+            _timingManager.ForcePieceDrop();
+        }
+        _wasSoftDropHeldLastFrame = softDropHeld;
     }
     
     public void Draw() {
         Texture2D tiles = _textures["tiles"].GetTexture();
         Texture2D ghostTiles = _textures["ghost_tiles"].GetTexture();
-        _grid.Draw(_spriteBatch, _point, tiles);
+        _grid.Draw(_spriteBatch, _grid.GetPoint(), tiles);
         
         // Don't draw the current piece if we're hiding it for line clear animation
         if (!_hidePieceForLineClear && !_areInProgress) {
@@ -955,21 +967,21 @@ public class TetrisGame {
                 // Calculate position properly: _point.Y is top of visible grid (Y=0)
                 // For buffer zone pieces (negative Y), we need to draw above the visible grid
                 var tetrominoPixelPos = new Point(
-                    _point.X + _tetrominoPoint.X * scaledTileSize,
-                    _point.Y + _tetrominoPoint.Y * scaledTileSize  // Negative Y will naturally place above visible grid
+                    _grid.GetPoint().X + _tetrominoPoint.X * scaledTileSize,
+                    _grid.GetPoint().Y + _tetrominoPoint.Y * scaledTileSize  // Negative Y will naturally place above visible grid
                 );
                 _currentTetromino.Draw(_spriteBatch, tetrominoPixelPos, tiles, _grid.GetSizeMultiplier());
             }
             
             // Ghost piece - calculate and draw if current piece is visible
             // Only show ghost if current piece is at least partially visible or in buffer zone
-            if (_tetrominoPoint.Y >= -_gameSettings.BufferZoneHeight) {
+            if (_tetrominoPoint.Y >= -_gameSettings.BufferZoneHeight && _gameSettings.EnableGhostPiece) {
                 var ghostPos = GetGhostPosition();
                 // Draw ghost if it lands in visible area or buffer zone
                 if (ghostPos.Y >= -_gameSettings.BufferZoneHeight) {
                     var ghostPixelPos = new Point(
-                        _point.X + ghostPos.X * scaledTileSize,
-                        _point.Y + ghostPos.Y * scaledTileSize  // This will handle negative Y (buffer zone) correctly
+                        _grid.GetPoint().X + ghostPos.X * scaledTileSize,
+                        _grid.GetPoint().Y + ghostPos.Y * scaledTileSize  // This will handle negative Y (buffer zone) correctly
                     );
                     _currentTetromino.DrawGhost(_spriteBatch, ghostPixelPos, ghostTiles, _grid.GetSizeMultiplier());
                 }
@@ -1362,8 +1374,8 @@ public class TetrisGame {
     public Rectangle GetPlayFieldBounds() {
         var scaledTileSize = (int)(Grid.TILE_SIZE * _grid.GetSizeMultiplier());
         return new Rectangle(
-            _point.X,
-            _point.Y,
+            _grid.GetPoint().X,
+            _grid.GetPoint().Y,
             _grid.GetWidth() * scaledTileSize,
             _grid.GetHeight() * scaledTileSize
         );

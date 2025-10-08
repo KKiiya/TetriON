@@ -104,12 +104,13 @@ public class TimingManager {
     }
     
     /// <summary>
-    /// Get soft drop interval (much faster than normal).
+    /// Get soft drop interval based on GameSettings.SoftDropSpeed.
     /// </summary>
     public bool ShouldSoftDrop() {
-        var softDropInterval = 1.0f / GameTiming.SoftDropMultiplier;
+        // Convert SoftDropSpeed from milliseconds to seconds, use default if no settings
+        var softDropInterval = _gameSettings?.SoftDropSpeed / 1000.0f ?? (GameTiming.DefaultAutoRepeatRate * 2);
         if (_softDropTimer >= softDropInterval) {
-            _softDropTimer -= softDropInterval;
+            _softDropTimer = 0; // Reset to 0 instead of subtracting interval to prevent multiple triggers
             return true;
         }
         return false;
@@ -213,7 +214,8 @@ public class TimingManager {
     /// Check if line clear animation is complete.
     /// </summary>
     public bool IsLineClearComplete() {
-        return _lineClearActive && _lineClearTimer >= GameTiming.LineClearDelay;
+        var lineClearDelay = (_gameSettings?.LineClearDelay / 1000.0f) ?? GameTiming.LineClearDelay;
+        return _lineClearActive && _lineClearTimer >= lineClearDelay;
     }
     
     /// <summary>
@@ -229,7 +231,8 @@ public class TimingManager {
     /// </summary>
     public float GetLineClearProgress() {
         if (!_lineClearActive) return 0;
-        return Math.Clamp(_lineClearTimer / GameTiming.LineClearDelay, 0, 1);
+        var lineClearDelay = (_gameSettings?.LineClearDelay / 1000.0f) ?? GameTiming.LineClearDelay;
+        return Math.Clamp(_lineClearTimer / lineClearDelay, 0, 1);
     }
     
     #endregion
@@ -278,6 +281,13 @@ public class TimingManager {
         _autoRepeatTimer = 0;
     }
     
+    /// <summary>
+    /// Reset soft drop timer for initial press.
+    /// </summary>
+    public void ResetSoftDropTimer() {
+        _softDropTimer = 0;
+    }
+    
     #endregion
     
     #region ARE (Entry Delay) Timing
@@ -294,7 +304,8 @@ public class TimingManager {
     /// Check if ARE delay is complete.
     /// </summary>
     public bool IsAREComplete() {
-        return _areActive && _areTimer >= GameTiming.EntryDelay;
+        var entryDelay = (_gameSettings?.EntryDelay / 1000.0f) ?? GameTiming.EntryDelay;
+        return _areActive && _areTimer >= entryDelay;
     }
     
     /// <summary>
@@ -310,7 +321,8 @@ public class TimingManager {
     /// </summary>
     public float GetAREProgress() {
         if (!_areActive) return 0;
-        return Math.Clamp(_areTimer / GameTiming.EntryDelay, 0, 1);
+        var entryDelay = (_gameSettings?.EntryDelay / 1000.0f) ?? GameTiming.EntryDelay;
+        return Math.Clamp(_areTimer / entryDelay, 0, 1);
     }
     
     /// <summary>

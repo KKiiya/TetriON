@@ -36,7 +36,7 @@ namespace TetriON.game {
 
         public int DAS { get; set; } = 170; // Delayed Auto Shift in milliseconds (accessed via GameTiming.GetAutoRepeatDelay())
         public int ARR { get; set; } = 30;  // Auto Repeat Rate in milliseconds (accessed via GameTiming.GetAutoRepeatRate())
-        public int SoftDropSpeed { get; set; } = 50; // Soft drop speed in milliseconds
+        public int SoftDropSpeed { get; set; } = 25; // Soft drop speed in milliseconds
         
         #endregion
         
@@ -551,7 +551,10 @@ namespace TetriON.game {
                    BufferZoneHeight >= 4 && BufferZoneHeight <= 40 && // Buffer zone limits
                    DAS >= 10 && DAS <= 1000 &&
                    ARR >= 1 && ARR <= 500 &&
+                   SoftDropSpeed >= 10 && SoftDropSpeed <= 1000 &&
                    LockDelay >= 50 && LockDelay <= 2000 &&
+                   LineClearDelay >= 0 && LineClearDelay <= 1000 &&
+                   EntryDelay >= 0 && EntryDelay <= 1000 &&
                    (TimeLimit == 0 || (TimeLimit >= 10 && TimeLimit <= 3600)) &&
                    TargetLines >= 0 && TargetLines <= 1000 &&
                    StartingGarbageLines >= 0 && StartingGarbageLines <= 15;
