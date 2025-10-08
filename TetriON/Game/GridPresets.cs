@@ -71,8 +71,7 @@ public class GridPresets {
     }
 
 
-    public enum PresetType
-    {
+    public enum PresetType {
         Empty,
         TSpinSetup,
         LSpinSetup,

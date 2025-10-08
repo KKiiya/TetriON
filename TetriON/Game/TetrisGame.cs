@@ -205,7 +205,7 @@ public class TetrisGame {
     public void Rotate(RotationDirection direction) {
         if (_gameOver) return;
         
-        TetriON.DebugLog($"TetrisGame: Rotate({direction}) called - Current piece: {_currentTetromino.GetShape()} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
+        //TetriON.DebugLog($"TetrisGame: Rotate({direction}) called - Current piece: {_currentTetromino.GetShape()} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
         
         var (newPosition, tSpin) = _currentTetromino.Rotate(_grid, _tetrominoPoint, direction);
         if (newPosition.HasValue) {
