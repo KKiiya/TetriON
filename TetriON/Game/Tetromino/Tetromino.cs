@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -352,25 +351,28 @@ public abstract class Tetromino {
         var newRotation = (oldRotation + (int)direction + 4) % 4;
         var newMatrix = GetRotations()[newRotation];
 
-        TetriON.DebugLog($"Base Tetromino: {GetShape()}-piece rotating from {oldRotation} to {newRotation} (direction: {direction})");
+        // First, try to rotate in place (no wall kick)
+        if (grid.CanPlaceTetromino(currentPoint, newMatrix)) {
+            // Rotation successful without wall kick
+            SetRotationState(newRotation);
+            SetLastKickOffset(new Point(0, 0));
+            
+            return (currentPoint, false); // No spin when rotating in place
+        }
 
-        // Try wall kick for standard pieces
+        // If in-place rotation failed, try wall kicks
         var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, newRotation, false);
-        var kickOffset = newPosition.HasValue ? new Point(newPosition.Value.X - currentPoint.X, newPosition.Value.Y - currentPoint.Y) : new Point(0, 0);
-        SetLastKickOffset(kickOffset);
         if (newPosition.HasValue) {
-            var wasWallKick = !newPosition.Value.Equals(currentPoint);
+            var kickOffset = new Point(newPosition.Value.X - currentPoint.X, newPosition.Value.Y - currentPoint.Y);
+            SetLastKickOffset(kickOffset);
             SetRotationState(newRotation);
 
-            TetriON.DebugLog($"Base Tetromino: {GetShape()}-piece rotation successful! New state: {GetRotationState()}");
-
-            // Check for L-Spin after successful rotation
-            var isSpin = wasWallKick && IsSpin(grid, newPosition.Value);
+            // Check for All-Spin after successful wall kick
+            var isSpin = IsSpin(grid, newPosition.Value);
 
             return (newPosition.Value, isSpin);
         }
         
-        TetriON.DebugLog($"Base Tetromino: {GetShape()}-piece rotation failed - wall kick returned null");
         return (null, false);
     }
     

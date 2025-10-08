@@ -41,30 +41,34 @@ public class T : Tetromino {
     };
 
 
-    public override (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection rotationDirection) {
+    public override (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection direction) {
         var oldRotation = GetRotationState();
-        var newRotation = (oldRotation + (int)rotationDirection + 4) % 4;
+        var newRotation = (oldRotation + (int)direction + 4) % 4;
         var newMatrix = _rotations[newRotation];
 
-        TetriON.DebugLog($"T-piece: Rotating from {oldRotation} to {newRotation} (direction: {rotationDirection})");
+        // First, try to rotate in place (no wall kick)
+        if (grid.CanPlaceTetromino(currentPoint, newMatrix)) {
+            // Rotation successful without wall kick
+            SetRotationState(newRotation);
+            _rotation = newRotation;
+            _matrix = newMatrix;
+            SetLastKickOffset(new Point(0, 0));
+            
+            return (currentPoint, false); // No T-spin when rotating in place
+        }
 
-        // Try wall kick for T-piece
-        var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, (int)rotationDirection, false);
+        // If in-place rotation failed, try wall kicks
+        var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, newRotation, false);
         if (newPosition.HasValue) {
-            // Calculate kick offset for T-Spin detection
             var kickOffset = new Point(newPosition.Value.X - currentPoint.X, newPosition.Value.Y - currentPoint.Y);
-            _lastKickOffset = kickOffset;
-
-            // Check if this was actually a wall kick (piece moved from original position)
-            var wasWallKick = !newPosition.Value.Equals(currentPoint);
-
+            SetLastKickOffset(kickOffset);
+            
+            SetRotationState(newRotation);
             _rotation = newRotation;
             _matrix = newMatrix;
 
-            TetriON.DebugLog($"T-piece: Rotation successful! New state: {_rotation}, Position: ({newPosition.Value.X}, {newPosition.Value.Y})");
-
-            // Use proper T-Spin detection
-            var isTSpin = wasWallKick && CheckTSpin(grid, newPosition.Value, oldRotation, newRotation, kickOffset);
+            // Check for T-Spin (only happens with wall kicks)
+            var isTSpin = CheckTSpin(grid, newPosition.Value, oldRotation, newRotation, kickOffset);
 
             return (newPosition.Value, isTSpin);
         }

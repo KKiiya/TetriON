@@ -58,15 +58,13 @@ public class Grid
 
         // Create grid with total height (visible + buffer zone)
         _grid = new byte[width][];
-        for (var i = 0; i < width; i++)
-        {
+        for (var i = 0; i < width; i++) {
             _grid[i] = new byte[_totalHeight];
         }
 
         // Create buffer grid (width x bufferZoneHeight)
         _bufferGrid = new byte[width][];
-        for (var i = 0; i < width; i++)
-        {
+        for (var i = 0; i < width; i++) {
             _bufferGrid[i] = new byte[bufferZoneHeight];
         }
 
@@ -74,13 +72,10 @@ public class Grid
         ApplyPreset(presetType);
     }
 
-    private void ApplyPreset(GridPresets.PresetType presetType)
-    {
+    private void ApplyPreset(GridPresets.PresetType presetType) {
         var preset = GridPresets.GetPreset(presetType, _height, _width);
-        for (var x = 0; x < _width; x++)
-        {
-            for (var y = 0; y < _height; y++)
-            {
+        for (var x = 0; x < _width; x++) {
+            for (var y = 0; y < _height; y++) {
                 if (preset[y, x]) SetCell(x, y, 0x08); // Fixed: use [y, x] to match preset array dimensions
             }
         }

@@ -40,34 +40,36 @@ public class GridPresets {
     }
     
     private static bool[,] GenerateTSpinSetupPreset(int rows, int cols) {
+        TetriON.DebugLog($"Generating T-Spin Setup Preset with dimensions {rows}x{cols}");
         var grid = new bool[rows, cols];
-        // Enhanced T-Spin Double setup - clearer and more reliable pattern
         
-        // Bottom row completely filled (foundation)
-        for (int c = 0; c < cols; c++) {
-            grid[rows - 1, c] = true;
+        // Create a classic T-Spin Double setup at the bottom of the grid
+        // Bottom row (foundation) - rows are 0-indexed, so bottom is rows-1
+        for (int c = 0; c < 5; c++) {
+            grid[rows - 1, c] = true;  // Bottom row left side
+            grid[rows - 3, c] = true;  // Third row from bottom left side
         }
         
-        // Second row filled except for the T-Spin cavity
-        for (int c = 0; c < cols - 3; c++) {
-            grid[rows - 2, c] = true;
+        for (int c = 7; c < 10; c++) {
+            grid[rows - 2, c] = true;  // Bottom row right side
+            grid[rows - 3, c] = true;  // Third row from bottom right side
         }
-        // Leave gaps for T-Spin cavity: cols-3, cols-2, cols-1 are empty
-        
-        // Third row setup for proper T-Spin recognition
-        for (int c = 0; c < cols - 4; c++) {
-            grid[rows - 3, c] = true;
+
+        for (int c = 0; c < 4; c++)
+        {
+            grid[rows - 2, c] = true;  // Second row from bottom left side
         }
-        // Place key blocks for T-Spin corner detection
-        grid[rows - 3, cols - 3] = true; // Left wall of cavity
-        // Leave gaps at cols-2 and cols-1 for T-piece placement
-        
-        // Fourth row for complete T-Spin setup
-        for (int c = 0; c < cols - 5; c++) {
-            grid[rows - 4, c] = true;
+
+        for (int c = 6; c < 10; c++) {
+            grid[rows - 1, c] = true;  // Bottom row right side
         }
-        grid[rows - 4, cols - 4] = true; // Additional wall support
-        
+
+        for (int c = 7; c < 10; c++) {
+            grid[rows - 2, c] = true;  // Second row from bottom right side
+        }
+
+        // This creates a T-shaped cavity that can be filled with a T-piece for a T-Spin Double
+
         return grid;
     }
     
@@ -175,7 +177,7 @@ public class GridPresets {
             PresetType.Empty => new bool[rows, cols],
             PresetType.Staggered => GenerateStaggeredPreset(rows, cols),
             PresetType.HalfFilled => GenerateHalfFilledPreset(rows, cols),
-            PresetType.Random => GenerateRandomPreset(rows, cols, 0.3),
+            PresetType.Random => GenerateRandomPreset(rows, cols, 0.3), // 30% fill probability
             PresetType.TSpinSetup => GenerateTSpinSetupPreset(rows, cols),
             PresetType.TSpinTriple => GenerateTSpinTriplePreset(rows, cols),
             PresetType.TSpinDTCannon => GenerateTSpinDTCannonPreset(rows, cols),

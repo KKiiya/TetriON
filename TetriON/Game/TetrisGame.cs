@@ -79,6 +79,7 @@ public class TetrisGame {
     public TetrisGame(TetriON game, GameSettings settings = null) {
         // Create settings if not provided, applying gamemode preset
         settings ??= new GameSettings();
+        settings.SetGridPreset(GridPresets.PresetType.TSpinSetup);
         
         _spriteBatch = game.SpriteBatch;
         
