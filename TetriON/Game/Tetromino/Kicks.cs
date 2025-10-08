@@ -6,7 +6,7 @@ namespace TetriON.game.tetromino;
 public static class Kicks {
     public static readonly Dictionary<string, KickSystem> KICKS = new() {
         ["SRS"] = new KickSystem {
-            Kicks = new Dictionary<string, Point[]> {
+            Kicks = new Dictionary<string, Point[]>  {
                 ["01"] = [new(-1, 0), new(-1, -1), new(0, 2), new(-1, 2)],
                 ["10"] = [new(1, 0), new(1, 1), new(0, -2), new(1, -2)],
                 ["12"] = [new(1, 0), new(1, 1), new(0, -2), new(1, -2)],
@@ -20,7 +20,8 @@ public static class Kicks {
                 ["20"] = [new(0, 1), new(-1, 1), new(1, 1), new(-1, 0), new(1, 0)],
                 ["31"] = [new(-1, 0), new(-1, -2), new(-1, -1), new(0, -2), new(0, -1)]
             },
-            IKicks = new Dictionary<string, Point[]> {
+            IKicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-2, 0), new(1, 0), new(-2, 1), new(1, -2)],
                 ["10"] = [new(2, 0), new(-1, 0), new(2, -1), new(-1, 2)],
                 ["12"] = [new(-1, 0), new(2, 0), new(-1, -2), new(2, 1)],
@@ -34,7 +35,8 @@ public static class Kicks {
                 ["20"] = [],
                 ["31"] = []
             },
-            I2Kicks = new Dictionary<string, Point[]> {
+            I2Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(0, -1), new(-1, 0), new(-1, -1)],
                 ["10"] = [new(0, 1), new(1, 0), new(1, 1)],
                 ["12"] = [new(1, 0), new(0, -1), new(1, 0)],
@@ -48,7 +50,8 @@ public static class Kicks {
                 ["20"] = [],
                 ["31"] = []
             },
-            I3Kicks = new Dictionary<string, Point[]> {
+            I3Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)],
                 ["10"] = [new(-1, 0), new(1, 0), new(0, -1), new(0, 1)],
                 ["12"] = [new(1, 0), new(-1, 0), new(0, -2), new(0, 2)],
@@ -62,7 +65,8 @@ public static class Kicks {
                 ["20"] = [],
                 ["31"] = []
             },
-            L3Kicks = new Dictionary<string, Point[]> {
+            L3Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-1, 0), new(1, 0)],
                 ["10"] = [new(1, 0), new(-1, 0)],
                 ["12"] = [new(0, -1), new(0, 1)],
@@ -76,7 +80,8 @@ public static class Kicks {
                 ["20"] = [],
                 ["31"] = []
             },
-            I5Kicks = new Dictionary<string, Point[]> {
+            I5Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-2, 0), new(2, 0), new(-2, 1), new(2, -2)],
                 ["10"] = [new(2, 0), new(-2, 0), new(2, -1), new(-2, 2)],
                 ["12"] = [new(-2, 0), new(2, 0), new(-2, -2), new(2, 1)],
@@ -90,7 +95,8 @@ public static class Kicks {
                 ["20"] = [],
                 ["31"] = []
             },
-            OoKicks = new Dictionary<string, Point[]> {
+            OoKicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(0, -1), new(-1, -1), new(0, 1), new(-1, 1), new(1, 0), new(1, -1), new(1, 1)],
                 ["10"] = [new(1, 0), new(0, -1), new(1, 1), new(1, -1), new(-1, 0), new(-1, -1), new(-1, 1)],
                 ["12"] = [new(-1, 0), new(0, -1), new(-1, 1), new(-1, -1), new(1, 0), new(1, -1), new(1, 1)],
@@ -106,8 +112,10 @@ public static class Kicks {
             }
         },
 
-        ["SRS+"] = new KickSystem {
-            Kicks = new Dictionary<string, Point[]> {
+        ["SRS+"] = new KickSystem
+        {
+            Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-1, 0), new(-1, -1), new(0, 2), new(-1, 2)],
                 ["10"] = [new(1, 0), new(1, 1), new(0, -2), new(1, -2)],
                 ["12"] = [new(1, 0), new(1, 1), new(0, -2), new(1, -2)],
@@ -121,7 +129,8 @@ public static class Kicks {
                 ["20"] = [new(0, 1), new(-1, 1), new(1, 1), new(-1, 0), new(1, 0)],
                 ["31"] = [new(-1, 0), new(-1, -2), new(-1, -1), new(0, -2), new(0, -1)]
             },
-            IKicks = new Dictionary<string, Point[]> {
+            IKicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(1, 0), new(-2, 0), new(-2, 1), new(1, -2)],
                 ["10"] = [new(-1, 0), new(2, 0), new(-1, 2), new(2, -1)],
                 ["12"] = [new(-1, 0), new(2, 0), new(-1, -2), new(2, 1)],
@@ -135,7 +144,8 @@ public static class Kicks {
                 ["20"] = [new(0, 1)],
                 ["31"] = [new(-1, 0)]
             },
-            I2Kicks = new Dictionary<string, Point[]> {
+            I2Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(0, -1), new(-1, 0), new(-1, -1)],
                 ["10"] = [new(0, 1), new(1, 0), new(1, 1)],
                 ["12"] = [new(1, 0), new(0, -1), new(1, 0)],
@@ -149,7 +159,8 @@ public static class Kicks {
                 ["20"] = [],
                 ["31"] = []
             },
-            I3Kicks = new Dictionary<string, Point[]> {
+            I3Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)],
                 ["10"] = [new(-1, 0), new(1, 0), new(0, -1), new(0, 1)],
                 ["12"] = [new(1, 0), new(-1, 0), new(0, -2), new(0, 2)],
@@ -163,7 +174,8 @@ public static class Kicks {
                 ["20"] = [],
                 ["31"] = []
             },
-            L3Kicks = new Dictionary<string, Point[]> {
+            L3Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-1, 0), new(1, 0)],
                 ["10"] = [new(1, 0), new(-1, 0)],
                 ["12"] = [new(0, -1), new(0, 1)],
@@ -177,7 +189,8 @@ public static class Kicks {
                 ["20"] = [],
                 ["31"] = []
             },
-            I5Kicks = new Dictionary<string, Point[]> {
+            I5Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-2, 0), new(2, 0), new(-2, 1), new(2, -2)],
                 ["10"] = [new(2, 0), new(-2, 0), new(2, -1), new(-2, 2)],
                 ["12"] = [new(-2, 0), new(2, 0), new(-2, -2), new(2, 1)],
@@ -191,7 +204,8 @@ public static class Kicks {
                 ["20"] = [],
                 ["31"] = []
             },
-            OoKicks = new Dictionary<string, Point[]> {
+            OoKicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(0, -1), new(-1, -1), new(0, 1), new(-1, 1), new(1, 0), new(1, -1), new(1, 1)],
                 ["10"] = [new(1, 0), new(0, -1), new(1, 1), new(1, -1), new(-1, 0), new(-1, -1), new(-1, 1)],
                 ["12"] = [new(-1, 0), new(0, -1), new(-1, 1), new(-1, -1), new(1, 0), new(1, -1), new(1, 1)],
@@ -207,8 +221,10 @@ public static class Kicks {
             }
         },
 
-        ["SRS-X"] = new KickSystem {
-            Kicks = new Dictionary<string, Point[]> {
+        ["SRS-X"] = new KickSystem
+        {
+            Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-1, 0), new(-1, -1), new(0, 2), new(-1, 2)],
                 ["10"] = [new(1, 0), new(1, 1), new(0, -2), new(1, -2)],
                 ["12"] = [new(1, 0), new(1, 1), new(0, -2), new(1, -2)],
@@ -222,7 +238,8 @@ public static class Kicks {
                 ["20"] = [new(-1, 0), new(-2, 0), new(-1, -1), new(-2, -1), new(1, 0), new(2, 0), new(1, -1), new(2, -1), new(0, 1), new(-3, 0), new(3, 0)],
                 ["31"] = [new(0, 1), new(0, 2), new(1, 1), new(1, 2), new(0, -1), new(0, -2), new(1, -1), new(1, -2), new(-1, 0), new(0, 3), new(0, -3)]
             },
-            IKicks = new Dictionary<string, Point[]> {
+            IKicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-2, 0), new(1, 0), new(-2, 1), new(1, -2)],
                 ["10"] = [new(2, 0), new(-1, 0), new(2, -1), new(-1, 2)],
                 ["12"] = [new(-1, 0), new(2, 0), new(-1, -2), new(2, 1)],
@@ -236,7 +253,8 @@ public static class Kicks {
                 ["20"] = [new(1, 0), new(2, 0), new(-1, 0), new(-2, 0), new(0, -1)],
                 ["31"] = [new(0, 1), new(0, 2), new(0, -1), new(0, -2), new(1, 0)]
             },
-            I2Kicks = new Dictionary<string, Point[]> {
+            I2Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(0, -1), new(-1, 0), new(-1, -1)],
                 ["10"] = [new(0, 1), new(1, 0), new(1, 1)],
                 ["12"] = [new(1, 0), new(0, -1), new(1, 0)],
@@ -250,7 +268,8 @@ public static class Kicks {
                 ["20"] = [new(1, 0), new(2, 0), new(-1, 0), new(-2, 0), new(0, -1)],
                 ["31"] = [new(0, 1), new(0, 2), new(0, -1), new(0, -2), new(1, 0)]
             },
-            I3Kicks = new Dictionary<string, Point[]> {
+            I3Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)],
                 ["10"] = [new(-1, 0), new(1, 0), new(0, -1), new(0, 1)],
                 ["12"] = [new(1, 0), new(-1, 0), new(0, -2), new(0, 2)],
@@ -264,7 +283,8 @@ public static class Kicks {
                 ["20"] = [new(-1, 0), new(-2, 0), new(-1, -1), new(-2, -1), new(1, 0), new(2, 0), new(1, -1), new(2, -1), new(0, 1), new(-3, 0), new(3, 0)],
                 ["31"] = [new(0, 1), new(0, 2), new(1, 1), new(1, 2), new(0, -1), new(0, -2), new(1, -1), new(1, -2), new(-1, 0), new(0, 3), new(0, -3)]
             },
-            L3Kicks = new Dictionary<string, Point[]> {
+            L3Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-1, 0), new(1, 0)],
                 ["10"] = [new(1, 0), new(-1, 0)],
                 ["12"] = [new(0, -1), new(0, 1)],
@@ -278,7 +298,8 @@ public static class Kicks {
                 ["20"] = [new(-1, 0), new(-2, 0), new(-1, -1), new(-2, -1), new(1, 0), new(2, 0), new(1, -1), new(2, -1), new(0, 1), new(-3, 0), new(3, 0)],
                 ["31"] = [new(0, 1), new(0, 2), new(1, 1), new(1, 2), new(0, -1), new(0, -2), new(1, -1), new(1, -2), new(-1, 0), new(0, 3), new(0, -3)]
             },
-            I5Kicks = new Dictionary<string, Point[]> {
+            I5Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-2, 0), new(2, 0), new(-2, 1), new(2, -2)],
                 ["10"] = [new(2, 0), new(-2, 0), new(2, -1), new(-2, 2)],
                 ["12"] = [new(-2, 0), new(2, 0), new(-2, -2), new(2, 1)],
@@ -292,7 +313,8 @@ public static class Kicks {
                 ["20"] = [new(-1, 0), new(-2, 0), new(-1, -1), new(-2, -1), new(1, 0), new(2, 0), new(1, -1), new(2, -1), new(0, 1), new(-3, 0), new(3, 0)],
                 ["31"] = [new(0, 1), new(0, 2), new(1, 1), new(1, 2), new(0, -1), new(0, -2), new(1, -1), new(1, -2), new(-1, 0), new(0, 3), new(0, -3)]
             },
-            OoKicks = new Dictionary<string, Point[]> {
+            OoKicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(0, -1), new(-1, -1), new(0, 1), new(-1, 1), new(1, 0), new(1, -1), new(1, 1)],
                 ["10"] = [new(1, 0), new(0, -1), new(1, 1), new(1, -1), new(-1, 0), new(-1, -1), new(-1, 1)],
                 ["12"] = [new(-1, 0), new(0, -1), new(-1, 1), new(-1, -1), new(1, 0), new(1, -1), new(1, 1)],
@@ -308,8 +330,10 @@ public static class Kicks {
             }
         },
 
-        ["TETRA-X"] = new KickSystem {
-            Kicks = new Dictionary<string, Point[]> {
+        ["TETRA-X"] = new KickSystem
+        {
+            Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(0, 1), new(-1, 0), new(1, 0), new(-1, 1), new(1, 1), new(0, -1), new(-1, -1), new(1, -1)],
                 ["10"] = [new(0, 1), new(1, 0), new(-1, 0), new(1, 1), new(-1, 1), new(0, -1), new(1, -1), new(-1, -1)],
                 ["12"] = [new(0, 1), new(-1, 0), new(1, 0), new(-1, 1), new(1, 1), new(0, -1), new(-1, -1), new(1, -1)],
@@ -323,7 +347,8 @@ public static class Kicks {
                 ["20"] = [new(0, 1), new(0, -1), new(-1, 0), new(1, 0)],
                 ["31"] = [new(0, 1), new(0, -1), new(-1, 0), new(1, 0)]
             },
-            IKicks = new Dictionary<string, Point[]> {
+            IKicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(0, -1), new(0, -2), new(0, 1), new(1, -1), new(-1, -1), new(1, -2), new(-1, -2)],
                 ["10"] = [new(0, -1), new(0, -2), new(0, 1), new(-1, 0), new(1, 0), new(2, 0)],
                 ["12"] = [new(0, -1), new(0, -2), new(0, 1), new(-1, 0), new(1, 0), new(2, 0)],
@@ -337,7 +362,8 @@ public static class Kicks {
                 ["20"] = [new(0, -1), new(0, 1)],
                 ["31"] = [new(0, -1), new(0, 1)]
             },
-            ColorOverrides = new Dictionary<string, string> {
+            ColorOverrides = new Dictionary<string, string>
+            {
                 ["i1"] = "l",
                 ["i2"] = "l",
                 ["i3"] = "l",
@@ -351,8 +377,10 @@ public static class Kicks {
             }
         },
 
-        ["NRS"] = new KickSystem  {
-            Kicks = new Dictionary<string, Point[]> {
+        ["NRS"] = new KickSystem
+        {
+            Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [],
                 ["10"] = [],
                 ["12"] = [],
@@ -366,15 +394,18 @@ public static class Kicks {
                 ["20"] = [],
                 ["31"] = []
             },
-            SpawnRotation = new Dictionary<string, int> {
+            SpawnRotation = new Dictionary<string, int>
+            {
                 ["l"] = 2,
                 ["j"] = 2,
                 ["t"] = 2
             }
         },
 
-        ["ARS"] = new KickSystem {
-            Kicks = new Dictionary<string, Point[]> {
+        ["ARS"] = new KickSystem
+        {
+            Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(1, 0), new(-1, 0)],
                 ["10"] = [new(1, 0), new(-1, 0)],
                 ["12"] = [new(1, 0), new(-1, 0)],
@@ -388,7 +419,8 @@ public static class Kicks {
                 ["20"] = [new(1, 0), new(-1, 0)],
                 ["31"] = [new(1, 0), new(-1, 0)]
             },
-            IKicks = new Dictionary<string, Point[]> {
+            IKicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [],
                 ["10"] = [],
                 ["12"] = [],
@@ -402,7 +434,8 @@ public static class Kicks {
                 ["20"] = [],
                 ["31"] = []
             },
-            SpawnRotation = new Dictionary<string, int> {
+            SpawnRotation = new Dictionary<string, int>
+            {
                 ["z"] = 0,
                 ["l"] = 2,
                 ["o"] = 0,
@@ -411,7 +444,8 @@ public static class Kicks {
                 ["j"] = 2,
                 ["t"] = 2
             },
-            ColorOverrides = new Dictionary<string, string> {
+            ColorOverrides = new Dictionary<string, string>
+            {
                 ["i1"] = "z",
                 ["i2"] = "z",
                 ["i3"] = "z",
@@ -423,8 +457,10 @@ public static class Kicks {
             }
         },
 
-        ["ASC"] = new KickSystem {
-            Kicks = new Dictionary<string, Point[]> {
+        ["ASC"] = new KickSystem
+        {
+            Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-1, 0), new(0, 1), new(-1, 1), new(0, 2), new(-1, 2), new(-2, 0), new(-2, 1), new(-2, 2), new(1, 0), new(1, 1), new(0, -1), new(-1, -1), new(-2, -1), new(1, 2), new(2, 0), new(0, -2), new(-1, -2), new(-2, -2), new(2, 1), new(2, 2), new(1, -1)],
                 ["10"] = [new(1, 0), new(0, 1), new(1, 1), new(0, 2), new(1, 2), new(2, 0), new(2, 1), new(2, 2), new(-1, 0), new(-1, 1), new(0, -1), new(1, -1), new(2, -1), new(-1, 2), new(-2, 0), new(0, -2), new(1, -2), new(2, -2), new(-2, 1), new(-2, 2), new(-1, -1)],
                 ["12"] = [new(-1, 0), new(0, 1), new(-1, 1), new(0, 2), new(-1, 2), new(-2, 0), new(-2, 1), new(-2, 2), new(1, 0), new(1, 1), new(0, -1), new(-1, -1), new(-2, -1), new(1, 2), new(2, 0), new(0, -2), new(-1, -2), new(-2, -2), new(2, 1), new(2, 2), new(1, -1)],
@@ -438,7 +474,8 @@ public static class Kicks {
                 ["20"] = [],
                 ["31"] = []
             },
-            IKicks = new Dictionary<string, Point[]> {
+            IKicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [new(-1, 0), new(0, 1), new(-1, 1), new(0, 2), new(-1, 2), new(-2, 0), new(-2, 1), new(-2, 2), new(1, 0), new(1, 1), new(0, -1), new(-1, -1), new(-2, -1), new(1, 2), new(2, 0), new(0, -2), new(-1, -2), new(-2, -2), new(2, 1), new(2, 2), new(1, -1)],
                 ["10"] = [new(1, 0), new(0, 1), new(1, 1), new(0, 2), new(1, 2), new(2, 0), new(2, 1), new(2, 2), new(-1, 0), new(-1, 1), new(0, -1), new(1, -1), new(2, -1), new(-1, 2), new(-2, 0), new(0, -2), new(1, -2), new(2, -2), new(-2, 1), new(-2, 2), new(-1, -1)],
                 ["12"] = [new(-1, 0), new(0, 1), new(-1, 1), new(0, 2), new(-1, 2), new(-2, 0), new(-2, 1), new(-2, 2), new(1, 0), new(1, 1), new(0, -1), new(-1, -1), new(-2, -1), new(1, 2), new(2, 0), new(0, -2), new(-1, -2), new(-2, -2), new(2, 1), new(2, 2), new(1, -1)],
@@ -454,8 +491,10 @@ public static class Kicks {
             }
         },
 
-        ["none"] = new KickSystem {
-            Kicks = new Dictionary<string, Point[]> {
+        ["none"] = new KickSystem
+        {
+            Kicks = new Dictionary<string, Point[]>
+            {
                 ["01"] = [],
                 ["10"] = [],
                 ["12"] = [],
@@ -471,6 +510,11 @@ public static class Kicks {
             }
         }
     };
+    
+    public static KickSystem Get(string name) {
+        if (KICKS.TryGetValue(name, out KickSystem value)) return value;
+        return KICKS["none"];
+    }
 }
 
 public class KickSystem {

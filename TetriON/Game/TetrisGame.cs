@@ -183,11 +183,13 @@ public class TetrisGame {
         if (!_canHold || _gameOver) return;
     
         var previousPiece = _currentTetromino.GetType().Name;
-        if (_holdTetromino == null) {
+        _currentTetromino.ResetOrientation();
+        if (_holdTetromino == null)  {
             _holdTetromino = _currentTetromino;
             _currentTetromino = _nextTetrominos[0];
             // Shift next pieces
-            for (var i = 0; i < _nextTetrominos.Length - 1; i++) {
+            for (var i = 0; i < _nextTetrominos.Length - 1; i++)
+            {
                 _nextTetrominos[i] = _nextTetrominos[i + 1];
             }
             _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
@@ -216,10 +218,9 @@ public class TetrisGame {
             
             UpdateCachedValues();
             
-            // Play appropriate sound based on spin detection
-            // Only play spin sound for non-T pieces that use wall kicks
-            // T-Spin sound effects are handled when the piece locks
-            if (tSpin && !(_currentTetromino is T)) {
+            // Play appropriate sound based on spin detection from piece rotation
+            // tSpin is already correctly determined by the piece's rotation logic
+            if (tSpin) {
                 _soundEffects["spin"].Play();
                 TetriON.DebugLog($"TetrisGame: ROTATE LEFT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
             } else {
@@ -243,11 +244,10 @@ public class TetrisGame {
             _tetrominoPoint = newPosition.Value;
             
             UpdateCachedValues();
-            
-            // Play appropriate sound based on spin detection
-            // Only play spin sound for non-T pieces that use wall kicks
-            // T-Spin sound effects are handled when the piece locks
-            if (tSpin && !(_currentTetromino is T)) {
+
+            // Play appropriate sound based on spin detection from piece rotation
+            // tSpin is already correctly determined by the piece's rotation logic
+            if (tSpin) {
                 _soundEffects["spin"].Play();
                 TetriON.DebugLog($"TetrisGame: ROTATE RIGHT - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
             } else {
@@ -272,11 +272,10 @@ public class TetrisGame {
             _tetrominoPoint = newPosition.Value;
             
             UpdateCachedValues();
-            
-            // Play appropriate sound based on spin detection
-            // Only play spin sound for non-T pieces that use wall kicks
-            // T-Spin sound effects are handled when the piece locks
-            if (tSpin && !(_currentTetromino is T)) {
+
+            // Play appropriate sound based on spin detection from piece rotation
+            // tSpin is already correctly determined by the piece's rotation logic
+            if (tSpin) {
                 _soundEffects["spin"].Play();
                 TetriON.DebugLog($"TetrisGame: ROTATE 180 - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
             } else {
@@ -298,9 +297,6 @@ public class TetrisGame {
         //TetriON.DebugLog($"TetrisGame: MOVE LEFT - {_currentTetromino.GetType().Name} from ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) to ({_tetrominoPoint.X - 1}, {_tetrominoPoint.Y})");
         _tetrominoPoint.X--;
         
-        // Reset rotation tracking on movement (specification requirement)
-        _currentTetromino.ResetRotationTracking();
-        
         UpdateCachedValues();
         _soundEffects["move"].Play();
 
@@ -318,9 +314,6 @@ public class TetrisGame {
         //TetriON.DebugLog($"TetrisGame: MOVE RIGHT - {_currentTetromino.GetType().Name} from ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) to ({_tetrominoPoint.X + 1}, {_tetrominoPoint.Y})");
         _tetrominoPoint.X++;
         
-        // Reset rotation tracking on movement (specification requirement)
-        _currentTetromino.ResetRotationTracking();
-        
         UpdateCachedValues();
         _soundEffects["move"].Play();
         
@@ -336,9 +329,6 @@ public class TetrisGame {
         if (_gameOver) return;
         if (CanMoveCurrentTo(0, 1)) {
             _tetrominoPoint.Y++;
-            
-            // Reset rotation tracking on movement (specification requirement)
-            _currentTetromino.ResetRotationTracking();
             
             UpdateCachedValues();
             // Track soft drop distance for scoring
@@ -365,25 +355,10 @@ public class TetrisGame {
         var linesCleared = _grid.DetectFullLines();
         
         // Now detect T-Spin with the piece placed and correct line count
-        TSpinResult tSpinResult = new TSpinResult();
         if (tPiece != null) {
-            var tSpinEngine = new TSpinDetectionEngine(_grid);
-            tSpinResult = tSpinEngine.DetectTSpinOnLock(tPiece, _tetrominoPoint, linesCleared);
             
-            if (tSpinResult.IsTSpin) {
-                TetriON.DebugLog($"TetrisGame: T-SPIN DETECTED - {tSpinResult}");
-                _lastMoveWasTSpin = true;
-                _isLastTSpinMini = tSpinResult.IsMini;
-                
-                // Play T-Spin sound effect when actual T-Spin is confirmed
-                _soundEffects["spin"].Play();
-            } else {
-                _lastMoveWasTSpin = false;
-                _isLastTSpinMini = false;
-            }
         } else {
-            _lastMoveWasTSpin = false;
-            _isLastTSpinMini = false;
+            _lastTwistResult = new TwistResult(); // Reset if not T-piece
         }
         
         if (linesCleared > 0) {
@@ -414,11 +389,6 @@ public class TetrisGame {
         while (CanMoveCurrentTo(0, 1)) {
             _tetrominoPoint.Y++;
             dropDistance++;
-        }
-        
-        // Reset rotation tracking on hard drop movement (specification requirement)
-        if (dropDistance > 0) {
-            _currentTetromino.ResetRotationTracking();
         }
         
         UpdateCachedValues();
@@ -566,9 +536,6 @@ public class TetrisGame {
         if (_timingManager.ShouldDropPiece((int)_level)) {
             if (CanMoveCurrentTo(0, 1)) {
                 _tetrominoPoint.Y++;
-                
-                // Reset rotation tracking on gravity movement (specification requirement)
-                _currentTetromino.ResetRotationTracking();
                 
                 UpdateCachedValues();
                 // Notify timing manager of gravity step (piece didn't collide)

@@ -10,6 +10,7 @@ public class Z : Tetromino {
     private const string Shape = "Z";
     private readonly byte _id = GetTileId(Shape);
     private int _rotation;
+    private Point _lastKickOffset;
     private bool[][] _matrix = [
         [false, true, true],
         [true, true, false],
@@ -71,14 +72,17 @@ public class Z : Tetromino {
 
         // Try wall kick for standard pieces
         var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, newRotation, false);
-        if (newPosition.HasValue) {
+        var kickOffset = newPosition.HasValue ? new Point(newPosition.Value.X - currentPoint.X, newPosition.Value.Y - currentPoint.Y) : new Point(0, 0);
+        _lastKickOffset = kickOffset;
+        if (newPosition.HasValue)
+        {
             var wasWallKick = !newPosition.Value.Equals(currentPoint);
             _rotation = newRotation;
             _matrix = newMatrix;
-            
+
             // Check for Z-Spin after successful rotation
             var isSpin = wasWallKick && IsSpin(grid, newPosition.Value);
-            
+
             return (newPosition.Value, isSpin);
         }
         return (null, false);
@@ -130,16 +134,13 @@ public class Z : Tetromino {
     public override int GetRotationState() {
         return _rotation;
     }
-    
-    private new List<Point> GetPieceCoordinates(Point pivot) {
-        var coords = new List<Point>();
-        for (int y = 0; y < _matrix.Length; y++) {
-            for (int x = 0; x < _matrix[y].Length; x++) {
-                if (_matrix[y][x]) {
-                    coords.Add(new Point(pivot.X + x, pivot.Y + y));
-                }
-            }
-        }
-        return coords;
+
+    public override void ResetOrientation() {
+        _rotation = 0;
+        _matrix = _rotations[_rotation];
+    }
+
+    public override Point GetLastKickOffset() {
+        return _lastKickOffset;
     }
 }

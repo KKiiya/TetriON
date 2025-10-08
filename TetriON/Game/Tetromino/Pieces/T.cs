@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using TetriON.Game;
 
@@ -11,6 +12,8 @@ public class T : Tetromino {
     private const string Shape = "T";
     private readonly byte _id = GetTileId(Shape);
     private int _rotation;
+    private Point _lastKickOffset;
+    
     private bool[][] _matrix = [
         [false, true, false],
         [true, true, true],
@@ -80,17 +83,62 @@ public class T : Tetromino {
         if (newPosition.HasValue) {
             // Calculate kick offset for T-Spin detection
             var kickOffset = new Point(newPosition.Value.X - currentPoint.X, newPosition.Value.Y - currentPoint.Y);
+            _lastKickOffset = kickOffset;
             
+            // Check if this was actually a wall kick (piece moved from original position)
+            var wasWallKick = !newPosition.Value.Equals(currentPoint);
+
             // Update rotation state
             _rotation = newRotation;
             _matrix = newMatrix;
             
-            TetriON.DebugLog($"T-piece rotation: {previousRotation} -> {newRotation}, kick offset: ({kickOffset.X}, {kickOffset.Y})");
+            // For now, let's use a simpler approach similar to other pieces
+            // Only consider it a T-Spin if there was a wall kick (piece actually moved)
+            // The actual T-Spin detection will be handled when the piece locks
+            var isTSpin = wasWallKick && IsSpin(grid, newPosition.Value);
             
-            // Return indication of potential T-Spin (any successful rotation with kick)
-            return (newPosition.Value, true); // Always return true for T-piece rotations that succeed
+            return (newPosition.Value, isTSpin);
         }
         return (null, false);
+    }
+    
+    private bool IsSpin(Grid grid, Point pivot) {
+        // T-Spin detection: check if piece is immobilized in basic directions
+        // Get all coordinates of the current piece
+        var pieceCoords = GetPieceCoordinates(pivot);
+        
+        // Define the four directions: right, down, left, up
+        var directions = new Point[] { 
+            new(1, 0),   // Right
+            new(0, 1),   // Down
+            new(-1, 0),  // Left
+            new(0, -1)   // Up
+        };
+        
+        // Check if moving the piece in ANY direction would cause a collision
+        // If ALL directions are blocked, it's a valid T-spin (same logic as Z-piece)
+        foreach (var direction in directions) {
+            // Check if moving the piece in this direction would be valid
+            bool canMoveInThisDirection = true;
+            foreach (var coord in pieceCoords) {
+                var newX = coord.X + direction.X;
+                var newY = coord.Y + direction.Y;
+                
+                // If any mino of the piece would collide, this direction is blocked
+                if (!grid.IsCellEmpty(newX, newY)) {
+                    canMoveInThisDirection = false;
+                    break;
+                }
+            }
+            
+            // If we can move in any direction, it's not a spin
+            if (canMoveInThisDirection) {
+                return false;
+            }
+        }
+        
+        // All directions are blocked, it's a valid T-spin
+        return true;
     }
     
     /// <summary>
@@ -108,11 +156,12 @@ public class T : Tetromino {
         return new Point(position.X + 1, position.Y + 1);
     }
     
-    /// <summary>
-    /// Reset rotation tracking when piece moves (specification requirement)
-    /// </summary>
-    public override void ResetRotationTracking() {
-        base.ResetRotationTracking();
-        TetriON.DebugLog("T-piece: Reset rotation tracking due to non-rotation move");
+    public override void ResetOrientation() {
+        _rotation = 0;
+        _matrix = _rotations[_rotation];
+    }
+
+    public override Point GetLastKickOffset() {
+        return _lastKickOffset;
     }
 }
