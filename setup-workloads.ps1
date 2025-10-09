@@ -64,7 +64,7 @@ foreach ($workload in $workloads) {
     
     # Skip if already installed and not forcing
     if ((Test-WorkloadInstalled $workload.Id) -and -not $Force) {
-        Write-Host "  ✓ $($workload.Name) workload already installed (use -Force to reinstall)" -ForegroundColor Green
+        Write-Host "  * $($workload.Name) workload already installed (use -Force to reinstall)" -ForegroundColor Green
         $success++
         continue
     }
@@ -79,17 +79,17 @@ foreach ($workload in $workloads) {
         dotnet workload install $workload.Id --verbosity quiet
         
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "  ✓ $($workload.Name) workload installed successfully" -ForegroundColor Green
+            Write-Host "  * $($workload.Name) workload installed successfully" -ForegroundColor Green
             $success++
         } else {
-            Write-Host "  ✗ Failed to install $($workload.Name) workload (exit code: $LASTEXITCODE)" -ForegroundColor Red
+            Write-Host "  X Failed to install $($workload.Name) workload (exit code: $LASTEXITCODE)" -ForegroundColor Red
             if ($workload.Required) {
                 Write-Host "    This is a required workload for mobile builds" -ForegroundColor Red
             }
             $failed++
         }
     } catch {
-        Write-Host "  ✗ Exception installing $($workload.Name) workload: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "  X Exception installing $($workload.Name) workload: $($_.Exception.Message)" -ForegroundColor Red
         $failed++
     }
 }
@@ -102,10 +102,10 @@ Write-Host "Successfully installed: $success" -ForegroundColor Green
 Write-Host "Failed installations: $failed" -ForegroundColor $(if ($failed -gt 0) { "Red" } else { "Green" })
 
 if ($failed -eq 0) {
-    Write-Host "`n✓ All workloads installed successfully!" -ForegroundColor Green
+    Write-Host "`n* All workloads installed successfully!" -ForegroundColor Green
     Write-Host "You can now run './build-all.ps1' to build for all platforms." -ForegroundColor Cyan
 } else {
-    Write-Host "`n⚠ Some workloads failed to install" -ForegroundColor Yellow
+    Write-Host "`n! Some workloads failed to install" -ForegroundColor Yellow
     Write-Host "You can still build for desktop platforms using './build-desktop.ps1'" -ForegroundColor Cyan
     Write-Host "Or retry this setup with elevated permissions" -ForegroundColor Yellow
 }
