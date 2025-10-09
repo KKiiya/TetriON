@@ -23,7 +23,7 @@ function Install-WorkloadIfNeeded {
         Write-Host "$displayName workload already installed" -ForegroundColor Green
         return $true
     } else {
-        Write-Host "ERROR! $displayName workload not installed!" -ForegroundColor Red
+        Write-Host "$displayName workload not installed!" -ForegroundColor Red
         return $false
     }
 }
@@ -115,8 +115,8 @@ if (Install-WorkloadIfNeeded "android" "Android") {
         Write-Host "Android build error: $($_.Exception.Message)" -ForegroundColor Red
     }
 } else {
-    $buildResults += "⚠ Android: SKIPPED (workload installation failed)"
-    Write-Host "Skipping Android build - workload installation failed" -ForegroundColor Yellow
+    $buildResults += "⚠ Android: SKIPPED (workload installation required)"
+    Write-Host "Skipping Android build - workload installation required" -ForegroundColor Yellow
 }
 
 # iOS builds require macOS
