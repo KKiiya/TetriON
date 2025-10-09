@@ -66,6 +66,7 @@ public class GridPresets {
             PresetType.Empty => new bool[rows, cols],
             PresetType.TSpinSetup => GenerateTSpinSetupPreset(rows, cols),
             PresetType.LSpinSetup => GenerateLSpinSetup(rows, cols),
+            PresetType.JSpinSetup => GenerateLSpinSetup(rows, cols), // Mirror of L-Spin
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
         };
     }

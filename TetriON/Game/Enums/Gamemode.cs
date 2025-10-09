@@ -59,7 +59,19 @@ namespace TetriON.Game.Enums {
         
         /// <summary>Master T-spin techniques</summary>
         TSpin,
-        
+
+        /// <summary>Master S-spin techniques</summary>
+        SSpin,
+
+        /// <summary>Master Z-spin techniques</summary>
+        ZSpin,
+
+        /// <summary>Master L-spin techniques</summary>
+        LSpin,
+
+        /// <summary>Master J-spin techniques</summary>
+        JSpin,
+
         /// <summary>Practice perfect clears</summary>
         PerfectClear,
         

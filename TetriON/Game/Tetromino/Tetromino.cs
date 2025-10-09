@@ -228,7 +228,7 @@ public abstract class Tetromino {
     /// <returns></returns>
     public abstract void SetRotationState(int rotation);
 
-    public virtual (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection direction) {
+    public virtual (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection direction, GameSettings gameSettings) {
         var oldRotation = GetRotationState();
         var newRotation = (oldRotation + (int)direction + 4) % 4;
         var newMatrix = GetRotations()[newRotation];
@@ -244,6 +244,7 @@ public abstract class Tetromino {
 
         // If in-place rotation failed, try wall kicks
         var isI = GetShape() == "I";
+        if (!gameSettings.EnableWallKicks) return (null, false);
         var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, newRotation, isI);
         if (newPosition.HasValue) {
             var kickOffset = new Point(newPosition.Value.X - currentPoint.X, newPosition.Value.Y - currentPoint.Y);

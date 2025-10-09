@@ -35,9 +35,9 @@ public class TimingManager {
     public TimingManager(GameSettings gameSettings = null) {
         _gameSettings = gameSettings;
         Reset();
-        // Initialize modern lock delay system
-        _lockDelayLimit = GameTiming.LockDelay;
-        _resetCounterLimit = GameTiming.MaxLockResets;
+        // Initialize modern lock delay system using GameSettings values
+        _lockDelayLimit = (_gameSettings?.LockDelay / 1000.0f) ?? GameTiming.LockDelay;
+        _resetCounterLimit = _gameSettings?.MaxLockResets ?? 15;
         InitializePiece();
     }
     
@@ -88,7 +88,17 @@ public class TimingManager {
     /// Check if enough time has passed for natural piece drop based on level.
     /// </summary>
     public bool ShouldDropPiece(int level) {
-        var fallInterval = GameTiming.GetFallInterval(level);
+        float fallInterval;
+        
+        // Use GameSettings.Gravity if available, otherwise use level-based system
+        if (_gameSettings?.Gravity != null && _gameSettings.Gravity > 0) {
+            // Convert milliseconds to seconds
+            fallInterval = _gameSettings.Gravity / 1000.0f;
+        } else {
+            // Fall back to level-based gravity system  
+            fallInterval = GameTiming.GetFallInterval(level);
+        }
+        
         if (_pieceDropTimer >= fallInterval) {
             _pieceDropTimer -= fallInterval; // Maintain precision
             return true;

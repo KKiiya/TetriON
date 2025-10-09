@@ -35,7 +35,7 @@ public class O : Tetromino
         ]
     };
 
-    public override (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection direction) {
+    public override (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection direction, GameSettings settings) {
         return (currentPoint, false); // O-piece does not rotate
     }
     

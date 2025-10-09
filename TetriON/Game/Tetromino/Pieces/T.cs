@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 
 namespace TetriON.game.tetromino.pieces;
@@ -41,7 +42,7 @@ public class T : Tetromino {
     };
 
 
-    public override (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection direction) {
+    public override (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection direction, GameSettings settings) {
         var oldRotation = GetRotationState();
         var newRotation = (oldRotation + (int)direction + 4) % 4;
         var newMatrix = _rotations[newRotation];
@@ -58,6 +59,10 @@ public class T : Tetromino {
         }
 
         // If in-place rotation failed, try wall kicks
+        if (!settings.EnableWallKicks) {
+            TetriON.DebugLog($"T-piece: Rotation failed - wall kicks disabled");
+            return (null, false);
+        }
         var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, newRotation, false);
         if (newPosition.HasValue) {
             var kickOffset = new Point(newPosition.Value.X - currentPoint.X, newPosition.Value.Y - currentPoint.Y);
@@ -68,8 +73,11 @@ public class T : Tetromino {
             _matrix = newMatrix;
 
             // Check for T-Spin (only happens with wall kicks)
-            var isTSpin = CheckTSpin(grid, newPosition.Value, oldRotation, newRotation, kickOffset);
+            var pivot = GetRotationCenter(newPosition.Value);
+            var isTSpin = CheckTSpin(grid, pivot, oldRotation, newRotation, kickOffset) && 
+                         (settings.EnableTSpin || settings.EnableAllSpin);
 
+            TetriON.DebugLog($"T-piece: Wall kick successful to ({newPosition.Value.X}, {newPosition.Value.Y}), pivot: ({pivot.X}, {pivot.Y}), T-spin: {isTSpin}");
             return (newPosition.Value, isTSpin);
         }
         
@@ -77,98 +85,100 @@ public class T : Tetromino {
         return (null, false);
     }
 
-    private bool IsSpin(Grid grid, Point pivot) {
-        // T-Spin detection: check if piece is immobilized in basic directions
-        // Get all coordinates of the current piece
-        var pieceCoords = GetPieceCoordinates(pivot);
 
-        // Define the four directions: right, down, left, up
-        var directions = new Point[] {
-            new(1, 0),   // Right
-            new(0, 1),   // Down
-            new(-1, 0),  // Left
-            new(0, -1)   // Up
-        };
-
-        // Check if moving the piece in ANY direction would cause a collision
-        // If ALL directions are blocked, it's a valid T-spin (same logic as Z-piece)
-        foreach (var direction in directions)
-        {
-            // Check if moving the piece in this direction would be valid
-            bool canMoveInThisDirection = true;
-            foreach (var coord in pieceCoords)
-            {
-                var newX = coord.X + direction.X;
-                var newY = coord.Y + direction.Y;
-
-                // If any mino of the piece would collide, this direction is blocked
-                if (!grid.IsCellEmpty(newX, newY))
-                {
-                    canMoveInThisDirection = false;
-                    break;
-                }
-            }
-
-            // If we can move in any direction, it's not a spin
-            if (canMoveInThisDirection)
-            {
-                return false;
-            }
-        }
-
-        // All directions are blocked, it's a valid T-spin
-        return true;
-    }
     
     private static bool CheckTSpin(Grid grid, Point pivot, int fromRotation, int toRotation, Point kickOffset) {
-        // T-spin corner check positions (relative to pivot)
-        var cornerChecks = new Dictionary<int, Point[]> {
-            [0] = [new(-1, -1), new(1, -1), new(-1, 1), new(1, 1)], // 0° corners
-            [1] = [new(1, -1), new(1, 1), new(-1, -1), new(-1, 1)], // 90° corners  
-            [2] = [new(1, 1), new(-1, 1), new(1, -1), new(-1, -1)], // 180° corners
-            [3] = [new(-1, 1), new(-1, -1), new(1, 1), new(1, -1)]  // 270° corners
+        TetriON.DebugLog($"CheckTSpin: pivot=({pivot.X},{pivot.Y}), from={fromRotation}, to={toRotation}, kick=({kickOffset.X},{kickOffset.Y})");
+        
+        // Standard T-spin corner positions relative to pivot (current rotation only)
+        // Using standard Tetris T-spin detection: check 4 corners around the T pivot
+        var corners = new Point[] {
+            new(-1, -1), // Top-left (A)
+            new(1, -1),  // Top-right (B) 
+            new(-1, 1),  // Bottom-left (C)
+            new(1, 1)    // Bottom-right (D)
         };
 
-        var fromChecks = cornerChecks[fromRotation];
-        var toChecks = cornerChecks[toRotation];
-
-        // Check collision at corner positions
-        var collisions = new bool[8];
+        // Check which corners are filled (blocked)
+        var filled = new bool[4];
         for (int i = 0; i < 4; i++) {
-            // Check corners from previous rotation
-            collisions[i] = !grid.IsCellEmpty(pivot.X + fromChecks[i].X, pivot.Y + fromChecks[i].Y);
-            // Check corners from current rotation  
-            collisions[i + 4] = !grid.IsCellEmpty(pivot.X + toChecks[i].X, pivot.Y + toChecks[i].Y);
+            var checkX = pivot.X + corners[i].X;
+            var checkY = pivot.Y + corners[i].Y;
+            filled[i] = !grid.IsCellEmpty(checkX, checkY);
         }
+        
+        TetriON.DebugLog($"CheckTSpin: corner fills=[{string.Join(",", filled)}] (TL,TR,BL,BR)");
 
-        // T-Spin detection logic:
-        // Proper T-Spin: positions 2,3 filled AND (0 OR 1) filled
-        if (collisions[2] && collisions[3] && (collisions[0] || collisions[1])) {
+        // T-spin detection with Mini T-Spin support
+        int filledCount = filled.Count(f => f);
+        
+        // Regular T-Spin: 3 or 4 corners filled
+        if (filledCount >= 3) {
+            TetriON.DebugLog($"CheckTSpin: {filledCount}/4 corners filled, Regular T-spin=true");
             return true;
         }
-
-        // Mini T-Spin: (2 OR 3) filled AND both 0 AND 1 filled
-        if ((collisions[2] || collisions[3]) && collisions[0] && collisions[1]) {
-            // Check if it's a proper mini T-Spin (specific kick conditions)
-            var dx = kickOffset.X;
-            var dy = kickOffset.Y;
-            if ((dx == 1 || dx == -1) && dy == -2) {
+        
+        // Mini T-Spin detection: Only 2 corners filled, but with specific patterns
+        if (filledCount == 2) {
+            // Determine front and back corners based on T-piece orientation
+            bool[] frontCorners = new bool[2];
+            bool[] backCorners = new bool[2];
+            
+            switch (toRotation) {
+                case 0: // T pointing up
+                    frontCorners[0] = filled[0]; // Top-left
+                    frontCorners[1] = filled[1]; // Top-right
+                    backCorners[0] = filled[2];  // Bottom-left
+                    backCorners[1] = filled[3];  // Bottom-right
+                    break;
+                case 1: // T pointing right
+                    frontCorners[0] = filled[1]; // Top-right
+                    frontCorners[1] = filled[3]; // Bottom-right
+                    backCorners[0] = filled[0];  // Top-left
+                    backCorners[1] = filled[2];  // Bottom-left
+                    break;
+                case 2: // T pointing down
+                    frontCorners[0] = filled[2]; // Bottom-left
+                    frontCorners[1] = filled[3]; // Bottom-right
+                    backCorners[0] = filled[0];  // Top-left
+                    backCorners[1] = filled[1];  // Top-right
+                    break;
+                case 3: // T pointing left
+                    frontCorners[0] = filled[0]; // Top-left
+                    frontCorners[1] = filled[2]; // Bottom-left
+                    backCorners[0] = filled[1];  // Top-right
+                    backCorners[1] = filled[3];  // Bottom-right
+                    break;
+            }
+            
+            // Mini T-Spin conditions:
+            // 1. Both front corners filled, OR
+            // 2. One front corner and one back corner filled (diagonal pattern)
+            bool bothFrontFilled = frontCorners[0] && frontCorners[1];
+            bool diagonalPattern = (frontCorners[0] && backCorners[1]) || 
+                                 (frontCorners[1] && backCorners[0]);
+            
+            bool isMiniTSpin = bothFrontFilled || diagonalPattern;
+            
+            TetriON.DebugLog($"CheckTSpin: Mini T-spin check - front={frontCorners[0]},{frontCorners[1]}, back={backCorners[0]},{backCorners[1]}, bothFront={bothFrontFilled}, diagonal={diagonalPattern}, isMini={isMiniTSpin}");
+            
+            if (isMiniTSpin) {
                 return true;
             }
-            // Mark as mini T-Spin (you might want to track this separately)
-            return true;
         }
-
+        
+        TetriON.DebugLog($"CheckTSpin: {filledCount}/4 corners filled, not a T-spin");
         return false;
     }
 
     /// <summary>
     /// Override rotation center for T-piece (specification requirement)
     /// </summary>
-    public override Point GetRotationCenter(Point position)
-    {
+    public override Point GetRotationCenter(Point position) {
         // T-piece rotation center is at (1, 1) in the 3x3 matrix
-        return new Point(position.X + 1, position.Y + 1);
+        var center = new Point(position.X + 1, position.Y + 1);
+        TetriON.DebugLog($"GetRotationCenter: position=({position.X},{position.Y}) -> center=({center.X},{center.Y})");
+        return center;
     }
     
     public override byte GetId() {

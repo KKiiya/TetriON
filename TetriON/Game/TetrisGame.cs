@@ -81,7 +81,7 @@ public class TetrisGame {
     public TetrisGame(TetriON game, GameSettings settings = null) {
         // Create settings if not provided, applying gamemode preset
         _settings = settings ??= new GameSettings();
-        _settings.SetGridPreset(GridPresets.PresetType.Empty);
+        _settings.ApplyGamemodePreset(Gamemode.Marathon);
         var sizeMultiplier = 1f;
         _spriteBatch = game.SpriteBatch;
         _textures["tiles"] = game._skinManager.GetTextureAsset("tiles");
@@ -120,7 +120,7 @@ public class TetrisGame {
         _gameSettings = settings; // Store reference for spawn calculations
         TetriON.DebugLog($"TetrisGame: INITIAL SPAWN - Position: ({_tetrominoPoint.X}, {_tetrominoPoint.Y}), GridWidth: {settings.GridWidth}");
         _timingManager = new TimingManager(settings);
-        _bagRandomizer = new SevenBagRandomizer();
+        _bagRandomizer = new SevenBagRandomizer(null, _gameSettings.EnabledPieceTypes);
 
         // Initialize with proper 7-bag randomizer
         _currentTetromino = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
@@ -160,6 +160,7 @@ public class TetrisGame {
     }
     
     public void Hold() {
+        if (!_gameSettings.EnableHoldPiece) return;
         if (!_canHold || _gameOver) return;
     
         var previousPiece = _currentTetromino.GetType().Name;
@@ -192,22 +193,27 @@ public class TetrisGame {
     public void Rotate(RotationDirection direction) {
         if (_gameOver) return;
         
-        //TetriON.DebugLog($"TetrisGame: Rotate({direction}) called - Current piece: {_currentTetromino.GetShape()} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
+        TetriON.DebugLog($"TetrisGame: Rotate({direction}) called - Current piece: {_currentTetromino.GetShape()} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
         
-        var (newPosition, tSpin) = _currentTetromino.Rotate(_grid, _tetrominoPoint, direction);
+        var (newPosition, tSpin) = _currentTetromino.Rotate(_grid, _tetrominoPoint, direction, _gameSettings);
         if (newPosition.HasValue) {
             _tetrominoPoint = newPosition.Value;
 
             UpdateCachedValues();
 
+            // Set T-spin flag for scoring (respect settings)
+            _lastMoveWasTSpin = tSpin && (_gameSettings.EnableTSpin || _gameSettings.EnableAllSpin);
+
+            TetriON.DebugLog($"TetrisGame: Rotation result - tSpin={tSpin}, EnableTSpin={_gameSettings.EnableTSpin}, EnableAllSpin={_gameSettings.EnableAllSpin}, finalTSpin={_lastMoveWasTSpin}");
+
             // Play appropriate sound based on spin detection from piece rotation
             // tSpin is already correctly determined by the piece's rotation logic
-            if (tSpin) {
+            if (tSpin && (_gameSettings.EnableTSpin || _gameSettings.EnableAllSpin)) {
                 _soundEffects["spin"].Play();
-                //TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
+                TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
             } else {
                 _soundEffects["rotate"].Play();
-                //TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
+                TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
             }
 
             // Handle modern lock delay on player input
@@ -298,6 +304,7 @@ public class TetrisGame {
     }
 
     public void Drop() {
+        if (!_gameSettings.EnableHardDrop) return;
         if (_gameOver) return;
         var dropDistance = 0;
         var startY = _tetrominoPoint.Y;
@@ -515,14 +522,15 @@ public class TetrisGame {
     /// </summary>
     private void PlayLineClearSound(int linesCleared, bool wasTSpin, bool wasDifficult) {
         // Check for perfect clear (all clear) - only check visible playfield, not buffer zone
-        if (_grid.IsPlayfieldEmpty()) {
-            _soundEffects["allclear"].Play();
-            return;
-        }
         
         // T-Spin sounds
         if (wasTSpin) {
             _soundEffects["clearspin"].Play();
+            return;
+        }
+        
+        if (_grid.IsPlayfieldEmpty()) {
+            _soundEffects["allclear"].Play();
             return;
         }
         
@@ -709,7 +717,7 @@ public class TetrisGame {
         // Apply IRS rotation
         for (int i = 0; i < _irsRotation; i++) {
             var spawnPoint = new Point(_gameSettings.GridWidth / 2 - 2, -2);
-            var (rotatedPos, _) = _currentTetromino.Rotate(_grid, spawnPoint, RotationDirection.CW);
+            var (rotatedPos, _) = _currentTetromino.Rotate(_grid, spawnPoint, RotationDirection.CW, _gameSettings);
             // If IRS rotation fails, spawn in original orientation
         }
 
@@ -923,14 +931,16 @@ public class TetrisGame {
         bool softDropPressed = _keyPressed[KeyBind.SoftDrop];
         bool softDropHeld = _keyHeld[KeyBind.SoftDrop];
         
-        if (softDropPressed) {
-            // Immediate response when first pressed
-            MoveDown();
-            // Reset timer to prevent double movement on first frame
-            _timingManager.ResetSoftDropTimer();
-        } else if (softDropHeld && _timingManager.ShouldSoftDrop()) {
-            // Consistent timing for continued holding
-            MoveDown();
+        if (_gameSettings.EnableSoftDrop) {
+            if (softDropPressed) {
+                // Immediate response when first pressed
+                MoveDown();
+                // Reset timer to prevent double movement on first frame
+                _timingManager.ResetSoftDropTimer();
+            } else if (softDropHeld && _timingManager.ShouldSoftDrop()) {
+                // Consistent timing for continued holding
+                MoveDown();
+            }
         }
         
         // Check if soft drop was just released (was held in previous frame but not current frame)
