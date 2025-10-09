@@ -59,7 +59,7 @@ public class T : Tetromino {
             var isTSpin = CheckTSpin(grid, pivot, oldRotation, newRotation, new Point(0, 0)) &&
                          (settings.EnableTSpin || settings.EnableAllSpin);
 
-            TetriON.DebugLog($"T-piece: In-place rotation to ({currentPoint.X}, {currentPoint.Y}), pivot: ({pivot.X}, {pivot.Y}), T-spin: {isTSpin}");
+            //TetriON.DebugLog($"T-piece: In-place rotation to ({currentPoint.X}, {currentPoint.Y}), pivot: ({pivot.X}, {pivot.Y}), T-spin: {isTSpin}");
             return (currentPoint, isTSpin);
         }
 
@@ -82,18 +82,18 @@ public class T : Tetromino {
             var isTSpin = CheckTSpin(grid, pivot, oldRotation, newRotation, kickOffset) &&
                          (settings.EnableTSpin || settings.EnableAllSpin);
 
-            TetriON.DebugLog($"T-piece: Wall kick successful to ({newPosition.Value.X}, {newPosition.Value.Y}), pivot: ({pivot.X}, {pivot.Y}), T-spin: {isTSpin}");
+            //TetriON.DebugLog($"T-piece: Wall kick successful to ({newPosition.Value.X}, {newPosition.Value.Y}), pivot: ({pivot.X}, {pivot.Y}), T-spin: {isTSpin}");
             return (newPosition.Value, isTSpin);
         }
 
-        TetriON.DebugLog($"T-piece: Rotation failed - wall kick returned null");
+        //TetriON.DebugLog($"T-piece: Rotation failed - wall kick returned null");
         return (null, false);
     }
 
 
 
     private static bool CheckTSpin(Grid grid, Point pivot, int fromRotation, int toRotation, Point kickOffset) {
-        TetriON.DebugLog($"CheckTSpin: pivot=({pivot.X},{pivot.Y}), from={fromRotation}, to={toRotation}, kick=({kickOffset.X},{kickOffset.Y})");
+        //TetriON.DebugLog($"CheckTSpin: pivot=({pivot.X},{pivot.Y}), from={fromRotation}, to={toRotation}, kick=({kickOffset.X},{kickOffset.Y})");
 
         // Standard T-spin corner positions relative to pivot (current rotation only)
         // Using standard Tetris T-spin detection: check 4 corners around the T pivot
@@ -112,14 +112,14 @@ public class T : Tetromino {
             filled[i] = !grid.IsCellEmpty(checkX, checkY);
         }
 
-        TetriON.DebugLog($"CheckTSpin: corner fills=[{string.Join(",", filled)}] (TL,TR,BL,BR)");
+        //TetriON.DebugLog($"CheckTSpin: corner fills=[{string.Join(",", filled)}] (TL,TR,BL,BR)");
 
         // T-spin detection with Mini T-Spin support
         int filledCount = filled.Count(f => f);
 
         // Regular T-Spin: 3 or 4 corners filled
         if (filledCount >= 3) {
-            TetriON.DebugLog($"CheckTSpin: {filledCount}/4 corners filled, Regular T-spin=true");
+            //TetriON.DebugLog($"CheckTSpin: {filledCount}/4 corners filled, Regular T-spin=true");
             return true;
         }
 
@@ -165,14 +165,14 @@ public class T : Tetromino {
 
             bool isMiniTSpin = bothFrontFilled || diagonalPattern;
 
-            TetriON.DebugLog($"CheckTSpin: Mini T-spin check - front={frontCorners[0]},{frontCorners[1]}, back={backCorners[0]},{backCorners[1]}, bothFront={bothFrontFilled}, diagonal={diagonalPattern}, isMini={isMiniTSpin}");
+            //TetriON.DebugLog($"CheckTSpin: Mini T-spin check - front={frontCorners[0]},{frontCorners[1]}, back={backCorners[0]},{backCorners[1]}, bothFront={bothFrontFilled}, diagonal={diagonalPattern}, isMini={isMiniTSpin}");
 
             if (isMiniTSpin) {
                 return true;
             }
         }
 
-        TetriON.DebugLog($"CheckTSpin: {filledCount}/4 corners filled, not a T-spin");
+        //TetriON.DebugLog($"CheckTSpin: {filledCount}/4 corners filled, not a T-spin");
         return false;
     }
 
@@ -182,7 +182,7 @@ public class T : Tetromino {
     public override Point GetRotationCenter(Point position) {
         // T-piece rotation center is at (1, 1) in the 3x3 matrix
         var center = new Point(position.X + 1, position.Y + 1);
-        TetriON.DebugLog($"GetRotationCenter: position=({position.X},{position.Y}) -> center=({center.X},{center.Y})");
+        //TetriON.DebugLog($"GetRotationCenter: position=({position.X},{position.Y}) -> center=({center.X},{center.Y})");
         return center;
     }
 
