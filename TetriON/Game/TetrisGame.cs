@@ -176,11 +176,11 @@ public class TetrisGame {
                 _nextTetrominos[i] = _nextTetrominos[i + 1];
             }
             _nextTetrominos[^1] = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
-            TetriON.DebugLog($"TetrisGame: HOLD - Stored {previousPiece}, spawned {_currentTetromino.GetType().Name} from queue");
+            //TetriON.DebugLog($"TetrisGame: HOLD - Stored {previousPiece}, spawned {_currentTetromino.GetType().Name} from queue");
         } else {
             var heldPiece = _holdTetromino.GetType().Name;
             (_holdTetromino, _currentTetromino) = (_currentTetromino, _holdTetromino);
-            TetriON.DebugLog($"TetrisGame: HOLD - Swapped {previousPiece} ↔ {heldPiece}");
+            //TetriON.DebugLog($"TetrisGame: HOLD - Swapped {previousPiece} ↔ {heldPiece}");
         }
 
         _canHold = false;
