@@ -16,26 +16,14 @@ function Test-WorkloadInstalled {
 # Function to install workload if needed
 function Install-WorkloadIfNeeded {
     param($workloadId, $displayName)
-    
+
     Write-Host "Checking $displayName workload..." -ForegroundColor Cyan
-    
+
     if (Test-WorkloadInstalled $workloadId) {
         Write-Host "$displayName workload already installed" -ForegroundColor Green
         return $true
-    }
-    
-    Write-Host "Installing $displayName workload..." -ForegroundColor Yellow
-    try {
-        dotnet workload install $workloadId --verbosity quiet
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "$displayName workload installed successfully" -ForegroundColor Green
-            return $true
-        } else {
-            Write-Host "Failed to install $displayName workload (exit code: $LASTEXITCODE)" -ForegroundColor Red
-            return $false
-        }
-    } catch {
-        Write-Host "Exception installing $displayName workload: $($_.Exception.Message)" -ForegroundColor Red
+    } else {
+        Write-Host "ERROR! $displayName workload not installed!" -ForegroundColor Red
         return $false
     }
 }
@@ -64,7 +52,7 @@ try {
 # Build Linux (x64)
 Write-Host "`nBuilding for Linux x64..." -ForegroundColor Yellow
 try {
-    dotnet build TetriON.Linux/TetriON.Linux.csproj -c Release -p:PublishTrimmed=true -p:PublishReadyToRun=true -r linux-x64 -o builds/linux-x64
+    dotnet publish TetriON/TetriON.csproj -c Release -p:PublishTrimmed=true -p:PublishReadyToRun=true -r linux-x64 -o builds/linux-x64
     if ($LASTEXITCODE -eq 0) {
         $buildResults += "✓ Linux x64: SUCCESS"
         Write-Host "Linux x64 build completed" -ForegroundColor Green
@@ -181,8 +169,8 @@ if (Test-Path "builds") {
         $files = Get-ChildItem $_.FullName -Recurse -File
         $size = ($files | Measure-Object -Property Length -Sum).Sum
         $fileCount = $files.Count
-        $sizeStr = if ($size -gt 1GB) { "{0:N1} GB" -f ($size/1GB) } 
-                   elseif ($size -gt 1MB) { "{0:N1} MB" -f ($size/1MB) } 
+        $sizeStr = if ($size -gt 1GB) { "{0:N1} GB" -f ($size/1GB) }
+                   elseif ($size -gt 1MB) { "{0:N1} MB" -f ($size/1MB) }
                    else { "{0:N0} KB" -f ($size/1KB) }
         Write-Host "  $($_.Name): $sizeStr ($fileCount files)" -ForegroundColor White
     }
