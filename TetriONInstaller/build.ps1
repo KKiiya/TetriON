@@ -37,12 +37,12 @@ Copy-Item "Icon.ico" "..\TetriONInstaller\installer_icon.ico" -Force
 # Build installer
 Write-Host "Building installer..." -ForegroundColor Yellow
 Set-Location "..\TetriONInstaller"
-dotnet publish -c Release --self-contained false -p:PublishSingleFile=true -o $OutputPath
+dotnet publish -c Release -p:PublishSingleFile=true -o $OutputPath
 
 # Build uninstaller
 Write-Host "Building uninstaller..." -ForegroundColor Yellow
 Set-Location "..\TetriONUninstaller"
-$buildResult = dotnet publish -c Release --self-contained false -p:PublishSingleFile=true -o "..\TetriONInstaller\$OutputPath\uninstaller"
+$buildResult = dotnet publish -c Release -p:PublishSingleFile=true -o "..\TetriONInstaller\$OutputPath\uninstaller"
 
 # Copy uninstaller to main output if build succeeded
 Set-Location "..\TetriONInstaller"

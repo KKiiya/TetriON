@@ -3,20 +3,18 @@
 public class Credentials {
     
     public string Username { get; set; }
-    public string Password { get; set; }
     public string Email { get; set; }
     public string Token { get; set; }
     
-    public Credentials(string username, string password, string email, string token) {
+    public Credentials(string username, string email, string token) {
         Username = username;
-        Password = password;
         Email = email;
         Token = token;
     }
-    
-    public Credentials(string username, string password) {
+
+    public Credentials(string username, string email) {
         Username = username;
-        Password = password;
+        Email = email;
     }
     
     public Credentials(string username) {

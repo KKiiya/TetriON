@@ -65,6 +65,8 @@ TetriONInstaller/game_files.zip
 TetriONInstaller/installer_icon.ico
 TetriONInstaller/Uninstaller.csproj
 
+builds/
+
 # Publish outputs (general)
 **/publish/
 publish/

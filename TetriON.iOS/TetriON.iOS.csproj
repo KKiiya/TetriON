@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0-ios</TargetFramework>
+        <SupportedOSPlatformVersion>10.0</SupportedOSPlatformVersion>
+        <ApplicationId>com.yourcompany.tetrion</ApplicationId>
+        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <ApplicationVersion>1</ApplicationVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="MonoGame.Framework.iOS" Version="3.8.2.1105"/>
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.2.1105"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\TetriON\TetriON.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <MonoGameContentReference Include="..\TetriON\Content\Content.mgcb" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Content Include="..\TetriON\skins\**\*">
+            <Link>skins\%(RecursiveDir)%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+</Project>

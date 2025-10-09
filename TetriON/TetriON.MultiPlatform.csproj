@@ -1,0 +1,97 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- Base Configuration -->
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFrameworks>net8.0;net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
+        <RollForward>Major</RollForward>
+        <PublishReadyToRun>true</PublishReadyToRun>
+        <PublishTrimmed>true</PublishTrimmed>
+        <TieredCompilation>false</TieredCompilation>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <!-- Windows/Desktop Configuration -->
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationIcon>Icon.ico</ApplicationIcon>
+        <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    </PropertyGroup>
+
+    <!-- Android Configuration -->
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
+        <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+        <AndroidApplication>true</AndroidApplication>
+        <AndroidSigningKeyStore></AndroidSigningKeyStore>
+        <AndroidSigningStorePass></AndroidSigningStorePass>
+        <AndroidSigningKeyAlias></AndroidSigningKeyAlias>
+        <AndroidSigningKeyPass></AndroidSigningKeyPass>
+    </PropertyGroup>
+
+    <!-- iOS Configuration -->
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-ios'">
+        <SupportedOSPlatformVersion>10.0</SupportedOSPlatformVersion>
+    </PropertyGroup>
+
+    <!-- macOS Configuration -->
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-maccatalyst'">
+        <SupportedOSPlatformVersion>13.1</SupportedOSPlatformVersion>
+    </PropertyGroup>
+
+    <!-- Platform-Specific Assets -->
+    <ItemGroup>
+        <None Remove="Icon.ico"/>
+        <None Remove="Icon.bmp"/>
+    </ItemGroup>
+    
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+        <EmbeddedResource Include="Icon.ico">
+            <LogicalName>Icon.ico</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Icon.bmp">
+            <LogicalName>Icon.bmp</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <!-- Platform-Specific Package References -->
+    
+    <!-- Desktop (Windows/Linux/macOS) -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+        <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.2.1105"/>
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.2.1105"/>
+    </ItemGroup>
+
+    <!-- Android -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
+        <PackageReference Include="MonoGame.Framework.Android" Version="3.8.2.1105"/>
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.2.1105"/>
+    </ItemGroup>
+
+    <!-- iOS -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-ios'">
+        <PackageReference Include="MonoGame.Framework.iOS" Version="3.8.2.1105"/>
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.2.1105"/>
+    </ItemGroup>
+
+    <!-- macOS -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-maccatalyst'">
+        <PackageReference Include="MonoGame.Framework.MacCatalyst" Version="3.8.2.1105"/>
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.2.1105"/>
+    </ItemGroup>
+
+    <!-- Content and Assets -->
+    <ItemGroup>
+        <MonoGameContentReference Include="Content/Content.mgcb" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Content Include="skins/**/*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
+        <Message Text="Restoring dotnet tools" Importance="High"/>
+        <Exec Command="dotnet tool restore"/>
+    </Target>
+</Project>

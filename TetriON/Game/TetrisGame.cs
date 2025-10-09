@@ -199,7 +199,7 @@ public class TetrisGame {
     public void Rotate(RotationDirection direction) {
         if (_gameOver) return;
         
-        TetriON.DebugLog($"TetrisGame: Rotate({direction}) called - Current piece: {_currentTetromino.GetShape()} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
+        //TetriON.DebugLog($"TetrisGame: Rotate({direction}) called - Current piece: {_currentTetromino.GetShape()} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
         
         var (newPosition, tSpin) = _currentTetromino.Rotate(_grid, _tetrominoPoint, direction, _gameSettings);
         if (newPosition.HasValue) {
@@ -210,7 +210,7 @@ public class TetrisGame {
             // Set T-spin flag for scoring (respect settings)
             _lastMoveWasTSpin = tSpin && (_gameSettings.EnableTSpin || _gameSettings.EnableAllSpin);
 
-            TetriON.DebugLog($"TetrisGame: Rotation result - tSpin={tSpin}, EnableTSpin={_gameSettings.EnableTSpin}, EnableAllSpin={_gameSettings.EnableAllSpin}, finalTSpin={_lastMoveWasTSpin}");
+            //TetriON.DebugLog($"TetrisGame: Rotation result - tSpin={tSpin}, EnableTSpin={_gameSettings.EnableTSpin}, EnableAllSpin={_gameSettings.EnableAllSpin}, finalTSpin={_lastMoveWasTSpin}");
 
             // Play appropriate sound based on spin detection from piece rotation
             // tSpin is already correctly determined by the piece's rotation logic
@@ -219,7 +219,7 @@ public class TetrisGame {
                 TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [SPIN]");
             } else {
                 _soundEffects["rotate"].Play();
-                TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
+                //TetriON.DebugLog($"TetrisGame: ROTATE SUCCESS - {_currentTetromino.GetType().Name} to ({_tetrominoPoint.X}, {_tetrominoPoint.Y}) [Normal]");
             }
 
             // Handle modern lock delay on player input
@@ -229,7 +229,7 @@ public class TetrisGame {
                 return;
             }
         } else {
-            TetriON.DebugLog($"TetrisGame: ROTATE FAILED - {_currentTetromino.GetType().Name} could not rotate {direction}");
+            //TetriON.DebugLog($"TetrisGame: ROTATE FAILED - {_currentTetromino.GetType().Name} could not rotate {direction}");
         }
     }
     
