@@ -32,8 +32,8 @@ public class TimingManager {
     private readonly int _resetCounterLimit;       // usually 15
     private bool _isGrounded;             // true if piece is in contact with the stack/floor
 
-    public TimingManager(GameSettings gameSettings = null) {
-        _gameSettings = gameSettings;
+    public TimingManager(TetrisGame game) {
+        _gameSettings = game.GetGameSettings();
         Reset();
         // Initialize modern lock delay system using GameSettings values
         _lockDelayLimit = (_gameSettings?.LockDelay / 1000.0f) ?? GameTiming.LockDelay;

@@ -118,7 +118,7 @@ public class TetrisGame {
 
         _gameSettings = settings; // Store reference for spawn calculations
         TetriON.DebugLog($"TetrisGame: INITIAL SPAWN - Position: ({_tetrominoPoint.X}, {_tetrominoPoint.Y}), GridWidth: {settings.GridWidth}");
-        _timingManager = new TimingManager(settings);
+        _timingManager = new TimingManager(this);
         _bagRandomizer = new SevenBagRandomizer(null, _gameSettings.EnabledPieceTypes);
 
         // Initialize with proper 7-bag randomizer
@@ -280,7 +280,7 @@ public class TetrisGame {
 
     private void Lock() {
         var pieceType = _currentTetromino.GetType().Name;
-        TetriON.DebugLog($"TetrisGame: LOCK - {pieceType} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
+        //TetriON.DebugLog($"TetrisGame: LOCK - {pieceType} at ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
 
         // Place the piece on the grid first
         _grid.PlaceTetromino(_currentTetromino, _tetrominoPoint);
@@ -300,7 +300,7 @@ public class TetrisGame {
             _areInProgress = true;
             _nextPieceReady = false;
             _timingManager.StartAREDelay();
-            TetriON.DebugLog($"TetrisGame: NO LINE CLEAR - Starting ARE delay, combo broken (was {_comboCount})");
+            //TetriON.DebugLog($"TetrisGame: NO LINE CLEAR - Starting ARE delay, combo broken (was {_comboCount})");
 
             // Break combo when no lines are cleared
             if (_comboCount > 0) {
@@ -320,7 +320,7 @@ public class TetrisGame {
         }
 
         UpdateCachedValues();
-        TetriON.DebugLog($"TetrisGame: HARD DROP - {_currentTetromino.GetType().Name} from Y={startY} to Y={_tetrominoPoint.Y}, distance: {dropDistance}");
+        //TetriON.DebugLog($"TetrisGame: HARD DROP - {_currentTetromino.GetType().Name} from Y={startY} to Y={_tetrominoPoint.Y}, distance: {dropDistance}");
 
         // Play hard drop sound
         _soundEffects["harddrop"].Play();
@@ -485,24 +485,24 @@ public class TetrisGame {
         _lines += linesCleared;
 
         // Calculate modern Tetris score
-        var scoreResult = CalculateModernScore(linesCleared, _lastMoveWasTSpin);
-        _score += scoreResult.totalScore;
+        var (totalScore, wasDifficult) = CalculateModernScore(linesCleared, _lastMoveWasTSpin);
+        _score += totalScore;
 
-        TetriON.DebugLog($"ProcessLineClears: Score increased by {scoreResult.totalScore}. Total score: {_score}");
+        TetriON.DebugLog($"ProcessLineClears: Score increased by {totalScore}. Total score: {_score}");
 
         // Play appropriate line clear sound
-        PlayLineClearSound(linesCleared, _lastMoveWasTSpin, scoreResult.wasDifficult);
+        PlayLineClearSound(linesCleared, _lastMoveWasTSpin, wasDifficult);
 
         // Update level progression (variable goal mode: 5 × current level)
         UpdateLevelProgression();
 
         // Update Back-to-Back state
         var previousB2B = _lastClearWasDifficult;
-        _lastClearWasDifficult = scoreResult.wasDifficult;
+        _lastClearWasDifficult = wasDifficult;
 
-        if (scoreResult.wasDifficult && previousB2B) {
-            TetriON.DebugLog($"ProcessLineClears: Back-to-Back bonus applied! Difficult clear: {scoreResult.wasDifficult}");
-        } else if (scoreResult.wasDifficult) {
+        if (wasDifficult && previousB2B) {
+            TetriON.DebugLog($"ProcessLineClears: Back-to-Back bonus applied! Difficult clear: {wasDifficult}");
+        } else if (wasDifficult) {
             TetriON.DebugLog($"ProcessLineClears: Difficult clear registered for future B2B bonus");
         }
 
@@ -517,7 +517,7 @@ public class TetrisGame {
         if (_comboCount >= 1) PlayComboSound(_comboCount);
 
         // Play back-to-back sound if applicable
-        if (scoreResult.wasDifficult && previousB2B) _soundEffects["btb1"].Play();
+        if (wasDifficult && previousB2B) _soundEffects["btb1"].Play();
 
         // Reset T-spin flag after line clear
         _lastMoveWasTSpin = false;
@@ -658,7 +658,7 @@ public class TetrisGame {
         if (_lines >= linesForNextLevel) {
             _level++;
             _soundEffects["levelup"].Play();
-            TetriON.DebugLog($"UpdateLevelProgression: LEVEL UP! {previousLevel} -> {_level} (Lines: {_lines}/{linesForNextLevel})");
+            TetriON.DebugLog($"UpdateLevelProgression: LEVEL UP! {previousLevel} -> {_level} (Lines: {_lines}/{linesForNextLevel}; Gravity: {GameTiming.GetFallInterval((int)_level)} ms)");
         } else {
             var linesNeeded = linesForNextLevel - _lines;
             TetriON.DebugLog($"UpdateLevelProgression: Level {_level} - Progress: {_lines}/{linesForNextLevel} ({linesNeeded} lines needed)");
@@ -732,7 +732,7 @@ public class TetrisGame {
         if (_currentTetromino.GetType().Name == "O") decreasedX -= 1;
         else decreasedX -= 2;
         _tetrominoPoint = new Point(decreasedX, -2); // Spawn slightly above visible area
-        TetriON.DebugLog($"SpawnNextPieceWithIRS: SPAWN - {_currentTetromino.GetType().Name} at Position: ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
+        //TetriON.DebugLog($"SpawnNextPieceWithIRS: SPAWN - {_currentTetromino.GetType().Name} at Position: ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
         _timingManager.Reset();
         _canHold = !_irsHoldRequested; // If hold was requested during ARE, disable hold for this piece
         _areInProgress = false;
