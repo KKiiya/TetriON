@@ -90,20 +90,28 @@ public class TimingManager {
     public bool ShouldDropPiece(int level) {
         float fallInterval;
 
-        // Use GameSettings.Gravity if available, otherwise use level-based system
-        if (_gameSettings?.Gravity != null && _gameSettings.Gravity > 0) {
-            // Convert milliseconds to seconds
-            fallInterval = _gameSettings.Gravity / 1000.0f;
-        } else {
-            // Fall back to level-based gravity system
-            fallInterval = GameTiming.GetFallInterval(level);
-        }
+        // Always use level-based gravity system for dynamic gameplay
+        // This ensures gravity increases as levels progress
+        fallInterval = GameTiming.GetFallInterval(level);
 
         if (_pieceDropTimer >= fallInterval) {
             _pieceDropTimer -= fallInterval; // Maintain precision
             return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// Update gravity settings for a specific level (for debugging/logging purposes).
+    /// </summary>
+    public void UpdateGravityForLevel(int level) {
+        var fallInterval = GameTiming.GetFallInterval(level);
+        var gravitySpeed = GameTiming.GetGravitySpeed(level);
+
+        // Reset piece drop timer to prevent immediate drops after level change
+        _pieceDropTimer = 0f;
+
+        TetriON.DebugLog($"TimingManager: Gravity updated for level {level} - Speed: {gravitySpeed:F2} cells/sec, Interval: {fallInterval:F3} sec");
     }
 
     /// <summary>

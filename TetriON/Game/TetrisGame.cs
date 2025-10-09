@@ -658,7 +658,15 @@ public class TetrisGame {
         if (_lines >= linesForNextLevel) {
             _level++;
             _soundEffects["levelup"].Play();
-            TetriON.DebugLog($"UpdateLevelProgression: LEVEL UP! {previousLevel} -> {_level} (Lines: {_lines}/{linesForNextLevel}; Gravity: {GameTiming.GetFallInterval((int)_level)} ms)");
+
+            // Update gravity timing for the new level
+            _timingManager.UpdateGravityForLevel((int)_level);
+
+            var newGravitySpeed = GameTiming.GetGravitySpeed((int)_level);
+            var newFallInterval = GameTiming.GetFallInterval((int)_level);
+
+            TetriON.DebugLog($"UpdateLevelProgression: LEVEL UP! {previousLevel} -> {_level} (Lines: {_lines}/{linesForNextLevel})");
+            TetriON.DebugLog($"UpdateLevelProgression: New Gravity - Speed: {newGravitySpeed:F2} cells/sec, Interval: {newFallInterval:F3} sec");
         } else {
             var linesNeeded = linesForNextLevel - _lines;
             TetriON.DebugLog($"UpdateLevelProgression: Level {_level} - Progress: {_lines}/{linesForNextLevel} ({linesNeeded} lines needed)");
