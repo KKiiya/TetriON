@@ -55,7 +55,12 @@ public class T : Tetromino {
             _matrix = newMatrix;
             SetLastKickOffset(new Point(0, 0));
             
-            return (currentPoint, false); // No T-spin when rotating in place
+            var pivot = GetRotationCenter(currentPoint);
+            var isTSpin = CheckTSpin(grid, pivot, oldRotation, newRotation, new Point(0, 0)) && 
+                         (settings.EnableTSpin || settings.EnableAllSpin);
+            
+            TetriON.DebugLog($"T-piece: In-place rotation to ({currentPoint.X}, {currentPoint.Y}), pivot: ({pivot.X}, {pivot.Y}), T-spin: {isTSpin}");
+            return (currentPoint, isTSpin);
         }
 
         // If in-place rotation failed, try wall kicks
