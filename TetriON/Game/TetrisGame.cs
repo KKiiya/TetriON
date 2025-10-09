@@ -116,7 +116,6 @@ public class TetrisGame {
         _soundEffects["topout"] = game._skinManager.GetAudioAsset("topout");
         _soundEffects["finish"] = game._skinManager.GetAudioAsset("finish");
 
-        _tetrominoPoint = new Point(settings.GridWidth / 2 - 2, -2); // Start slightly above visible area
         _gameSettings = settings; // Store reference for spawn calculations
         TetriON.DebugLog($"TetrisGame: INITIAL SPAWN - Position: ({_tetrominoPoint.X}, {_tetrominoPoint.Y}), GridWidth: {settings.GridWidth}");
         _timingManager = new TimingManager(settings);
@@ -124,6 +123,10 @@ public class TetrisGame {
 
         // Initialize with proper 7-bag randomizer
         _currentTetromino = SevenBagRandomizer.CreateTetrominoFromType(_bagRandomizer.GetNextPieceType());
+        var decreasedX = _gameSettings.GridWidth / 2;
+        if (_currentTetromino.GetType().Name == "O") decreasedX -= 1;
+        else decreasedX -= 2;
+        _tetrominoPoint = new Point(decreasedX, -2); // Spawn slightly above visible area
         _holdTetromino = null;
         _nextTetrominos = new Tetromino[5];
         for (int i = 0; i < _nextTetrominos.Length; i++) {
@@ -181,7 +184,10 @@ public class TetrisGame {
         }
     
         _canHold = false;
-        _tetrominoPoint = new Point(_gameSettings.GridWidth / 2 - 2, -2); // Spawn slightly above visible area
+        var decreasedX = _gameSettings.GridWidth / 2;
+        if (_currentTetromino.GetType().Name == "O") decreasedX -= 1;
+        else decreasedX -= 2;
+        _tetrominoPoint = new Point(decreasedX, -2); // Spawn slightly above visible area
         _timingManager.InitializePiece(); // New piece, initialize lock delay
         _lastMoveWasTSpin = false;
         
@@ -722,7 +728,10 @@ public class TetrisGame {
         }
 
         // Reset position and state
-        _tetrominoPoint = new Point(_gameSettings.GridWidth / 2 - 2, -2); // Spawn slightly above visible area
+        var decreasedX = _gameSettings.GridWidth / 2;
+        if (_currentTetromino.GetType().Name == "O") decreasedX -= 1;
+        else decreasedX -= 2;
+        _tetrominoPoint = new Point(decreasedX, -2); // Spawn slightly above visible area
         TetriON.DebugLog($"SpawnNextPieceWithIRS: SPAWN - {_currentTetromino.GetType().Name} at Position: ({_tetrominoPoint.X}, {_tetrominoPoint.Y})");
         _timingManager.Reset();
         _canHold = !_irsHoldRequested; // If hold was requested during ARE, disable hold for this piece

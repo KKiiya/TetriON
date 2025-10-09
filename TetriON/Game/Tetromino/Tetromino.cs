@@ -12,10 +12,10 @@ public abstract class Tetromino {
     // Tile ID to name mapping (coloring)
     private static readonly Dictionary<byte, string> Tiles = new() {
         [0x00] = "empty",
-        [0x01] = "Z",
+        [0x01] = "S",
         [0x02] = "L",
         [0x03] = "O",
-        [0x04] = "S",
+        [0x04] = "Z",
         [0x05] = "I",
         [0x06] = "J",
         [0x07] = "T",
