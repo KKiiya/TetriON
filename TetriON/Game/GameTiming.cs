@@ -34,23 +34,28 @@ public static class GameTiming {
     /// <summary>Maximum lock resets allowed per piece (modern Tetris standard)</summary>
     public const int MaxLockResets = 15; // Standard limit for infinite spin prevention
 
-    // === LEVEL PROGRESSION ===
-    /// <summary>Base gravity values per level (cells per second)</summary>
-    private static readonly float[] LevelGravity = [
-        1.0f,     // Level 0-8: 1 cell per second (much more reasonable)
-        1.2f,     // Level 9
-        1.5f,     // Level 10
-        2.0f,     // Level 11
-        2.5f,     // Level 12
-        3.0f,     // Level 13
-        4.0f,     // Level 14
-        5.0f,     // Level 15
-        6.0f,     // Level 16
-        8.0f,     // Level 17
-        10.0f,    // Level 18
-        15.0f,    // Level 19
-        20.0f,    // Level 20+
-    ];
+    /// <summary>
+    /// Calculate authentic Tetris gravity using the standard formula.
+    /// Based on: t = Math.pow(0.8 - 0.007 * (level - 1), level - 1)
+    /// Where t = seconds per cell, then converted to cells per second with 20G cap.
+    /// </summary>
+    public static float CalculateTetrisGravity(int level) {
+        // Clamp level to valid range (1-based for formula)
+        if (level < 1) level = 1;
+
+        // Standard Tetris gravity formula: t = (0.8 - 0.007 * (level - 1)) ^ (level - 1)
+        double baseValue = 0.8 - 0.007 * (level - 1);
+        double exponent = level - 1;
+        double secondsPerCell = Math.Pow(baseValue, exponent);
+
+        // Convert from seconds per cell to cells per second (at 60 FPS reference)
+        double cellsPerSecond = 1.0 / (secondsPerCell * 60.0) * 60.0; // Normalize to cells/second
+
+        // Cap at 20G (20 cells per second) as per standard
+        cellsPerSecond = Math.Min(cellsPerSecond, 20.0);
+
+        return (float)cellsPerSecond;
+    }
 
     #endregion
 
@@ -60,9 +65,7 @@ public static class GameTiming {
     /// Get gravity speed for a specific level (cells per second).
     /// </summary>
     public static float GetGravitySpeed(int level) {
-        if (level < 0) return LevelGravity[0];
-        if (level >= LevelGravity.Length) return LevelGravity[^1];
-        return LevelGravity[level];
+        return CalculateTetrisGravity(level);
     }
 
     /// <summary>
