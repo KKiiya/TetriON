@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 namespace TetriON.game.tetromino.pieces;
 
 public class Z : Tetromino {
-    
+
     private readonly Color _color = Color.Red;
     private const string Shape = "Z";
     private readonly byte _id = GetTileId(Shape);
@@ -16,7 +16,7 @@ public class Z : Tetromino {
         [true, true, false],
         [false, false, false]
     ];
-    
+
     private readonly Dictionary<int, bool[][]> _rotations = new() {
         [0] = [
             [false, true, true],
@@ -39,7 +39,7 @@ public class Z : Tetromino {
             [false, true, false]
         ]
     };
-    
+
     public override byte GetId() {
         return _id;
     }

@@ -7,25 +7,25 @@ using Microsoft.Xna.Framework.Input;
 namespace TetriON.Input.Support;
 
 public class Controller : InputHandler {
-    
+
     public delegate void ThumbStickMovedDelegate(Vector2 position);
     public delegate void TriggerMovedDelegate(float value);
-    
+
     public event ThumbStickMovedDelegate OnThumbStickMoved;
     public event TriggerMovedDelegate OnTriggerMoved;
-    
+
     private GamePadState _currentState;
     private GamePadState _previousState;
-    
+
     public Controller() {
         _currentState = GamePad.GetState(PlayerIndex.One);
         _previousState = _currentState;
     }
-    
+
     protected override void UpdateInputStates(float deltaTime) {
         _previousState = _currentState;
         _currentState = GamePad.GetState(PlayerIndex.One);
-        
+
         if (!_currentState.IsConnected) return;
 
         // Handle button mappings to Keys for integration with InputHandler system
@@ -41,19 +41,19 @@ public class Controller : InputHandler {
         CheckButtonMapping(Buttons.DPadRight, Keys.Right);
         CheckButtonMapping(Buttons.LeftShoulder, Keys.LeftShift);
         CheckButtonMapping(Buttons.RightShoulder, Keys.RightShift);
-        
+
         // Handle analog inputs
         HandleAnalogInputs();
     }
-    
+
     private void CheckButtonMapping(Buttons button, Keys mappedKey) {
         bool isPressed = IsButtonPressed(button);
         bool wasPressed = WasButtonPressed(button);
-        
+
         // Set the key state using the base class method
         SetKeyState(mappedKey, isPressed, wasPressed);
     }
-    
+
     private bool IsButtonPressed(Buttons button) {
         return button switch {
             Buttons.A => _currentState.Buttons.A == ButtonState.Pressed,
@@ -73,7 +73,7 @@ public class Controller : InputHandler {
             _ => false
         };
     }
-    
+
     private bool WasButtonPressed(Buttons button) {
         return button switch {
             Buttons.A => _previousState.Buttons.A == ButtonState.Pressed,
@@ -93,40 +93,40 @@ public class Controller : InputHandler {
             _ => false
         };
     }
-    
+
     private void HandleAnalogInputs() {
         // Thumbsticks
         var leftThumbstick = _currentState.ThumbSticks.Left;
         var rightThumbstick = _currentState.ThumbSticks.Right;
-        
+
         if (leftThumbstick != _previousState.ThumbSticks.Left) {
             OnThumbStickMoved?.Invoke(leftThumbstick);
         }
-        
+
         if (rightThumbstick != _previousState.ThumbSticks.Right) {
             OnThumbStickMoved?.Invoke(rightThumbstick);
         }
-        
+
         // Triggers
         if (Math.Abs(_currentState.Triggers.Left - _previousState.Triggers.Left) > 0.01f) {
             OnTriggerMoved?.Invoke(_currentState.Triggers.Left);
         }
-        
+
         if (Math.Abs(_currentState.Triggers.Right - _previousState.Triggers.Right) > 0.01f) {
             OnTriggerMoved?.Invoke(_currentState.Triggers.Right);
         }
     }
-    
+
     protected override string GetSourceName() => "Controller";
-    
+
     // Override to handle key state changes for mapped controller buttons
     protected override void SetKeyState(Keys key, bool isPressed, bool wasPressed) {
         // Call base implementation to handle all the event raising and state management
         base.SetKeyState(key, isPressed, wasPressed);
     }
-    
+
     public bool IsConnected => _currentState.IsConnected;
-    
+
     private static List<Buttons> GetPressedButtons(GamePadState state) {
         var pressed = new List<Buttons>();
         var buttons = state.Buttons;
@@ -144,12 +144,12 @@ public class Controller : InputHandler {
         AddIfPressed(Buttons.Start, buttons.Start);
         AddIfPressed(Buttons.LeftStick, buttons.LeftStick);
         AddIfPressed(Buttons.RightStick, buttons.RightStick);
-        
+
         AddIfPressed(Buttons.DPadUp, dpad.Up);
         AddIfPressed(Buttons.DPadDown, dpad.Down);
         AddIfPressed(Buttons.DPadLeft, dpad.Left);
         AddIfPressed(Buttons.DPadRight, dpad.Right);
-        
+
         AddIfPressed(Buttons.LeftTrigger, triggers.Left > 0.2f ? ButtonState.Pressed : ButtonState.Released);
         AddIfPressed(Buttons.RightTrigger, triggers.Right > 0.2f ? ButtonState.Pressed : ButtonState.Released);
 

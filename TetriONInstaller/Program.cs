@@ -21,7 +21,7 @@ internal static class Program {
         var principal = new WindowsPrincipal(identity);
         if (!principal.IsInRole(WindowsBuiltInRole.Administrator)) {
             var result = MessageBox.Show(
-                "For the best installation experience, it's recommended to run the installer as Administrator.\n\n"+
+                "For the best installation experience, it's recommended to run the installer as Administrator.\n\n" +
                 "Would you like to restart the installer with elevated privileges?",
                 "Administrator Privileges",
                 MessageBoxButtons.YesNo,

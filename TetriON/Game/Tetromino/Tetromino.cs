@@ -37,8 +37,7 @@ public abstract class Tetromino {
         _ = new Z();
     }
 
-    public void Draw(SpriteBatch spriteBatch, Point location, Texture2D texture, float size)
-    {
+    public void Draw(SpriteBatch spriteBatch, Point location, Texture2D texture, float size) {
         var matrix = GetMatrix();
         var shape = GetShape();
         var tilePosition = GetTilePosition(GetTileId(shape));
@@ -48,10 +47,8 @@ public abstract class Tetromino {
         var scaledSize = (int)(tileSize * size);
         var sourceRect = new Rectangle(tilePosition.X, tilePosition.Y, tileSize, tileSize);
 
-        for (var y = 0; y < matrix.Length; y++)
-        {
-            for (var x = 0; x < matrix[y].Length; x++)
-            {
+        for (var y = 0; y < matrix.Length; y++) {
+            for (var x = 0; x < matrix[y].Length; x++) {
                 if (!matrix[y][x]) continue;
 
                 var destRect = new Rectangle(
@@ -66,8 +63,7 @@ public abstract class Tetromino {
         }
     }
 
-    public void DrawGhost(SpriteBatch spriteBatch, Point location, Texture2D texture, float size)
-    {
+    public void DrawGhost(SpriteBatch spriteBatch, Point location, Texture2D texture, float size) {
         var matrix = GetMatrix();
         var shape = GetShape();
         var tilePosition = GetTilePosition(GetTileId(shape));
@@ -77,10 +73,8 @@ public abstract class Tetromino {
         var scaledSize = (int)(tileSize * size);
         var sourceRect = new Rectangle(tilePosition.X, tilePosition.Y, tileSize, tileSize);
 
-        for (var y = 0; y < matrix.Length; y++)
-        {
-            for (var x = 0; x < matrix[y].Length; x++)
-            {
+        for (var y = 0; y < matrix.Length; y++) {
+            for (var x = 0; x < matrix[y].Length; x++) {
                 if (!matrix[y][x]) continue;
 
                 var destRect = new Rectangle(
@@ -95,33 +89,31 @@ public abstract class Tetromino {
         }
     }
 
-    public static string GetTileName(byte id)
-    {
+    public static string GetTileName(byte id) {
         return Tiles.TryGetValue(id, out var name) ? name : string.Empty;
     }
 
-    public static byte GetTileId(string name)
-    {
+    public static byte GetTileId(string name) {
         return Tiles.FirstOrDefault(kv => kv.Value == name).Key;
     }
 
     public static Point GetTilePosition(byte id) {
         var name = GetTileName(id);
-        
+
         // Return error position if tile ID is not defined
         if (string.IsNullOrEmpty(name)) {
             return new Point(-1, -1);
         }
-        
+
         // Check cache first
         if (_tilePositionsCache.TryGetValue(name, out var cachedPosition)) {
             return cachedPosition;
         }
-        
+
         // Calculate position - assuming tiles are in a single row (12 tiles: 372px ÷ 31px = 12)
         // Each tile is 30px with 1px spacing, so positions are at 0, 31, 62, 93, etc.
         var position = new Point((id - 1) * 31, 0);
-        
+
         // Cache the calculated position
         _tilePositionsCache[name] = position;
         return position;
@@ -130,17 +122,13 @@ public abstract class Tetromino {
     /// <summary>
     /// Get piece coordinates at a specific position for collision detection
     /// </summary>
-    public virtual List<Point> GetPieceCoordinates(Point position, (int dx, int dy)? offset = null)
-    {
+    public virtual List<Point> GetPieceCoordinates(Point position, (int dx, int dy)? offset = null) {
         var coords = new List<Point>();
         var matrix = GetMatrix();
 
-        for (int y = 0; y < matrix.Length; y++)
-        {
-            for (int x = 0; x < matrix[y].Length; x++)
-            {
-                if (matrix[y][x])
-                {
+        for (int y = 0; y < matrix.Length; y++) {
+            for (int x = 0; x < matrix[y].Length; x++) {
+                if (matrix[y][x]) {
                     coords.Add(new Point(position.X + x, position.Y + y));
                 }
             }
@@ -152,17 +140,13 @@ public abstract class Tetromino {
     /// <summary>
     /// Check if piece can fit at specified position
     /// </summary>
-    public virtual bool CanFitAt(Grid grid, Point position)
-    {
+    public virtual bool CanFitAt(Grid grid, Point position) {
         var coords = GetPieceCoordinates(position);
-        foreach (var coord in coords)
-        {
-            if (coord.X < 0 || coord.X >= grid.GetWidth() || coord.Y >= grid.GetHeight())
-            {
+        foreach (var coord in coords) {
+            if (coord.X < 0 || coord.X >= grid.GetWidth() || coord.Y >= grid.GetHeight()) {
                 return false;
             }
-            if (coord.Y >= 0 && grid.GetCell(coord.X, coord.Y) != Grid.EMPTY_CELL)
-            {
+            if (coord.Y >= 0 && grid.GetCell(coord.X, coord.Y) != Grid.EMPTY_CELL) {
                 return false;
             }
         }
@@ -172,8 +156,7 @@ public abstract class Tetromino {
     /// <summary>
     /// Get rotation center position for T-Spin detection
     /// </summary>
-    public virtual Point GetRotationCenter(Point position)
-    {
+    public virtual Point GetRotationCenter(Point position) {
         // Default rotation center is at (1, 1) for 3x3 pieces
         return new Point(position.X + 1, position.Y + 1);
     }
@@ -181,16 +164,14 @@ public abstract class Tetromino {
     /// <summary>
     /// Mechanics state for T-Spin detection
     /// </summary>
-    public static class Mechanics
-    {
+    public static class Mechanics {
         public static bool IsMini { get; set; } = false;
     }
 
     /// <summary>
     /// Collision action types for detailed collision detection
     /// </summary>
-    public enum CollisionAction
-    {
+    public enum CollisionAction {
         RIGHT,
         LEFT,
         DOWN,
@@ -220,7 +201,7 @@ public abstract class Tetromino {
     /// Get current rotation state (0-3)
     /// </summary>
     public abstract int GetRotationState();
-    
+
     /// <summary>
     /// Set current rotation state (0-3)
     /// </summary>
@@ -238,7 +219,7 @@ public abstract class Tetromino {
             // Rotation successful without wall kick
             SetRotationState(newRotation);
             SetLastKickOffset(new Point(0, 0));
-            
+
             return (currentPoint, false); // No spin when rotating in place
         }
 
@@ -256,23 +237,23 @@ public abstract class Tetromino {
 
             return (newPosition.Value, isSpin);
         }
-        
+
         return (null, false);
     }
-    
+
     private bool IsSpin(Grid grid, Point pivot) {
         // All-spin detection: check if piece is completely surrounded in all 4 directions
         // Get all coordinates of the current piece
         var pieceCoords = GetPieceCoordinates(pivot);
-        
+
         // Define the four directions: right, down, left, up
-        var directions = new Point[] { 
+        var directions = new Point[] {
             new(1, 0),   // Right
             new(0, 1),   // Down
             new(-1, 0),  // Left
             new(0, -1)   // Up
         };
-        
+
         // Check if moving the piece in ANY direction would cause a collision
         // If ALL directions are blocked, it's a valid all-spin
         foreach (var direction in directions) {
@@ -281,20 +262,20 @@ public abstract class Tetromino {
             foreach (var coord in pieceCoords) {
                 var newX = coord.X + direction.X;
                 var newY = coord.Y + direction.Y;
-                
+
                 // If any mino of the piece would collide, this direction is blocked
                 if (!grid.IsCellEmpty(newX, newY)) {
                     canMoveInThisDirection = false;
                     break;
                 }
             }
-            
+
             // If we can move in any direction, it's not a spin
             if (canMoveInThisDirection) {
                 return false;
             }
         }
-        
+
         // All directions are blocked, it's a valid spin
         return true;
     }

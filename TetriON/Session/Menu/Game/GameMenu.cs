@@ -7,7 +7,7 @@ using TetriON.Wrappers.Texture;
 namespace TetriON.session.Menu.Game;
 
 public class GameMenu : MenuWrapper {
-    
+
     private readonly TetrisGame _game;
 
     public GameMenu(GameSession session) : base(session) {

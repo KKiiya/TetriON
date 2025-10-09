@@ -2,11 +2,9 @@ using System.Security.Principal;
 
 namespace TetriONUninstaller;
 
-internal static class Program
-{
+internal static class Program {
     [STAThread]
-    static void Main(string[] args)
-    {
+    static void Main(string[] args) {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
 
@@ -19,14 +17,12 @@ internal static class Program
         Application.Run(new UninstallerForm(installPath));
     }
 
-    private static bool CheckAdministratorPrivileges()
-    {
+    private static bool CheckAdministratorPrivileges() {
         using var identity = WindowsIdentity.GetCurrent();
         var principal = new WindowsPrincipal(identity);
         bool isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
 
-        if (!isAdmin)
-        {
+        if (!isAdmin) {
             var result = MessageBox.Show(
                 "TetriON Uninstaller works best when run as administrator.\n\n" +
                 "Would you like to restart as administrator?",
@@ -34,12 +30,9 @@ internal static class Program
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
 
-            if (result == DialogResult.Yes)
-            {
-                try
-                {
-                    var startInfo = new System.Diagnostics.ProcessStartInfo
-                    {
+            if (result == DialogResult.Yes) {
+                try {
+                    var startInfo = new System.Diagnostics.ProcessStartInfo {
                         FileName = Application.ExecutablePath,
                         UseShellExecute = true,
                         Verb = "runas"
@@ -47,9 +40,7 @@ internal static class Program
 
                     System.Diagnostics.Process.Start(startInfo);
                     return false; // Return false to indicate we should exit
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     MessageBox.Show($"Failed to restart as administrator: {ex.Message}",
                         "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return true; // Continue with current privileges

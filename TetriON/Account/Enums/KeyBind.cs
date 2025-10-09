@@ -10,17 +10,17 @@ public enum KeyBind {
     MoveRight,
     SoftDrop,
     HardDrop,
-    
+
     // === ROTATION ===
     RotateClockwise,
     RotateCounterClockwise,
     Rotate180,
-    
+
     // === GAME ACTIONS ===
     Hold,
     Pause,
     Restart,
-    
+
     // === MENU NAVIGATION ===
     MenuUp,
     MenuDown,
@@ -29,13 +29,13 @@ public enum KeyBind {
     MenuSelect,
     MenuBack,
     MenuHome,
-    
+
     // === GAME INTERFACE ===
     ShowStats,
     ToggleGrid,
     ToggleGhost,
     Screenshot,
-    
+
     // === DEBUG/DEV ===
     ToggleDebug,
     ToggleFPS,

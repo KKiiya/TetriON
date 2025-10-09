@@ -7,8 +7,7 @@ using TetriON.Game;
 using TetriON.Game.Enums;
 
 namespace TetriON.game {
-    public class GameSettings
-    {
+    public class GameSettings {
 
         #region Core Game Configuration
 
@@ -75,8 +74,7 @@ namespace TetriON.game {
         /// <summary>
         /// Create default GameSettings for Marathon mode
         /// </summary>
-        public GameSettings()
-        {
+        public GameSettings() {
             // Default constructor uses Marathon preset
             ApplyGamemodePreset(Gamemode.Marathon);
         }
@@ -84,8 +82,7 @@ namespace TetriON.game {
         /// <summary>
         /// Create GameSettings with specific gamemode preset
         /// </summary>
-        public GameSettings(Mode mode, Gamemode gamemode)
-        {
+        public GameSettings(Mode mode, Gamemode gamemode) {
             Mode = mode;
             Gamemode = gamemode;
             ApplyGamemodePreset(gamemode);
@@ -94,8 +91,7 @@ namespace TetriON.game {
         /// <summary>
         /// Create GameSettings from another instance (copy constructor)
         /// </summary>
-        public GameSettings(GameSettings other)
-        {
+        public GameSettings(GameSettings other) {
             CopyFrom(other);
         }
 
@@ -106,12 +102,10 @@ namespace TetriON.game {
         /// <summary>
         /// Apply preset settings based on gamemode
         /// </summary>
-        public void ApplyGamemodePreset(Gamemode gamemode)
-        {
+        public void ApplyGamemodePreset(Gamemode gamemode) {
             Gamemode = gamemode;
 
-            switch (gamemode)
-            {
+            switch (gamemode) {
                 // === CLASSIC MODES ===
                 case Gamemode.Marathon:
                     ApplyMarathonPreset();
@@ -207,8 +201,7 @@ namespace TetriON.game {
 
         #region Preset Implementations
 
-        private void ApplyMarathonPreset()
-        {
+        private void ApplyMarathonPreset() {
             StartingLevel = 1;
             TargetLines = 150; // Traditional marathon goal
             TimeLimit = 0; // No time limit
@@ -226,8 +219,7 @@ namespace TetriON.game {
             LockDelay = 500;
         }
 
-        private void ApplySprintPreset(long targetLines)
-        {
+        private void ApplySprintPreset(long targetLines) {
             StartingLevel = 1;
             TargetLines = targetLines;
             TimeLimit = 0; // No time limit, just race to target
@@ -239,8 +231,7 @@ namespace TetriON.game {
             LockDelay = 500;
         }
 
-        private void ApplyUltraPreset(float timeSeconds)
-        {
+        private void ApplyUltraPreset(float timeSeconds) {
             StartingLevel = 1;
             TargetLines = 0; // No line target, just score
             TimeLimit = timeSeconds;
@@ -252,8 +243,7 @@ namespace TetriON.game {
             LockDelay = 500;
         }
 
-        private void ApplyVersusPreset()
-        {
+        private void ApplyVersusPreset() {
             StartingLevel = 1;
             TargetLines = 0; // Battle until opponent tops out
             TimeLimit = 0;
@@ -265,8 +255,7 @@ namespace TetriON.game {
             LockDelay = 500;
         }
 
-        private void ApplyBattleRoyalePreset()
-        {
+        private void ApplyBattleRoyalePreset() {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0; // Last player standing
@@ -278,8 +267,7 @@ namespace TetriON.game {
             LockDelay = 500;
         }
 
-        private void ApplyMasterPreset()
-        {
+        private void ApplyMasterPreset() {
             StartingLevel = 1;
             TargetLines = 0; // Survival mode
             TimeLimit = 0;
@@ -291,8 +279,7 @@ namespace TetriON.game {
             LockDelay = 300; // Faster lock delay for challenge
         }
 
-        private void ApplyDeathPreset()
-        {
+        private void ApplyDeathPreset() {
             StartingLevel = 15; // Start at high speed
             TargetLines = 0;
             TimeLimit = 0;
@@ -304,8 +291,7 @@ namespace TetriON.game {
             LockDelay = 250; // Very fast lock delay
         }
 
-        private void ApplyDigPreset()
-        {
+        private void ApplyDigPreset() {
             StartingLevel = 1;
             TargetLines = 0; // Clear all garbage
             TimeLimit = 0;
@@ -317,8 +303,7 @@ namespace TetriON.game {
             LockDelay = 500;
         }
 
-        private void ApplyPuzzlePreset()
-        {
+        private void ApplyPuzzlePreset() {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
@@ -330,8 +315,7 @@ namespace TetriON.game {
             LockDelay = 1000; // More time to think
         }
 
-        private void ApplyTSpinPreset()
-        {
+        private void ApplyTSpinPreset() {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
@@ -345,8 +329,7 @@ namespace TetriON.game {
             LockDelay = 750; // Extra time for T-spin setups
         }
 
-        private void ApplyZSpinPreset()
-        {
+        private void ApplyZSpinPreset() {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
@@ -360,8 +343,7 @@ namespace TetriON.game {
             LockDelay = 750; // Extra time for Z-spin setups
         }
 
-        private void ApplySSpinPreset()
-        {
+        private void ApplySSpinPreset() {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
@@ -375,8 +357,7 @@ namespace TetriON.game {
             LockDelay = 750; // Extra time for S-spin setups
         }
 
-        private void ApplyJSpinPreset()
-        {
+        private void ApplyJSpinPreset() {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
@@ -390,8 +371,7 @@ namespace TetriON.game {
             LockDelay = 750; // Extra time for J-spin setups
         }
 
-        private void ApplyLSpinPreset()
-        {
+        private void ApplyLSpinPreset() {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
@@ -405,8 +385,7 @@ namespace TetriON.game {
             LockDelay = 750; // Extra time for L-spin setups
         }
 
-        private void ApplyInvisiblePreset()
-        {
+        private void ApplyInvisiblePreset() {
             StartingLevel = 1;
             TargetLines = 40; // Common invisible challenge
             TimeLimit = 0;
@@ -418,8 +397,7 @@ namespace TetriON.game {
             LockDelay = 500;
         }
 
-        private void ApplyBigPreset()
-        {
+        private void ApplyBigPreset() {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
@@ -437,8 +415,7 @@ namespace TetriON.game {
             LockDelay = 750; // More time due to size
         }
 
-        private void ApplyTrainingPreset()
-        {
+        private void ApplyTrainingPreset() {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
@@ -450,8 +427,7 @@ namespace TetriON.game {
             LockDelay = 1000; // Extra time for learning
         }
 
-        private void ApplyDefaultPreset()
-        {
+        private void ApplyDefaultPreset() {
             StartingLevel = 1;
             TargetLines = 0;
             TimeLimit = 0;
@@ -484,8 +460,7 @@ namespace TetriON.game {
         /// <summary>
         /// Copy settings from another GameSettings instance
         /// </summary>
-        public void CopyFrom(GameSettings other)
-        {
+        public void CopyFrom(GameSettings other) {
             Mode = other.Mode;
             Gamemode = other.Gamemode;
             StartingLevel = other.StartingLevel;
@@ -516,10 +491,8 @@ namespace TetriON.game {
         /// <summary>
         /// Get a description of the current gamemode settings
         /// </summary>
-        public string GetGamemodeDescription()
-        {
-            return Gamemode switch
-            {
+        public string GetGamemodeDescription() {
+            return Gamemode switch {
                 Gamemode.Marathon => $"Marathon - Reach {TargetLines} lines",
                 Gamemode.Sprint20 => "Sprint - Clear 20 lines as fast as possible",
                 Gamemode.Sprint40 => "Sprint - Clear 40 lines as fast as possible",
@@ -557,8 +530,7 @@ namespace TetriON.game {
         /// Set the grid preset for the current gamemode
         /// </summary>
         /// <param name="presetType">The grid preset to use</param>
-        public void SetGridPreset(GridPresets.PresetType presetType)
-        {
+        public void SetGridPreset(GridPresets.PresetType presetType) {
             GridPreset = presetType;
         }
 
@@ -566,19 +538,17 @@ namespace TetriON.game {
         /// Get all available grid presets
         /// </summary>
         /// <returns>Array of all available preset types</returns>
-        public static GridPresets.PresetType[] GetAvailableGridPresets()
-        {
+        public static GridPresets.PresetType[] GetAvailableGridPresets() {
             return (GridPresets.PresetType[])Enum.GetValues(typeof(GridPresets.PresetType));
         }
 
         /// <summary>
         /// Validate that settings are reasonable
         /// </summary>
-        public bool IsValid()
-        {
+        public bool IsValid() {
             return StartingLevel >= 0 && StartingLevel <= 30 &&
                    GridWidth >= 4 && GridWidth <= 20 &&           // Reasonable grid width limits
-                   GridHeight >= 10 && GridHeight <= 40 &&        // Reasonable grid height limits  
+                   GridHeight >= 10 && GridHeight <= 40 &&        // Reasonable grid height limits
                    BufferZoneHeight >= 4 && BufferZoneHeight <= 40 && // Buffer zone limits
                    DAS >= 10 && DAS <= 1000 &&
                    ARR >= 1 && ARR <= 500 &&
@@ -597,8 +567,7 @@ namespace TetriON.game {
         /// <summary>
         /// Game mode configuration data structure
         /// </summary>
-        public class GameModeConfig
-        {
+        public class GameModeConfig {
             public Dictionary<string, object> Settings { get; set; } = new();
             public Dictionary<string, object> Handling { get; set; } = new();
             public string DisplayName { get; set; } = "";

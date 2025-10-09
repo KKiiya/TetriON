@@ -11,7 +11,7 @@ namespace TetriON.Session.Menu.MainMenu;
 public class MainMenu : MenuWrapper {
 
     private readonly SkinManager _skinManager;
-    
+
     public MainMenu(GameSession gameSession) : base(gameSession) {
         _skinManager = gameSession.GetSkinManager();
         var singleplayerButton = new SingleplayerB(this, new Vector2(0.5f, 0.4f));

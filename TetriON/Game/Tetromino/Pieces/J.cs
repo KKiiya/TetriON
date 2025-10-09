@@ -41,28 +41,23 @@ public class J : Tetromino {
     };
 
 
-    public override byte GetId()
-    {
+    public override byte GetId() {
         return _id;
     }
 
-    public override Color GetColor()
-    {
+    public override Color GetColor() {
         return _color;
     }
 
-    public override string GetShape()
-    {
+    public override string GetShape() {
         return Shape;
     }
 
-    public override bool[][] GetMatrix()
-    {
+    public override bool[][] GetMatrix() {
         return _matrix;
     }
 
-    public override int GetRotationState()
-    {
+    public override int GetRotationState() {
         return _rotation;
     }
 
@@ -71,8 +66,7 @@ public class J : Tetromino {
         _matrix = _rotations[_rotation];
     }
 
-    public override void ResetOrientation()
-    {
+    public override void ResetOrientation() {
         _rotation = 0;
         _matrix = _rotations[_rotation];
     }
@@ -85,8 +79,7 @@ public class J : Tetromino {
         _lastKickOffset = offset;
     }
 
-    public override Dictionary<int, bool[][]> GetRotations()
-    {
+    public override Dictionary<int, bool[][]> GetRotations() {
         return _rotations;
     }
 }

@@ -12,12 +12,12 @@ namespace TetriON.Game;
 public class SevenBagRandomizer {
     private readonly Random _random;
     private readonly Queue<Type> _bag = new();
-    
+
     // All 7 standard Tetris piece types (default)
     private static readonly Type[] DefaultPieceTypes = [
         typeof(I), typeof(J), typeof(L), typeof(O), typeof(S), typeof(T), typeof(Z)
     ];
-    
+
     private readonly Type[] _pieceTypes;
 
     public SevenBagRandomizer(Random random = null, Type[] enabledPieceTypeNames = null) {
@@ -27,7 +27,7 @@ public class SevenBagRandomizer {
             : DefaultPieceTypes;
         RefillBag();
     }
-    
+
     /// <summary>
     /// Get the next piece from the 7-bag sequence.
     /// Automatically refills the bag when empty.
@@ -36,21 +36,21 @@ public class SevenBagRandomizer {
         if (_bag.Count == 0) {
             RefillBag();
         }
-        
+
         return _bag.Dequeue();
     }
-    
+
     /// <summary>
     /// Peek at the next N piece types without consuming them.
     /// Useful for displaying upcoming pieces.
     /// </summary>
     public Type[] PeekNextPieceTypes(int count) {
         if (count <= 0) return [];
-        
+
         var result = new Type[count];
         var tempBag = new Queue<Type>(_bag);
         var index = 0;
-        
+
         while (index < count) {
             if (tempBag.Count == 0) {
                 // Simulate refilling the bag
@@ -59,13 +59,13 @@ public class SevenBagRandomizer {
                     tempBag.Enqueue(pieceType);
                 }
             }
-            
+
             result[index++] = tempBag.Dequeue();
         }
-        
+
         return result;
     }
-    
+
     /// <summary>
     /// Reset the bag to a fresh state.
     /// </summary>
@@ -73,61 +73,60 @@ public class SevenBagRandomizer {
         _bag.Clear();
         RefillBag();
     }
-    
+
     /// <summary>
     /// Get the number of pieces remaining in the current bag.
     /// </summary>
     public int RemainingInBag => _bag.Count;
-    
+
     /// <summary>
     /// Check if the bag is empty and needs refilling.
     /// </summary>
     public bool IsBagEmpty => _bag.Count == 0;
-    
+
     private void RefillBag() {
         _bag.Clear();
         var shuffledBag = CreateShuffledBag();
-        
+
         foreach (var pieceType in shuffledBag) {
             _bag.Enqueue(pieceType);
         }
     }
-    
+
     private Type[] CreateShuffledBag() {
         var shuffledBag = new Type[_pieceTypes.Length];
         Array.Copy(_pieceTypes, shuffledBag, _pieceTypes.Length);
 
         // Fisher-Yates shuffle algorithm
-        for (var i = shuffledBag.Length - 1; i > 0; i--)
-        {
+        for (var i = shuffledBag.Length - 1; i > 0; i--) {
             var j = _random.Next(i + 1);
             (shuffledBag[i], shuffledBag[j]) = (shuffledBag[j], shuffledBag[i]);
         }
 
         return shuffledBag;
     }
-    
+
     /// <summary>
     /// Get statistics about piece distribution for debugging.
     public Dictionary<Type, int> GetDistributionStats() {
         var stats = new Dictionary<Type, int>();
-        
-        foreach (var pieceType in _pieceTypes)  {
+
+        foreach (var pieceType in _pieceTypes) {
             stats[pieceType] = 0;
         }
-        
-        foreach (var pieceType in _bag)  {
+
+        foreach (var pieceType in _bag) {
             stats[pieceType]++;
         }
-        
+
         return stats;
     }
-    
+
     /// <summary>
     /// Create a Tetromino instance from a piece type.
     /// This method handles the mapping from Type to actual Tetromino instances.
     /// </summary>
-    public static Tetromino CreateTetrominoFromType(Type pieceType)  {
+    public static Tetromino CreateTetrominoFromType(Type pieceType) {
         return pieceType.Name switch {
             nameof(I) => new I(),
             nameof(J) => new J(),

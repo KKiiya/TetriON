@@ -15,13 +15,11 @@ namespace TetriON.Android;
     ScreenOrientation = ScreenOrientation.FullUser,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenSize
 )]
-public class Activity1 : AndroidGameActivity
-{
+public class Activity1 : AndroidGameActivity {
     private TetriON _game;
     private View _view;
 
-    protected override void OnCreate(Bundle bundle)
-    {
+    protected override void OnCreate(Bundle bundle) {
         base.OnCreate(bundle);
 
         _game = new TetriON();

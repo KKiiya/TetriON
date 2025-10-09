@@ -97,21 +97,17 @@ public class Grid {
 
         // Store the pending garbage and animation settings
         _pendingGarbage = new byte[rows, cols];
-        for (var y = 0; y < rows; y++)
-        {
-            for (var x = 0; x < cols; x++)
-            {
+        for (var y = 0; y < rows; y++) {
+            for (var x = 0; x < cols; x++) {
                 _pendingGarbage[y, x] = layout[y, x];
             }
         }
 
         // Store current grid state for animation interpolation
         _preAnimationGrid = new byte[_width][];
-        for (var x = 0; x < _width; x++)
-        {
+        for (var x = 0; x < _width; x++) {
             _preAnimationGrid[x] = new byte[_totalHeight];
-            for (var y = 0; y < _totalHeight; y++)
-            {
+            for (var y = 0; y < _totalHeight; y++) {
                 _preAnimationGrid[x][y] = _grid[x][y];
             }
         }
@@ -125,15 +121,12 @@ public class Grid {
         ApplyGarbageToGrid(layout);
     }
 
-    private void ApplyGarbageToGrid(byte[,] layout)
-    {
+    private void ApplyGarbageToGrid(byte[,] layout) {
         var rows = layout.GetLength(0);
 
         // Shift existing rows up to make space for new garbage
-        for (var y = 0; y < _height - rows; y++)
-        {
-            for (var x = 0; x < _width; x++)
-            {
+        for (var y = 0; y < _height - rows; y++) {
+            for (var x = 0; x < _width; x++) {
                 var sourceY = y + rows + _bufferZoneHeight;
                 var destY = y + _bufferZoneHeight;
                 _grid[x][destY] = _grid[x][sourceY];
@@ -141,13 +134,10 @@ public class Grid {
         }
 
         // Add new garbage rows at the bottom (only non-empty cells)
-        for (var y = 0; y < rows; y++)
-        {
-            for (var x = 0; x < _width; x++)
-            {
+        for (var y = 0; y < rows; y++) {
+            for (var x = 0; x < _width; x++) {
                 var cellValue = layout[y, x];
-                if (cellValue != EMPTY_CELL)
-                {
+                if (cellValue != EMPTY_CELL) {
                     var gridY = _height - rows + y + _bufferZoneHeight;
                     _grid[x][gridY] = cellValue;
                 }
@@ -155,12 +145,10 @@ public class Grid {
         }
     }
 
-    public bool SetCell(int x, int y, byte color)
-    {
+    public bool SetCell(int x, int y, byte color) {
         // Convert to buffer zone coordinates (negative Y values are in buffer zone)
         var gridY = y + _bufferZoneHeight;
-        if (x < 0 || x >= _width || gridY < 0 || gridY >= _totalHeight)
-        {
+        if (x < 0 || x >= _width || gridY < 0 || gridY >= _totalHeight) {
             return false;
         }
 
@@ -171,10 +159,8 @@ public class Grid {
     /// <summary>
     /// Set a cell directly in the buffer grid (for pieces that should appear above main grid)
     /// </summary>
-    public bool SetBufferCell(int x, int bufferY, byte color)
-    {
-        if (x < 0 || x >= _width || bufferY < 0 || bufferY >= _bufferZoneHeight)
-        {
+    public bool SetBufferCell(int x, int bufferY, byte color) {
+        if (x < 0 || x >= _width || bufferY < 0 || bufferY >= _bufferZoneHeight) {
             return false;
         }
 
@@ -185,10 +171,8 @@ public class Grid {
     /// <summary>
     /// Get a cell from the buffer grid
     /// </summary>
-    public byte GetBufferCell(int x, int bufferY)
-    {
-        if (x < 0 || x >= _width || bufferY < 0 || bufferY >= _bufferZoneHeight)
-        {
+    public byte GetBufferCell(int x, int bufferY) {
+        if (x < 0 || x >= _width || bufferY < 0 || bufferY >= _bufferZoneHeight) {
             return EMPTY_CELL;
         }
 
@@ -198,8 +182,7 @@ public class Grid {
     /// <summary>
     /// Check if a grid position should be rendered (including buffer zone)
     /// </summary>
-    public bool ShouldRenderPosition(int x, int y)
-    {
+    public bool ShouldRenderPosition(int x, int y) {
         // Position is renderable if it's within grid bounds (including buffer zone)
         var gridY = y + _bufferZoneHeight;
         return x >= 0 && x < _width && gridY >= 0 && gridY < _totalHeight;
@@ -208,59 +191,48 @@ public class Grid {
     /// <summary>
     /// Convert grid coordinate to render pixel position (handles buffer zone)
     /// </summary>
-    public Point GridToRenderPosition(Point gridPos, Point gridLocationPixels, int scaledTileSize)
-    {
+    public Point GridToRenderPosition(Point gridPos, Point gridLocationPixels, int scaledTileSize) {
         return new Point(
             gridLocationPixels.X + gridPos.X * scaledTileSize,
             gridLocationPixels.Y + gridPos.Y * scaledTileSize  // Negative Y will render above visible grid
         );
     }
 
-    public byte GetCell(int x, int y)
-    {
+    public byte GetCell(int x, int y) {
         // Convert to buffer zone coordinates (negative Y values are in buffer zone)
         var gridY = y + _bufferZoneHeight;
-        if (x < 0 || x >= _width || gridY < 0 || gridY >= _totalHeight)
-        {
+        if (x < 0 || x >= _width || gridY < 0 || gridY >= _totalHeight) {
             return EMPTY_CELL; // Return empty for out-of-bounds
         }
         return _grid[x][gridY];
     }
 
-    public int GetWidth()
-    {
+    public int GetWidth() {
         return _width;
     }
 
-    public int GetHeight()
-    {
+    public int GetHeight() {
         return _height;
     }
 
-    public int GetBufferZoneHeight()
-    {
+    public int GetBufferZoneHeight() {
         return _bufferZoneHeight;
     }
 
-    public int GetTotalHeight()
-    {
+    public int GetTotalHeight() {
         return _totalHeight;
     }
 
-    public float GetSizeMultiplier()
-    {
+    public float GetSizeMultiplier() {
         return _sizeMultiplier;
     }
 
-    public int CheckLines()
-    {
+    public int CheckLines() {
         var cleared = 0;
 
         // Check from bottom to top to handle multiple line clears correctly (only visible area)
-        for (var i = _height - 1; i >= 0; i--)
-        {
-            if (IsLineFull(i))
-            {
+        for (var i = _height - 1; i >= 0; i--) {
+            if (IsLineFull(i)) {
                 RemoveLine(i);
                 cleared++;
                 i++; // Check the same line again since rows have shifted down
@@ -272,14 +244,11 @@ public class Grid {
     /// <summary>
     /// Detect full lines without removing them (for line clear animation)
     /// </summary>
-    public int DetectFullLines()
-    {
+    public int DetectFullLines() {
         var count = 0;
 
-        for (var i = 0; i < _height; i++)
-        {
-            if (IsLineFull(i))
-            {
+        for (var i = 0; i < _height; i++) {
+            if (IsLineFull(i)) {
                 count++;
             }
         }
@@ -289,15 +258,12 @@ public class Grid {
     /// <summary>
     /// Actually remove all full lines (called after animation)
     /// </summary>
-    public int ClearFullLines()
-    {
+    public int ClearFullLines() {
         var cleared = 0;
 
         // Check from bottom to top to handle multiple line clears correctly
-        for (var i = _height - 1; i >= 0; i--)
-        {
-            if (IsLineFull(i))
-            {
+        for (var i = _height - 1; i >= 0; i--) {
+            if (IsLineFull(i)) {
                 RemoveLine(i);
                 cleared++;
                 i++; // Check the same line again since rows have shifted down
@@ -306,23 +272,19 @@ public class Grid {
         return cleared;
     }
 
-    private bool IsLineFull(int row)
-    {
+    private bool IsLineFull(int row) {
         if (row < 0 || row >= _height) return false;
 
         var gridY = row + _bufferZoneHeight;
-        for (var x = 0; x < _width; x++)
-        {
-            if (_grid[x][gridY] == EMPTY_CELL)
-            {
+        for (var x = 0; x < _width; x++) {
+            if (_grid[x][gridY] == EMPTY_CELL) {
                 return false;
             }
         }
         return true;
     }
 
-    public void PlaceTetromino(Tetromino tetromino, Point position)
-    {
+    public void PlaceTetromino(Tetromino tetromino, Point position) {
         var matrix = tetromino.GetMatrix();
         var rows = matrix.Length;
         var cols = matrix[0].Length;
@@ -383,7 +345,7 @@ public class Grid {
         }
         return true;
     }
-    
+
     /// <summary>
     /// Check if the visible playfield is empty (for perfect clear detection)
     /// This only checks the visible grid, not the buffer zone
@@ -449,7 +411,7 @@ public class Grid {
 
         _garbageAnimationTimer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
-        if (_garbageAnimationTimer >= _garbageAnimationDuration)  {
+        if (_garbageAnimationTimer >= _garbageAnimationDuration) {
             // Animation complete
             _garbageAnimating = false;
             _garbageAnimationTimer = 0f;
@@ -511,8 +473,7 @@ public class Grid {
         spriteBatch.Draw(_pixelTexture, innerRect, Color.Gray * 0.2f);
 
         // Draw grid lines with better visibility
-        for (var x = 0; x <= _width; x++)
-        {
+        for (var x = 0; x <= _width; x++) {
             var lineRect = new Rectangle(
                 location.X + x * scaledTileSize,
                 location.Y,
@@ -522,8 +483,7 @@ public class Grid {
             spriteBatch.Draw(_pixelTexture, lineRect, Color.Gray * 0.5f);
         }
 
-        for (var y = 0; y <= _height; y++)
-        {
+        for (var y = 0; y <= _height; y++) {
             var lineRect = new Rectangle(
                 location.X,
                 location.Y + y * scaledTileSize,
@@ -537,22 +497,16 @@ public class Grid {
         DrawBufferZone(spriteBatch, location, tiles, scaledTileSize);
 
         // Draw filled cells (only visible area) with animation support
-        if (_garbageAnimating && _preAnimationGrid != null)
-        {
+        if (_garbageAnimating && _preAnimationGrid != null) {
             DrawAnimatedGarbage(spriteBatch, location, tiles, scaledTileSize);
-        }
-        else
-        {
+        } else {
             DrawStaticGrid(spriteBatch, location, tiles, scaledTileSize);
         }
     }
 
-    private void DrawStaticGrid(SpriteBatch spriteBatch, Point location, Texture2D tiles, int scaledTileSize)
-    {
-        for (var x = 0; x < _width; x++)
-        {
-            for (var y = 0; y < _height; y++)
-            {
+    private void DrawStaticGrid(SpriteBatch spriteBatch, Point location, Texture2D tiles, int scaledTileSize) {
+        for (var x = 0; x < _width; x++) {
+            for (var y = 0; y < _height; y++) {
                 // Convert to buffer zone coordinates to access the correct cell
                 var gridY = y + _bufferZoneHeight;
                 var color = _grid[x][gridY];
@@ -577,15 +531,12 @@ public class Grid {
         }
     }
 
-    private void DrawBufferZone(SpriteBatch spriteBatch, Point location, Texture2D tiles, int scaledTileSize)
-    {
+    private void DrawBufferZone(SpriteBatch spriteBatch, Point location, Texture2D tiles, int scaledTileSize) {
         if (_bufferZoneHeight <= 0) return;
 
         // Draw buffer zone content above the main grid
-        for (var x = 0; x < _width; x++)
-        {
-            for (var bufferY = 0; bufferY < _bufferZoneHeight; bufferY++)
-            {
+        for (var x = 0; x < _width; x++) {
+            for (var bufferY = 0; bufferY < _bufferZoneHeight; bufferY++) {
                 // Convert buffer zone coordinates to main grid coordinates
                 var gridY = bufferY; // Buffer zone is at indices 0 to _bufferZoneHeight-1
                 var color = _grid[x][gridY];
@@ -613,8 +564,7 @@ public class Grid {
         }
     }
 
-    private void DrawAnimatedGarbage(SpriteBatch spriteBatch, Point location, Texture2D tiles, int scaledTileSize)
-    {
+    private void DrawAnimatedGarbage(SpriteBatch spriteBatch, Point location, Texture2D tiles, int scaledTileSize) {
         var progress = GetGarbageAnimationProgress();
         var garbageRows = _pendingGarbage?.GetLength(0) ?? 0;
 
@@ -622,10 +572,8 @@ public class Grid {
         var animationOffset = (int)(progress * garbageRows * scaledTileSize);
 
         // Draw existing pieces (shifted up during animation)
-        for (var x = 0; x < _width; x++)
-        {
-            for (var y = 0; y < _height - garbageRows; y++)
-            {
+        for (var x = 0; x < _width; x++) {
+            for (var y = 0; y < _height - garbageRows; y++) {
                 var gridY = y + _bufferZoneHeight;
                 var color = _preAnimationGrid[x][gridY + garbageRows]; // Use pre-animation state
                 if (color == EMPTY_CELL) continue;
@@ -649,12 +597,9 @@ public class Grid {
         }
 
         // Draw incoming garbage (rising from bottom)
-        if (_pendingGarbage != null)
-        {
-            for (var x = 0; x < _width; x++)
-            {
-                for (var y = 0; y < garbageRows; y++)
-                {
+        if (_pendingGarbage != null) {
+            for (var x = 0; x < _width; x++) {
+                for (var y = 0; y < garbageRows; y++) {
                     var color = _pendingGarbage[y, x];
                     if (color == EMPTY_CELL) continue;
 
@@ -686,22 +631,22 @@ public class Grid {
     public Point? TryWallKick(Point currentPosition, bool[][] matrix, int fromRotation, int toRotation, bool isI) {
         var wallKicks = GetWallKicks(isI);
         var kickKey = $"{fromRotation}{toRotation}";
-        
+
         TetriON.DebugLog($"Wall kick: Trying rotation {fromRotation}→{toRotation} (isI: {isI}), key: {kickKey}");
-        
+
         if (!wallKicks.TryGetValue(kickKey, out var offsets)) {
             TetriON.DebugLog($"Wall kick: No kick offsets found for key {kickKey}");
             return null;
         }
 
         TetriON.DebugLog($"Wall kick: Found {offsets.Length} offsets to try");
-        
+
         for (int i = 0; i < offsets.Length; i++) {
             var offset = offsets[i];
             var testPosition = new Point(currentPosition.X + offset.X, currentPosition.Y + offset.Y);
-            
+
             TetriON.DebugLog($"Wall kick: Testing offset {i}: ({offset.X}, {offset.Y}) → position ({testPosition.X}, {testPosition.Y})");
-            
+
             if (CanPlaceTetromino(testPosition, matrix)) {
                 TetriON.DebugLog($"Wall kick: Success! Using position ({testPosition.X}, {testPosition.Y})");
                 return testPosition;
@@ -709,7 +654,7 @@ public class Grid {
                 TetriON.DebugLog($"Wall kick: Position ({testPosition.X}, {testPosition.Y}) failed collision test");
             }
         }
-        
+
         TetriON.DebugLog($"Wall kick: All offsets failed");
         return null;
     }

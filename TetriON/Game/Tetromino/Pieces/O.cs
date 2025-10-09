@@ -3,8 +3,7 @@ using Microsoft.Xna.Framework;
 
 namespace TetriON.game.tetromino.pieces;
 
-public class O : Tetromino
-{
+public class O : Tetromino {
 
     private readonly Color _color = Color.Yellow;
     private const string Shape = "O";
@@ -38,7 +37,7 @@ public class O : Tetromino
     public override (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection direction, GameSettings settings) {
         return (currentPoint, false); // O-piece does not rotate
     }
-    
+
     public override byte GetId() {
         return _id;
     }

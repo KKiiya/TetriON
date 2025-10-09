@@ -10,7 +10,7 @@ namespace TetriON.game;
 public class TimingManager {
     private float _totalTime;
     private float _deltaTime;
-    
+
     // Timing accumulators for various game events
     private float _pieceDropTimer;
     private float _softDropTimer;         // Separate timer for soft drop
@@ -18,20 +18,20 @@ public class TimingManager {
     private float _autoRepeatTimer;
     private float _inputDelayTimer;
     private float _areTimer;              // ARE (Entry Delay) timer
-    
+
     // State tracking
     private bool _lineClearActive;
     private bool _autoRepeatActive;
     private bool _areActive;              // ARE delay active
     private readonly GameSettings _gameSettings;
-    
+
     // Modern Tetris lock delay system (according to specifications)
     private float _lockDelayTimer;        // time left before lock in seconds
     private readonly float _lockDelayLimit;        // fixed per speed level (default 0.5s)
     private int _resetCounter;            // number of resets done at current floor elevation
     private readonly int _resetCounterLimit;       // usually 15
     private bool _isGrounded;             // true if piece is in contact with the stack/floor
-    
+
     public TimingManager(GameSettings gameSettings = null) {
         _gameSettings = gameSettings;
         Reset();
@@ -40,22 +40,22 @@ public class TimingManager {
         _resetCounterLimit = _gameSettings?.MaxLockResets ?? 15;
         InitializePiece();
     }
-    
+
     #region Core Timing Properties
-    
+
     /// <summary>Total game time in seconds</summary>
     public float TotalTime => _totalTime;
-    
+
     /// <summary>Delta time since last frame in seconds</summary>
     public float DeltaTime => _deltaTime;
-    
+
     /// <summary>Current frames per second</summary>
     public float FPS => _deltaTime > 0 ? 1.0f / _deltaTime : 0;
-    
+
     #endregion
-    
+
     #region Update Methods
-    
+
     /// <summary>
     /// Update timing manager with current game time.
     /// Call this once per frame in your game session update.
@@ -63,56 +63,56 @@ public class TimingManager {
     public void Update(GameTime gameTime) {
         _deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _totalTime = (float)gameTime.TotalGameTime.TotalSeconds;
-        
+
         // Update all active timers
         UpdateTimers();
     }
-    
+
     private void UpdateTimers() {
         // Modern lock delay system - timer counts DOWN
         if (_isGrounded) _lockDelayTimer -= _deltaTime;
         if (_lineClearActive) _lineClearTimer += _deltaTime;
-        if (_autoRepeatActive)  _autoRepeatTimer += _deltaTime;
+        if (_autoRepeatActive) _autoRepeatTimer += _deltaTime;
         if (_areActive) _areTimer += _deltaTime;
-            
+
         _pieceDropTimer += _deltaTime;
         _softDropTimer += _deltaTime;
         _inputDelayTimer += _deltaTime;
     }
-    
+
     #endregion
-    
+
     #region Piece Drop Timing
-    
+
     /// <summary>
     /// Check if enough time has passed for natural piece drop based on level.
     /// </summary>
     public bool ShouldDropPiece(int level) {
         float fallInterval;
-        
+
         // Use GameSettings.Gravity if available, otherwise use level-based system
         if (_gameSettings?.Gravity != null && _gameSettings.Gravity > 0) {
             // Convert milliseconds to seconds
             fallInterval = _gameSettings.Gravity / 1000.0f;
         } else {
-            // Fall back to level-based gravity system  
+            // Fall back to level-based gravity system
             fallInterval = GameTiming.GetFallInterval(level);
         }
-        
+
         if (_pieceDropTimer >= fallInterval) {
             _pieceDropTimer -= fallInterval; // Maintain precision
             return true;
         }
         return false;
     }
-    
+
     /// <summary>
     /// Force immediate piece drop (for hard drop).
     /// </summary>
     public void ForcePieceDrop() {
         _pieceDropTimer = 0;
     }
-    
+
     /// <summary>
     /// Get soft drop interval based on GameSettings.SoftDropSpeed.
     /// </summary>
@@ -125,11 +125,11 @@ public class TimingManager {
         }
         return false;
     }
-    
+
     #endregion
-    
+
     #region Modern Tetris Lock Delay System
-    
+
     /// <summary>
     /// Initialize piece state - called when new piece spawns.
     /// </summary>
@@ -138,11 +138,11 @@ public class TimingManager {
         _resetCounter = 0;
         _isGrounded = false;
     }
-    
+
     /// <summary>
     /// Called after gravity step - determines if piece is grounded.
     /// </summary>
-    public void OnGravityStep(bool pieceCollidesWithGround)  {
+    public void OnGravityStep(bool pieceCollidesWithGround) {
         if (pieceCollidesWithGround) {
             _isGrounded = true;
             // Lock timer starts running (counts down in UpdateTimers)
@@ -153,7 +153,7 @@ public class TimingManager {
             _resetCounter = 0;
         }
     }
-    
+
     /// <summary>
     /// Called on player input (move or rotate) - handles reset logic.
     /// Returns true if reset was successful, false if limit reached.
@@ -171,28 +171,28 @@ public class TimingManager {
         }
         return true; // Not grounded, no reset needed
     }
-    
+
     /// <summary>
     /// Check if piece should lock (lock delay expired).
     /// </summary>
     public bool ShouldLockPiece() {
         return _isGrounded && _lockDelayTimer <= 0;
     }
-    
+
     /// <summary>
     /// Check if movement limit has been reached.
     /// </summary>
     public bool HasReachedMovementLimit() {
         return _isGrounded && _resetCounter >= _resetCounterLimit;
     }
-    
+
     /// <summary>
     /// Get current lock reset count for UI display.
     /// </summary>
     public int GetLockResetCount() {
         return _resetCounter;
     }
-    
+
     /// <summary>
     /// Get lock delay progress (0.0 to 1.0).
     /// </summary>
@@ -200,18 +200,18 @@ public class TimingManager {
         if (!_isGrounded) return 0;
         return Math.Clamp(1.0f - (_lockDelayTimer / _lockDelayLimit), 0, 1);
     }
-    
+
     /// <summary>
     /// Check if piece is currently grounded.
     /// </summary>
     public bool IsGrounded() {
         return _isGrounded;
     }
-    
+
     #endregion
-    
+
     #region Line Clear Timing
-    
+
     /// <summary>
     /// Start line clear animation delay.
     /// </summary>
@@ -219,7 +219,7 @@ public class TimingManager {
         _lineClearActive = true;
         _lineClearTimer = 0;
     }
-    
+
     /// <summary>
     /// Check if line clear animation is complete.
     /// </summary>
@@ -227,7 +227,7 @@ public class TimingManager {
         var lineClearDelay = (_gameSettings?.LineClearDelay / 1000.0f) ?? GameTiming.LineClearDelay;
         return _lineClearActive && _lineClearTimer >= lineClearDelay;
     }
-    
+
     /// <summary>
     /// Stop line clear timing.
     /// </summary>
@@ -235,7 +235,7 @@ public class TimingManager {
         _lineClearActive = false;
         _lineClearTimer = 0;
     }
-    
+
     /// <summary>
     /// Get line clear animation progress (0.0 to 1.0).
     /// </summary>
@@ -244,11 +244,11 @@ public class TimingManager {
         var lineClearDelay = (_gameSettings?.LineClearDelay / 1000.0f) ?? GameTiming.LineClearDelay;
         return Math.Clamp(_lineClearTimer / lineClearDelay, 0, 1);
     }
-    
+
     #endregion
-    
+
     #region Input Timing (DAS/ARR)
-    
+
     /// <summary>
     /// Start auto-repeat delay for continuous input.
     /// </summary>
@@ -256,7 +256,7 @@ public class TimingManager {
         _autoRepeatActive = true;
         _autoRepeatTimer = 0;
     }
-    
+
     /// <summary>
     /// Check if initial auto-repeat delay has passed.
     /// </summary>
@@ -264,16 +264,16 @@ public class TimingManager {
         var delayTime = GameTiming.GetAutoRepeatDelay(_gameSettings);
         return _autoRepeatActive && _autoRepeatTimer >= delayTime;
     }
-    
+
     /// <summary>
     /// Check if enough time has passed for next auto-repeat action.
     /// </summary>
     public bool ShouldAutoRepeat() {
         if (!HasAutoRepeatDelayPassed()) return false;
-        
+
         var delayTime = GameTiming.GetAutoRepeatDelay(_gameSettings);
         var repeatRate = GameTiming.GetAutoRepeatRate(_gameSettings);
-        
+
         var timeSinceDelay = _autoRepeatTimer - delayTime;
         if (timeSinceDelay >= repeatRate) {
             // Reset timer to maintain consistent intervals
@@ -282,7 +282,7 @@ public class TimingManager {
         }
         return false;
     }
-    
+
     /// <summary>
     /// Stop auto-repeat timing.
     /// </summary>
@@ -290,18 +290,18 @@ public class TimingManager {
         _autoRepeatActive = false;
         _autoRepeatTimer = 0;
     }
-    
+
     /// <summary>
     /// Reset soft drop timer for initial press.
     /// </summary>
     public void ResetSoftDropTimer() {
         _softDropTimer = 0;
     }
-    
+
     #endregion
-    
+
     #region ARE (Entry Delay) Timing
-    
+
     /// <summary>
     /// Start ARE (Entry Delay) after piece lock.
     /// </summary>
@@ -309,7 +309,7 @@ public class TimingManager {
         _areActive = true;
         _areTimer = 0;
     }
-    
+
     /// <summary>
     /// Check if ARE delay is complete.
     /// </summary>
@@ -317,7 +317,7 @@ public class TimingManager {
         var entryDelay = (_gameSettings?.EntryDelay / 1000.0f) ?? GameTiming.EntryDelay;
         return _areActive && _areTimer >= entryDelay;
     }
-    
+
     /// <summary>
     /// Stop ARE timing.
     /// </summary>
@@ -325,7 +325,7 @@ public class TimingManager {
         _areActive = false;
         _areTimer = 0;
     }
-    
+
     /// <summary>
     /// Get ARE delay progress (0.0 to 1.0).
     /// </summary>
@@ -334,18 +334,18 @@ public class TimingManager {
         var entryDelay = (_gameSettings?.EntryDelay / 1000.0f) ?? GameTiming.EntryDelay;
         return Math.Clamp(_areTimer / entryDelay, 0, 1);
     }
-    
+
     /// <summary>
     /// Check if ARE is currently active.
     /// </summary>
     public bool IsAREActive() {
         return _areActive;
     }
-    
+
     #endregion
-    
+
     #region Utility Methods
-    
+
     /// <summary>
     /// Reset all timing states.
     /// </summary>
@@ -357,29 +357,29 @@ public class TimingManager {
         _lineClearTimer = 0;
         _autoRepeatTimer = 0;
         _inputDelayTimer = 0;
-        
+
         _lineClearActive = false;
         _autoRepeatActive = false;
         _areActive = false;
-        
+
         // Reset modern lock delay system
         InitializePiece();
     }
-    
+
     /// <summary>
     /// Check if a specific duration has elapsed since a start time.
     /// </summary>
     public bool HasElapsed(float startTime, float duration) {
         return GameTiming.HasElapsed(startTime, duration, _totalTime);
     }
-    
+
     /// <summary>
     /// Get interpolation factor for animations.
     /// </summary>
     public float GetInterpolation(float startTime, float duration) {
         return GameTiming.GetInterpolationFactor(startTime, duration, _totalTime);
     }
-    
+
     /// <summary>
     /// Get timing debug information.
     /// </summary>
@@ -391,6 +391,6 @@ public class TimingManager {
                $"AutoRepeat: {(_autoRepeatActive ? _autoRepeatTimer.ToString("F3") : "OFF")}, " +
                $"ARE: {(_areActive ? _areTimer.ToString("F3") : "OFF")}";
     }
-    
+
     #endregion
 }

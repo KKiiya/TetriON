@@ -32,7 +32,7 @@ public class GameSession {
     public Settings GetSettings() {
         return _settings;
     }
-    
+
     public void SetActiveMenu(MenuWrapper menu) {
         ArgumentNullException.ThrowIfNull(menu);
         if (menu == _currentMenu) return; // No change
@@ -61,11 +61,10 @@ public class GameSession {
         return _game;
     }
 
-    public void Draw()
-    {
+    public void Draw() {
         _currentMenu?.Draw();
     }
-    
+
     public void Update(GameTime gameTime) {
         _currentMenu?.Update(gameTime);
     }

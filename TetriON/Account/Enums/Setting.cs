@@ -6,7 +6,7 @@ public enum Setting {
     MusicVolume,
     SFXVolume,
     VoiceVolume,
-    
+
     // === VISUAL SETTINGS ===
     Skin,
     Resolution,
@@ -21,10 +21,10 @@ public enum Setting {
     ShowTimer,
     ParticleEffects,
     ScreenShake,
-    
+
     // === GAMEPLAY SETTINGS ===
     // TODO: Add proper gameplay settings (timings etc.)
-    
+
     // === CONTROL SETTINGS ===
     ControlScheme,          // Primary/Alternative/Custom control schemes
     KeyBindings,            // Dictionary of key bindings (KeyBind -> Keys)
@@ -32,7 +32,7 @@ public enum Setting {
     GamepadVibration,
     MouseControls,
     TouchControls,
-    
+
     // === INTERFACE SETTINGS ===
     Language,
     ShowTutorials,
@@ -42,45 +42,45 @@ public enum Setting {
     ConfirmQuit,
     AutoSave,
     SaveReplays,
-    
+
     // === MULTIPLAYER SETTINGS ===
     PlayerName,
     ShowOpponentGrid,
     AttackNotifications,
     GarbageStyle,           // How garbage blocks appear
     HandicapMode,
-    
+
     // === PERFORMANCE SETTINGS ===
     TargetFPS,
     BackgroundRendering,    // Render background effects
     SmoothAnimations,
     ReducedMotion,          // Accessibility option
-    
+
     // === ACCESSIBILITY SETTINGS ===
     ColorBlindMode,
     HighContrast,
     LargeText,
     ReducedFlashing,
     VoiceAnnouncements,
-    
+
     // === STATISTICS & PROGRESS ===
     TrackStatistics,
     ShowPersonalBest,
     ShowGlobalRanking,
     DataCollection,         // Allow anonymous usage data collection
-    
+
     // === DEVELOPER/DEBUG SETTINGS ===
     DebugMode,
     ShowHitboxes,
     ShowPerformanceMetrics,
     LogLevel,
-    
+
     // === ADVANCED GAMEPLAY ===
     NextPieceCount,         // How many next pieces to show (1-6)
     GhostPieceStyle,        // Outline/Filled/Transparent
     LineClearAnimation,     // Style of line clear effect
     DropAnimation,          // Piece drop animation style
-    
+
     // === COMPETITIVE SETTINGS ===
     Sprint40Lines,          // Best time for 40 line sprint
     Ultra2Minutes,          // Best score for 2 minute ultra
