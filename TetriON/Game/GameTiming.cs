@@ -36,6 +36,7 @@ public static class GameTiming {
 
     /// <summary>
     /// Calculate authentic Tetris gravity using the standard formula.
+    /// Frame-rate independent - works smoothly at any FPS (60, 120, 144, etc.).
     /// Based on: t = Math.pow(0.8 - 0.007 * (level - 1), level - 1)
     /// Where t = seconds per cell, then converted to cells per second with 20G cap.
     /// </summary>
@@ -48,8 +49,9 @@ public static class GameTiming {
         double exponent = level - 1;
         double secondsPerCell = Math.Pow(baseValue, exponent);
 
-        // Convert from seconds per cell to cells per second (at 60 FPS reference)
-        double cellsPerSecond = 1.0 / (secondsPerCell * 60.0) * 60.0; // Normalize to cells/second
+        // Convert from seconds per cell to cells per second
+        // This is now frame-rate independent - no hardcoded FPS reference
+        double cellsPerSecond = 1.0 / secondsPerCell;
 
         // Cap at 20G (20 cells per second) as per standard
         cellsPerSecond = Math.Min(cellsPerSecond, 20.0);
@@ -70,9 +72,19 @@ public static class GameTiming {
 
     /// <summary>
     /// Convert time-based value to frame-based for consistent timing.
+    /// Frame-rate independent - adapts to actual game FPS automatically.
     /// </summary>
-    public static float TimeToFrames(float timeInSeconds, float targetFPS = 60.0f) {
-        return timeInSeconds * targetFPS;
+    public static float TimeToFrames(float timeInSeconds, float actualFPS) {
+        return timeInSeconds * actualFPS;
+    }
+
+    /// <summary>
+    /// Calculate smooth delta-time based animation progress.
+    /// Perfect for frame-rate independent animations at any FPS.
+    /// </summary>
+    public static float GetAnimationProgress(float currentTime, float startTime, float duration) {
+        if (duration <= 0) return 1.0f;
+        return Math.Clamp((currentTime - startTime) / duration, 0.0f, 1.0f);
     }
 
     /// <summary>
