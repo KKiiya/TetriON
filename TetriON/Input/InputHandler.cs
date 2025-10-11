@@ -8,7 +8,7 @@ namespace TetriON.Input;
 public abstract class InputHandler : IDisposable {
 
     // Event delegates with better type safety
-    public delegate void KeyPressedEvent(string source, Keys key);
+    public delegate void KeyPressedEvent(string source, Keys key, bool isRepeat);
     public delegate void KeyReleasedEvent(string source, Keys key);
     public delegate void KeyHeldEvent(string source, Keys key, float duration);
     public delegate void KeyComboPressedEvent(string source, Keys[] keys);
@@ -32,9 +32,9 @@ public abstract class InputHandler : IDisposable {
     protected readonly List<InputEvent> _inputBuffer = new(32);
 
     // Configuration
-    protected float _keyRepeatDelay = 0.5f; // Seconds before key repeat starts
-    protected float _keyRepeatRate = 0.1f;  // Seconds between repeats
-    protected float _keyHoldThreshold = 0.2f; // Seconds before a key is considered "held"
+    protected int _keyRepeatDelay = 500; // Milliseconds before key repeat starts
+    protected int _keyRepeatRate = 100;  // Milliseconds between repeats
+    protected int _keyHoldThreshold = 200; // Milliseconds before a key is considered "held"
     protected int _maxInputBufferSize = 32;
     protected bool _enableInputBuffering = true;
 
@@ -66,7 +66,7 @@ public abstract class InputHandler : IDisposable {
 
     #region Input State Management
 
-    protected virtual void SetKeyState(Keys key, bool isPressed, bool wasPressed) {
+    protected virtual void SetKeyState(Keys key, bool isPressed, bool wasPressed, float deltaTime) {
         if (!_keyStates.TryGetValue(key, out var state)) {
             state = new InputState();
             _keyStates[key] = state;
@@ -103,8 +103,30 @@ public abstract class InputHandler : IDisposable {
             state.IsPressed = false; // Only true on the frame it was pressed
             state.IsHeld = true;
 
+            // Update held duration
+            state.HeldDuration += deltaTime;
+
+            // Handle key repeat (KRD/KRR) - only if this key allows KRR
+            if (IsKeyAllowedForKRR(key)) {
+                state.RepeatTimer += deltaTime;
+
+                // Check if we should start repeating (after KRD delay)
+                float keyRepeatDelaySeconds = _keyRepeatDelay / 1000f;
+                if (state.HeldDuration >= keyRepeatDelaySeconds) {
+                    // Use custom repeat rate for this key if available, otherwise use default
+                    float keyRepeatRateSeconds = GetKeyRepeatRate(key);
+
+                    // Check if it's time for a repeat
+                    if (state.RepeatTimer >= keyRepeatRateSeconds) {
+                        TetriON.DebugLog($"InputHandler: Key {key} repeat triggered! Timer: {state.RepeatTimer:F3}s, Rate: {keyRepeatRateSeconds:F3}s");
+                        state.RepeatTimer = 0f;
+                        RaiseKeyPressed(key, true); // isRepeat = true
+                    }
+                }
+            }
+
             // Add to hold buffer for long-press detection
-            if (_enableInputBuffering && state.HeldDuration > _keyHoldThreshold) {
+            if (_enableInputBuffering && state.HeldDuration > (_keyHoldThreshold / 1000f)) {
                 AddToHoldBuffer(new InputEvent(InputEventType.KeyHeld, key));
             }
         }
@@ -112,7 +134,14 @@ public abstract class InputHandler : IDisposable {
         else {
             state.IsPressed = false;
             state.IsHeld = false;
+            state.HeldDuration = 0f;
+            state.RepeatTimer = 0f;
         }
+    }
+
+    // Backward compatibility method
+    protected virtual void SetKeyState(Keys key, bool isPressed, bool wasPressed) {
+        SetKeyState(key, isPressed, wasPressed, 0f);
     }
 
     #endregion
@@ -121,10 +150,12 @@ public abstract class InputHandler : IDisposable {
 
     protected void RaiseKeyPressed(Keys key, bool isRepeat = false) {
         try {
-            OnKeyPressed?.Invoke(GetSourceName(), key);
+            OnKeyPressed?.Invoke(GetSourceName(), key, isRepeat);
 
-            // Check for bound actions
-            CheckKeyBindingAction(key);
+            // Check bound actions - allow repeats only for keys that have allowKRR = true
+            if (!isRepeat || IsKeyAllowedForKRR(key)) {
+                CheckKeyBindingAction(key);
+            }
         } catch (Exception ex) {
             TetriON.DebugLog($"Error in key pressed event: {ex.Message}");
         }
@@ -167,10 +198,48 @@ public abstract class InputHandler : IDisposable {
 
     #endregion
 
+    #region Key Repeat Control
+
+    protected bool IsKeyAllowedForKRR(Keys key) {
+        // Check if this key is bound to an action that allows KRR
+        foreach (var binding in _keyBindings.Values) {
+            if (binding.Key == key) {
+                return binding.AllowKRR;
+            }
+        }
+
+        // If key is not bound to any action, default to allowing KRR
+        // This maintains backward compatibility for unbound keys
+        return true;
+    }
+
+    protected float GetKeyRepeatRate(Keys key) {
+        // Check if this key has a custom repeat rate
+        foreach (var binding in _keyBindings.Values) {
+            if (binding.Key == key && binding.CustomRepeatRate > 0) {
+                float customRate = binding.CustomRepeatRate / 1000f;
+                TetriON.DebugLog($"InputHandler: Using custom repeat rate for {key} ({binding.ActionName}): {binding.CustomRepeatRate}ms ({customRate}s)");
+                return customRate; // Convert to seconds
+            }
+        }
+
+        // Use default repeat rate if no custom rate is set
+        float defaultRate = _keyRepeatRate / 1000f;
+        TetriON.DebugLog($"InputHandler: Using default repeat rate for {key}: {_keyRepeatRate}ms ({defaultRate}s)");
+        return defaultRate;
+    }
+
+    #endregion
+
     #region Key Binding System
 
+    public void BindKey(string actionName, Keys key, bool allowKRR = true, int customRR = -1) {
+        _keyBindings[actionName] = new KeyBinding(actionName, key, allowKRR, customRR);
+    }
+
+    // Backward compatibility - defaults to allowing KRR
     public void BindKey(string actionName, Keys key) {
-        _keyBindings[actionName] = new KeyBinding(actionName, key);
+        BindKey(actionName, key, true);
     }
 
     public void BindKeyCombo(string actionName, params Keys[] keys) {
@@ -191,6 +260,26 @@ public abstract class InputHandler : IDisposable {
 
     public Keys[] GetBoundKeyCombo(string actionName) {
         return _comboBindings.TryGetValue(actionName, out var binding) ? binding.Keys : null;
+    }
+
+    public void SetKeyAllowKRR(string actionName, bool allowKRR) {
+        if (_keyBindings.TryGetValue(actionName, out var binding)) {
+            binding.AllowKRR = allowKRR;
+        }
+    }
+
+    public bool GetKeyAllowKRR(string actionName) {
+        return _keyBindings.TryGetValue(actionName, out var binding) && binding.AllowKRR;
+    }
+
+    public void SetKeyCustomRepeatRate(string actionName, int customRR) {
+        if (_keyBindings.TryGetValue(actionName, out var binding)) {
+            binding.CustomRepeatRate = customRR;
+        }
+    }
+
+    public int GetKeyCustomRepeatRate(string actionName) {
+        return _keyBindings.TryGetValue(actionName, out var binding) ? binding.CustomRepeatRate : -1;
     }
 
     protected void CheckKeyBindingAction(Keys key) {
@@ -418,12 +507,21 @@ public abstract class InputHandler : IDisposable {
     #region Configuration
 
     public void SetKeyRepeatSettings(float delay, float rate) {
-        _keyRepeatDelay = Math.Max(0f, delay);
-        _keyRepeatRate = Math.Max(0.01f, rate);
+        _keyRepeatDelay = (int)Math.Max(0, delay * 1000); // Convert seconds to milliseconds
+        _keyRepeatRate = (int)Math.Max(10, rate * 1000);  // Convert seconds to milliseconds
+    }
+
+    public void SetKeyRepeatSettings(int delay, int rate) {
+        _keyRepeatDelay = Math.Max(0, delay);
+        _keyRepeatRate = Math.Max(10, rate);
     }
 
     public void SetKeyHoldThreshold(float threshold) {
-        _keyHoldThreshold = Math.Max(0f, threshold);
+        _keyHoldThreshold = (int)Math.Max(0, threshold * 1000); // Convert seconds to milliseconds
+    }
+
+    public void SetKeyHoldThreshold(int threshold) {
+        _keyHoldThreshold = Math.Max(0, threshold);
     }
 
     public void SetInputBufferSize(int size) {
@@ -506,9 +604,11 @@ public class InputState {
     public float RepeatTimer { get; set; }
 }
 
-public class KeyBinding(string actionName, Keys key) {
+public class KeyBinding(string actionName, Keys key, bool allowKRR = true, int customRR = -1) {
     public string ActionName { get; } = actionName;
     public Keys Key { get; } = key;
+    public bool AllowKRR { get; set; } = allowKRR;
+    public int CustomRepeatRate { get; set; } = customRR;
 }
 
 public class ComboBinding(string actionName, Keys[] keys) {

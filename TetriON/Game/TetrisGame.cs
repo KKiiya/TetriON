@@ -48,10 +48,6 @@ public class TetrisGame {
     private bool _leftHeld;
     private bool _rightHeld;
     private bool _softDropHeld;
-    private float _dasTimer;
-    private float _arrTimer;
-    private bool _autoRepeatActive;
-    private Keys? _lastMovementKey;
 
     // Modern Tetris scoring state
     private bool _lastClearWasDifficult;  // For Back-to-Back tracking
@@ -66,10 +62,7 @@ public class TetrisGame {
     // ARE (Entry Delay) state
     private bool _areInProgress;          // True during ARE delay
     private bool _nextPieceReady;         // True when next piece is ready to spawn
-    private int _heldInputFrames;         // Counter for allowing held inputs after spawn
-
-    // Soft drop state tracking
-    private bool _wasSoftDropHeldLastFrame; // Track previous frame soft drop state
+    // Event-driven input handles all timing automatically
 
     // IRS (Initial Rotation System) state
     private int _irsRotation;             // Rotation to apply when piece spawns
@@ -90,8 +83,12 @@ public class TetrisGame {
     */
     public TetrisGame(TetriON game, GameSettings settings = null) {
         // Create settings if not provided, applying gamemode preset
-        _keyboard = TetriON.Keyboard;
+        TetriON.Keyboard.Pause(); // Prevent input bleed from main menu
+        _keyboard = new KeyBoard();
         _settings = settings ??= new GameSettings();
+        _keyboard.SetKeyRepeatSettings(_settings.DAS, _settings.ARR);
+        _keyboard.SetKeyCustomRepeatRate("SD", _settings.SoftDropSpeed);
+        _keyboard.SetKeyCustomRepeatRate("SD2", _settings.SoftDropSpeed);
         _settings.ApplyGamemodePreset(Gamemode.Marathon);
         var sizeMultiplier = 1f;
         _spriteBatch = game.SpriteBatch;
@@ -165,7 +162,7 @@ public class TetrisGame {
         _hidePieceForLineClear = false;
         _areInProgress = false;
         _nextPieceReady = true;
-        _heldInputFrames = 3; // Allow held inputs for initial piece
+        // InputHandler automatically handles held keys after spawn
         _irsRotation = 0;
         _irsHoldRequested = false;
 
@@ -203,7 +200,7 @@ public class TetrisGame {
         _tetrominoPoint = new Point(decreasedX, -2); // Spawn slightly above visible area
         _timingManager.InitializePiece(); // New piece, initialize lock delay
         _lastMoveWasTSpin = false;
-        _heldInputFrames = 3; // Allow held inputs after hold
+        // InputHandler automatically handles held keys after hold
 
         // Play hold sound
         _soundEffects["hold"].Play();
@@ -441,8 +438,7 @@ public class TetrisGame {
         // Update garbage animation
         _grid.UpdateGarbageAnimation(gameTime);
 
-        // Update DAS/ARR timing
-        UpdateDASARRTiming(gameTime);
+        // InputHandler now manages DAS/ARR timing automatically via KRD/KRR
 
         // Handle line clear animation
         if (_lineClearInProgress) {
@@ -478,8 +474,7 @@ public class TetrisGame {
             return;
         }
 
-        // Handle movement input with DAS/ARR
-        HandleMovementInput();
+        // Input is now handled via InputHandler events (HandleInputAction, HandleKeyPressed, HandleKeyReleased)
 
         // Apply gravity - handle modern lock delay for gravity steps
         // Skip natural gravity if soft drop is active (soft drop handles its own timing)
@@ -741,18 +736,14 @@ public class TetrisGame {
         _canHold = !_irsHoldRequested; // If hold was requested during ARE, disable hold for this piece
         _areInProgress = false;
         _nextPieceReady = true;
-        _heldInputFrames = 3; // Allow held inputs for 3 frames after spawn
+        // InputHandler automatically handles held keys after spawn
 
         // Reset IRS state
         _irsRotation = 0;
         var holdRequested = _irsHoldRequested;
         _irsHoldRequested = false;
 
-        // Initialize DAS/ARR for any held movement keys
-        if (_leftHeld || _rightHeld) {
-            _dasTimer = 0f;
-            _autoRepeatActive = false;
-        }
+        // InputHandler now manages all DAS/ARR timing automatically
         UpdateCachedValues();
 
         // Apply IRS hold if requested
@@ -823,144 +814,95 @@ public class TetrisGame {
         _leftHeld = false;
         _rightHeld = false;
         _softDropHeld = false;
-        _dasTimer = 0f;
-        _arrTimer = 0f;
-        _autoRepeatActive = false;
-        _lastMovementKey = null;
+        // InputHandler now manages all DAS/ARR timing automatically
     }
 
     private void SetupInputHandlers() {
-        TetriON.DebugLog("TetrisGame: Using direct key checking for input handling");
+        TetriON.DebugLog("TetrisGame: Setting up event-driven input handling");
 
         // Configure input settings to match Tetris gameplay
         var dasMs = _gameSettings.DAS;
         var arrMs = _gameSettings.ARR;
         _keyboard.SetKeyRepeatSettings(dasMs / 1000f, arrMs / 1000f);
         _keyboard.SetKeyHoldThreshold(0.05f); // 50ms hold threshold for responsive gameplay
+
+        // Subscribe to input events
+        _keyboard.OnInputAction += HandleInputAction;
+        _keyboard.OnKeyPressed += HandleKeyPressed;
+        _keyboard.OnKeyReleased += HandleKeyReleased;
+
+        TetriON.DebugLog("TetrisGame: Input event handlers subscribed");
     }
 
-    private void UpdateDASARRTiming(GameTime gameTime) {
-        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+    private void HandleInputAction(string actionName) {
+        if (_gameOver) return;
 
-        // Update DAS timer
-        if (_leftHeld || _rightHeld) {
-            _dasTimer += deltaTime;
-
-            // Check if DAS period has passed
-            var dasDelay = _gameSettings.DAS / 1000f;
-            if (_dasTimer >= dasDelay && !_autoRepeatActive) {
-                _autoRepeatActive = true;
-                _arrTimer = 0f;
-            }
-
-            // Handle ARR (Auto Repeat Rate)
-            if (_autoRepeatActive) {
-                _arrTimer += deltaTime;
-                var arrRate = _gameSettings.ARR / 1000f;
-
-                if (_arrTimer >= arrRate) {
-                    _arrTimer = 0f;
-
-                    // Execute movement based on held key
-                    if (_leftHeld && !_rightHeld) {
-                        MoveLeft();
-                    } else if (_rightHeld && !_leftHeld) {
-                        MoveRight();
-                    }
-                }
-            }
-        } else {
-            // Reset timing when no movement keys are held
-            _dasTimer = 0f;
-            _arrTimer = 0f;
-            _autoRepeatActive = false;
+        // Only handle movement and drop actions here (these can repeat with ARR)
+        switch (actionName) {
+            case "HD":
+            case "HD2":
+                Drop();
+                break;
+            case "ML":
+            case "ML2":
+                if (!_areInProgress) MoveLeft();
+                break;
+            case "MR":
+            case "MR2":
+                if (!_areInProgress) MoveRight();
+                break;
+            case "SD":
+            case "SD2":
+                if (!_areInProgress) MoveDown();
+                break;
         }
     }
 
+    private void HandleKeyPressed(string source, Keys key, bool isRepeat) {
+        if (_gameOver) return;
 
-
-
-
-    private void HandleMovementInput() {
-        // Decrement held input frames counter
-        if (_heldInputFrames > 0) {
-            _heldInputFrames--;
-            //TetriON.DebugLog($"TetrisGame: Held input frames remaining: {_heldInputFrames}");
+        // Handle IRS during ARE delay
+        if (_areInProgress) {
+            HandleIRSKeyPressed(key);
+            return;
         }
 
-        // Direct key state checking for immediate response
-        // Check for rotation keys first - handle both pressed (for single press) and held (for continuous/spawn)
-        if (_keyboard.IsBindPressed("RCW") || (_keyboard.IsBindHeld("RCW") && _heldInputFrames > 0)) {
-            Rotate(RotationDirection.CW);
-            //TetriON.DebugLog("TetrisGame: Rotation CW executed");
-        }
-        if (_keyboard.IsBindPressed("RCCW") || (_keyboard.IsBindHeld("RCCW") && _heldInputFrames > 0)) {
-            Rotate(RotationDirection.CCW);
-            //TetriON.DebugLog("TetrisGame: Rotation CCW executed");
-        }
-        if (_keyboard.IsBindPressed("R180") || (_keyboard.IsBindHeld("R180") && _heldInputFrames > 0)) {
-            Rotate(RotationDirection.Flip);
-            //TetriON.DebugLog("TetrisGame: Rotation 180 executed");
-        }
-        if (_keyboard.IsBindPressed("H") || (_keyboard.IsBindHeld("H") && _heldInputFrames > 0)) {
-            Hold();
-            //TetriON.DebugLog("TetrisGame: Hold executed");
-        }
-        if (_keyboard.IsBindPressed("HD") || _keyboard.IsBindPressed("HD2")) Drop();
-
-        // Handle movement keys with DAS/ARR
-        bool leftPressed = _keyboard.IsBindPressed("ML") || _keyboard.IsBindPressed("ML2");
-        bool rightPressed = _keyboard.IsBindPressed("MR") || _keyboard.IsBindPressed("MR2");
-        bool leftHeld = _keyboard.IsBindHeld("ML") || _keyboard.IsBindHeld("ML2");
-        bool rightHeld = _keyboard.IsBindHeld("MR") || _keyboard.IsBindHeld("MR2");
-
-        // Update our local DAS/ARR state
-        if ((leftPressed && !_leftHeld) || (leftHeld && _heldInputFrames > 0)) {
-            _leftHeld = true;
-            _rightHeld = false;
-            _dasTimer = 0f;
-            _autoRepeatActive = false;
-            MoveLeft();
-            //TetriON.DebugLog("TetrisGame: Move Left executed (pressed or held on spawn)");
-        } else if ((rightPressed && !_rightHeld) || (rightHeld && _heldInputFrames > 0)) {
-            _rightHeld = true;
-            _leftHeld = false;
-            _dasTimer = 0f;
-            _autoRepeatActive = false;
-            MoveRight();
-            //TetriON.DebugLog("TetrisGame: Move Right executed (pressed or held on spawn)");
-        } else if (!leftHeld && _leftHeld) {
-            _leftHeld = false;
-        } else if (!rightHeld && _rightHeld) {
-            _rightHeld = false;
-        }
-
-        // Handle soft drop
-        bool softDropPressed = _keyboard.IsBindPressed("SD") || _keyboard.IsBindPressed("SD2");
-        bool softDropHeld = _keyboard.IsBindHeld("SD") || _keyboard.IsBindHeld("SD2");
-
-        if ((softDropPressed && !_softDropHeld) || (softDropHeld && _heldInputFrames > 0)) {
-            _softDropHeld = true;
-            MoveDown();
-            //TetriON.DebugLog("TetrisGame: Soft Drop executed (pressed or held on spawn)");
-        } else if (!softDropHeld && _softDropHeld) {
-            _softDropHeld = false;
-        }
-
-        // Handle soft drop timing
-        if (_gameSettings.EnableSoftDrop && _softDropHeld) {
-            if (_timingManager.ShouldSoftDrop()) {
-                MoveDown();
+        // Handle rotation and hold actions only on initial press (not repeats)
+        TetriON.DebugLog($"HandleKeyPressed: Key={key}, Source={source}, IsRepeat={isRepeat}");
+        if (!isRepeat) {
+            // Check which action this key is bound to for rotation/hold
+            switch (source) {
+                case "RCW":
+                    Rotate(RotationDirection.CW);
+                    break;
+                case "RCCW":
+                    Rotate(RotationDirection.CCW);
+                    break;
+                case "R180":
+                    Rotate(RotationDirection.Flip);
+                    break;
+                case "H":
+                    Hold();
+                    break;
             }
         }
-
-        // Check if soft drop was just released
-        if (_wasSoftDropHeldLastFrame && !_softDropHeld) {
-            // Soft drop was just released - reset natural gravity timer to prevent double movement
-            _timingManager.ForcePieceDrop();
-        }
-        _wasSoftDropHeldLastFrame = _softDropHeld;
     }
+
+    private void HandleKeyReleased(string source, Keys key) {
+        // Handle key release events if needed
+        // Currently no specific release handling needed for Tetris gameplay
+    }
+
+    private void HandleIRSKeyPressed(Keys key) {
+        // Handle Initial Rotation System during ARE delay
+        if (key == Keys.Z) _irsRotation = (_irsRotation + 3) % 4; // Counter-clockwise
+        if (key == Keys.X) _irsRotation = (_irsRotation + 1) % 4; // Clockwise
+        if (key == Keys.C) _irsHoldRequested = true;
+    }
+
+
+
+
 
     public void Draw() {
         Texture2D tiles = _textures["tiles"].GetTexture();
