@@ -632,30 +632,30 @@ public class Grid {
         var wallKicks = GetWallKicks(isI);
         var kickKey = $"{fromRotation}{toRotation}";
 
-        TetriON.DebugLog($"Wall kick: Trying rotation {fromRotation}→{toRotation} (isI: {isI}), key: {kickKey}");
+        //TetriON.DebugLog($"Wall kick: Trying rotation {fromRotation}→{toRotation} (isI: {isI}), key: {kickKey}");
 
         if (!wallKicks.TryGetValue(kickKey, out var offsets)) {
-            TetriON.DebugLog($"Wall kick: No kick offsets found for key {kickKey}");
+            //TetriON.DebugLog($"Wall kick: No kick offsets found for key {kickKey}");
             return null;
         }
 
-        TetriON.DebugLog($"Wall kick: Found {offsets.Length} offsets to try");
+        //TetriON.DebugLog($"Wall kick: Found {offsets.Length} offsets to try");
 
         for (int i = 0; i < offsets.Length; i++) {
             var offset = offsets[i];
             var testPosition = new Point(currentPosition.X + offset.X, currentPosition.Y + offset.Y);
 
-            TetriON.DebugLog($"Wall kick: Testing offset {i}: ({offset.X}, {offset.Y}) → position ({testPosition.X}, {testPosition.Y})");
+            //TetriON.DebugLog($"Wall kick: Testing offset {i}: ({offset.X}, {offset.Y}) → position ({testPosition.X}, {testPosition.Y})");
 
             if (CanPlaceTetromino(testPosition, matrix)) {
-                TetriON.DebugLog($"Wall kick: Success! Using position ({testPosition.X}, {testPosition.Y})");
+                //TetriON.DebugLog($"Wall kick: Success! Using position ({testPosition.X}, {testPosition.Y})");
                 return testPosition;
             } else {
-                TetriON.DebugLog($"Wall kick: Position ({testPosition.X}, {testPosition.Y}) failed collision test");
+                //TetriON.DebugLog($"Wall kick: Position ({testPosition.X}, {testPosition.Y}) failed collision test");
             }
         }
 
-        TetriON.DebugLog($"Wall kick: All offsets failed");
+        //TetriON.DebugLog($"Wall kick: All offsets failed");
         return null;
     }
 

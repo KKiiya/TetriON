@@ -26,11 +26,10 @@ public class TetriON : Microsoft.Xna.Framework.Game {
 
     private readonly GraphicsDeviceManager _graphics;
 
-    private GameSession _session;
+    private readonly GameSession _session;
     private TetrisGame _tetrisGame;
-    private KeyboardState _previousKeyboardState;
 
-    public SkinManager _skinManager { get; private set; }
+    public SkinManager SkinManager { get; private set; }
 
     public TetriON() {
         DebugLog("TetriON: Constructor started");
@@ -72,17 +71,17 @@ public class TetriON : Microsoft.Xna.Framework.Game {
             DebugLog("TetriON: Instance set");
 
             // Initialize skin system
-            _skinManager = new SkinManager();
+            SkinManager = new SkinManager();
             DebugLog("TetriON: SkinManager created");
 
-            _skinManager.Initialize(GraphicsDevice);
+            SkinManager.Initialize(GraphicsDevice);
             DebugLog("TetriON: SkinManager initialized");
 
             // Load texture and audio assets
-            _skinManager.LoadTextureAssets();
+            SkinManager.LoadTextureAssets();
             DebugLog("TetriON: SkinManager texture assets loaded");
 
-            _skinManager.LoadAudioAssets();
+            SkinManager.LoadAudioAssets();
             DebugLog("TetriON: SkinManager audio assets loaded");
 
             // Initialize settings and key bindings
@@ -124,11 +123,9 @@ public class TetriON : Microsoft.Xna.Framework.Game {
 
         _session?.Update(gameTime);
 
-        // Update TetrisGame with keyboard states
-        var currentKeyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+        // Update TetrisGame - InputHandler now manages keyboard state internally
         // TODO: MOVE THIS TO GAMESESSION TO HANDLE
-        _tetrisGame?.Update(gameTime, currentKeyboard, _previousKeyboardState);
-        _previousKeyboardState = currentKeyboard;
+        _tetrisGame?.Update(gameTime);
 
         base.Update(gameTime);
     }

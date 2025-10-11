@@ -20,7 +20,7 @@ public class GameSession {
     public GameSession(TetriON game) {
         _credentials = new Credentials("TetriONadmin");
         _settings = new Settings(_credentials);
-        _skinManager = game._skinManager;
+        _skinManager = game.SkinManager;
         _currentMenu = new MainMenu(this);
         _game = game;
     }
