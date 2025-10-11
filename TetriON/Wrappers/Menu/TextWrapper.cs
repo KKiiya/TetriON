@@ -5,19 +5,11 @@ using TetriON.Wrappers.Texture;
 
 namespace TetriON.Wrappers.Menu;
 
-public class TextWrapper : InterfaceTextureWrapper {
-    private SpriteFont _font;
-    private string _text;
-    private Color _textColor;
-    private Vector2 _textScale;
-
-    public TextWrapper(SpriteFont font, string text, Vector2 normalizedPosition, Color color)
-        : base(CreateTextTexture(font, text, color), normalizedPosition) {
-        _font = font;
-        _text = text;
-        _textColor = color;
-        _textScale = Vector2.One;
-    }
+public class TextWrapper(SpriteFont font, string text, Vector2 normalizedPosition, Color color) : InterfaceTextureWrapper(CreateTextTexture(font, text, color), normalizedPosition) {
+    private SpriteFont _font = font;
+    private string _text = text;
+    private Color _textColor = color;
+    private Vector2 _textScale = Vector2.One;
 
     private static TextureWrapper CreateTextTexture(SpriteFont font, string text, Color color) {
         // This would need to be implemented to render text to a texture
