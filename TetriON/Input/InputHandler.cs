@@ -112,7 +112,7 @@ public abstract class InputHandler : IDisposable {
             // Remove key from held KRR keys stack
             if (IsKeyAllowedForKRR(key)) {
                 _heldKrrKeys.Remove(key);
-                
+
                 // If this was the active repeat key, activate the previous one
                 if (_activeRepeatKey == key) {
                     if (_heldKrrKeys.Count > 0) {
