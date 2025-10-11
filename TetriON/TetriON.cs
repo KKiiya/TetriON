@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TetriON.game;
 using TetriON.game.tetromino;
-using TetriON.Game;
 using TetriON.Game.Enums;
 using TetriON.Input;
 using TetriON.Input.Support;
@@ -26,7 +25,7 @@ public class TetriON : Microsoft.Xna.Framework.Game {
 
     private readonly GraphicsDeviceManager _graphics;
 
-    private readonly GameSession _session;
+    private GameSession _session;
     private TetrisGame _tetrisGame;
 
     public SkinManager SkinManager { get; private set; }
@@ -96,9 +95,9 @@ public class TetriON : Microsoft.Xna.Framework.Game {
 
             // Center the grid better on a 1366x768 screen with reasonable sizing
 
-            //_session = new GameSession(this);
+            _session = new GameSession(this);
             var gameSettings = new GameSettings(Mode.Singleplayer, Gamemode.Marathon);
-            _tetrisGame = new TetrisGame(this, gameSettings);
+            //_tetrisGame = new TetrisGame(this, gameSettings);
             DebugLog("TetriON: TetrisGame created successfully");
 
         } catch (System.Exception ex) {
@@ -118,8 +117,8 @@ public class TetriON : Microsoft.Xna.Framework.Game {
         // TODO: Add your update logic here
         // Temporarily disable potentially conflicting input handlers
         // Controller?.Update(gameTime);
-        // Keyboard?.Update(gameTime);
-        // Mouse?.Update(gameTime);
+        Keyboard?.Update(gameTime);
+        Mouse?.Update(gameTime);
 
         _session?.Update(gameTime);
 
