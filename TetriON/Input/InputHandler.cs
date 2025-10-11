@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -8,11 +9,11 @@ namespace TetriON.Input;
 public abstract class InputHandler : IDisposable {
 
     // Event delegates with better type safety
-    public delegate void KeyPressedEvent(string source, Keys key, bool isRepeat);
-    public delegate void KeyReleasedEvent(string source, Keys key);
-    public delegate void KeyHeldEvent(string source, Keys key, float duration);
-    public delegate void KeyComboPressedEvent(string source, Keys[] keys);
-    public delegate void KeyComboReleasedEvent(string source, Keys[] keys);
+    public delegate void KeyPressedEvent(string source, Keys key, string binding, bool isRepeat);
+    public delegate void KeyReleasedEvent(string source, Keys key, string binding);
+    public delegate void KeyHeldEvent(string source, Keys key, string binding, float duration);
+    public delegate void KeyComboPressedEvent(string source, Keys[] keys, string[] bindings);
+    public delegate void KeyComboReleasedEvent(string source, Keys[] keys, string[] bindings);
     public delegate void InputActionEvent(string actionName);
 
     // Events
@@ -37,6 +38,10 @@ public abstract class InputHandler : IDisposable {
     protected int _keyHoldThreshold = 200; // Milliseconds before a key is considered "held"
     protected int _maxInputBufferSize = 32;
     protected bool _enableInputBuffering = true;
+
+    // Key repeat priority system - only one key can repeat at a time
+    protected Keys? _activeRepeatKey = null;
+    protected readonly List<Keys> _heldKrrKeys = []; // Stack of held keys that allow KRR (most recent last)
 
     private bool _disposed;
     private bool _paused;
@@ -80,6 +85,17 @@ public abstract class InputHandler : IDisposable {
             state.RepeatTimer = 0f;
             RaiseKeyPressed(key, false);
 
+            // Priority system: If this key allows KRR, add it to the stack and make it active
+            if (IsKeyAllowedForKRR(key)) {
+                // Remove key if it's already in the stack (to avoid duplicates)
+                _heldKrrKeys.Remove(key);
+                // Add to end of stack (most recent)
+                _heldKrrKeys.Add(key);
+                // Make it the active repeat key
+                _activeRepeatKey = key;
+                // TetriON.DebugLog($"InputHandler: Key {key} is now the active repeat key (stack size: {_heldKrrKeys.Count})");
+            }
+
             // Add to input buffer
             if (_enableInputBuffering) {
                 AddToInputBuffer(new InputEvent(InputEventType.KeyPressed, key));
@@ -92,6 +108,27 @@ public abstract class InputHandler : IDisposable {
             state.HeldDuration = 0f;
             state.RepeatTimer = 0f;
             RaiseKeyReleased(key);
+
+            // Remove key from held KRR keys stack
+            if (IsKeyAllowedForKRR(key)) {
+                _heldKrrKeys.Remove(key);
+                
+                // If this was the active repeat key, activate the previous one
+                if (_activeRepeatKey == key) {
+                    if (_heldKrrKeys.Count > 0) {
+                        // Activate the most recently pressed held key
+                        _activeRepeatKey = _heldKrrKeys[^1]; // Last element
+                        // Reset the repeat timer for the new active key to prevent immediate repeat
+                        if (_keyStates.TryGetValue(_activeRepeatKey.Value, out var newActiveState)) {
+                            newActiveState.RepeatTimer = 0f;
+                        }
+                        // TetriON.DebugLog($"InputHandler: Key {key} released, switched to previous key {_activeRepeatKey} (stack size: {_heldKrrKeys.Count})");
+                    } else {
+                        _activeRepeatKey = null;
+                        // TetriON.DebugLog($"InputHandler: Key {key} released, no more KRR keys held");
+                    }
+                }
+            }
 
             // Add to release buffer
             if (_enableInputBuffering) {
@@ -106,8 +143,8 @@ public abstract class InputHandler : IDisposable {
             // Update held duration
             state.HeldDuration += deltaTime;
 
-            // Handle key repeat (KRD/KRR) - only if this key allows KRR
-            if (IsKeyAllowedForKRR(key)) {
+            // Handle key repeat (KRD/KRR) - only if this key allows KRR AND is the active repeat key
+            if (IsKeyAllowedForKRR(key) && _activeRepeatKey == key) {
                 state.RepeatTimer += deltaTime;
 
                 // Check if we should start repeating (after KRD delay)
@@ -118,11 +155,15 @@ public abstract class InputHandler : IDisposable {
 
                     // Check if it's time for a repeat
                     if (state.RepeatTimer >= keyRepeatRateSeconds) {
-                        TetriON.DebugLog($"InputHandler: Key {key} repeat triggered! Timer: {state.RepeatTimer:F3}s, Rate: {keyRepeatRateSeconds:F3}s");
+                        // TetriON.DebugLog($"InputHandler: Active repeat key {key} triggered! Timer: {state.RepeatTimer:F3}s, Rate: {keyRepeatRateSeconds:F3}s");
                         state.RepeatTimer = 0f;
                         RaiseKeyPressed(key, true); // isRepeat = true
                     }
                 }
+            }
+            // Reset repeat timer for non-active keys to prevent confusion
+            else if (IsKeyAllowedForKRR(key) && _activeRepeatKey != key) {
+                state.RepeatTimer = 0f;
             }
 
             // Add to hold buffer for long-press detection
@@ -150,7 +191,9 @@ public abstract class InputHandler : IDisposable {
 
     protected void RaiseKeyPressed(Keys key, bool isRepeat = false) {
         try {
-            OnKeyPressed?.Invoke(GetSourceName(), key, isRepeat);
+            // Get binding name for this key
+            string bindingName = GetKeyBindingName(key);
+            OnKeyPressed?.Invoke(GetSourceName(), key, bindingName, isRepeat);
 
             // Check bound actions - allow repeats only for keys that have allowKRR = true
             if (!isRepeat || IsKeyAllowedForKRR(key)) {
@@ -161,9 +204,20 @@ public abstract class InputHandler : IDisposable {
         }
     }
 
+    private string GetKeyBindingName(Keys key) {
+        // Find the binding name for this key
+        foreach (var binding in _keyBindings.Values) {
+            if (binding.Key == key) {
+                return binding.ActionName;
+            }
+        }
+        return key.ToString(); // Fallback to key name if no binding found
+    }
+
     protected void RaiseKeyReleased(Keys key) {
         try {
-            OnKeyReleased?.Invoke(GetSourceName(), key);
+            string bindingName = GetKeyBindingName(key);
+            OnKeyReleased?.Invoke(GetSourceName(), key, bindingName);
         } catch (Exception ex) {
             TetriON.DebugLog($"Error in key released event: {ex.Message}");
         }
@@ -171,7 +225,8 @@ public abstract class InputHandler : IDisposable {
 
     protected void RaiseKeyComboPressed(Keys[] keys) {
         try {
-            OnKeyComboPressed?.Invoke(GetSourceName(), keys);
+            string[] bindings = [.. keys.Select(k => GetKeyBindingName(k))];
+            OnKeyComboPressed?.Invoke(GetSourceName(), keys, bindings);
 
             // Check for bound combo actions
             CheckComboBindingAction(keys);
@@ -182,7 +237,8 @@ public abstract class InputHandler : IDisposable {
 
     protected void RaiseKeyComboReleased(Keys[] keys) {
         try {
-            OnKeyComboReleased?.Invoke(GetSourceName(), keys);
+            string[] bindings = [.. keys.Select(k => GetKeyBindingName(k))];
+            OnKeyComboReleased?.Invoke(GetSourceName(), keys, bindings);
         } catch (Exception ex) {
             TetriON.DebugLog($"Error in key combo released event: {ex.Message}");
         }
@@ -218,14 +274,14 @@ public abstract class InputHandler : IDisposable {
         foreach (var binding in _keyBindings.Values) {
             if (binding.Key == key && binding.CustomRepeatRate > 0) {
                 float customRate = binding.CustomRepeatRate / 1000f;
-                TetriON.DebugLog($"InputHandler: Using custom repeat rate for {key} ({binding.ActionName}): {binding.CustomRepeatRate}ms ({customRate}s)");
+                // TetriON.DebugLog($"InputHandler: Using custom repeat rate for {key} ({binding.ActionName}): {binding.CustomRepeatRate}ms ({customRate}s)");
                 return customRate; // Convert to seconds
             }
         }
 
         // Use default repeat rate if no custom rate is set
         float defaultRate = _keyRepeatRate / 1000f;
-        TetriON.DebugLog($"InputHandler: Using default repeat rate for {key}: {_keyRepeatRate}ms ({defaultRate}s)");
+        // TetriON.DebugLog($"InputHandler: Using default repeat rate for {key}: {_keyRepeatRate}ms ({defaultRate}s)");
         return defaultRate;
     }
 
@@ -280,6 +336,20 @@ public abstract class InputHandler : IDisposable {
 
     public int GetKeyCustomRepeatRate(string actionName) {
         return _keyBindings.TryGetValue(actionName, out var binding) ? binding.CustomRepeatRate : -1;
+    }
+
+    public Keys? GetActiveRepeatKey() {
+        return _activeRepeatKey;
+    }
+
+    public IReadOnlyList<Keys> GetHeldKrrKeys() {
+        return _heldKrrKeys.AsReadOnly();
+    }
+
+    public void ClearActiveRepeatKey() {
+        _activeRepeatKey = null;
+        _heldKrrKeys.Clear();
+        // TetriON.DebugLog("InputHandler: Active repeat key and stack cleared manually");
     }
 
     protected void CheckKeyBindingAction(Keys key) {
@@ -396,12 +466,13 @@ public abstract class InputHandler : IDisposable {
     protected virtual void ProcessBufferedInput(InputEvent inputEvent, string bufferType = "Main") {
         // Default processing: re-fire the input event for delayed processing
         // This allows for input buffering during frame drops or processing delays
+        // NOTE: We don't re-raise KeyPressed events from buffer to avoid double-calls
+        // The initial press is already handled immediately in SetKeyState()
 
         switch (inputEvent.Type) {
             case InputEventType.KeyPressed:
-                if (bufferType != "Release" && bufferType != "Hold") {
-                    RaiseKeyPressed(inputEvent.Key, true);
-                }
+                // Skip re-raising KeyPressed events from buffer to prevent double calls
+                // The initial key press is already handled immediately in SetKeyState()
                 break;
             case InputEventType.KeyReleased:
                 if (bufferType != "Hold") {
@@ -412,7 +483,8 @@ public abstract class InputHandler : IDisposable {
                 if (bufferType == "Hold") {
                     // Process held events from hold buffer
                     if (_keyStates.TryGetValue(inputEvent.Key, out var state) && state.IsHeld) {
-                        OnKeyHeld?.Invoke(GetSourceName(), inputEvent.Key, state.HeldDuration);
+                        string bindingName = GetKeyBindingName(inputEvent.Key);
+                        OnKeyHeld?.Invoke(GetSourceName(), inputEvent.Key, bindingName, state.HeldDuration);
                     }
                 }
                 break;
@@ -583,6 +655,10 @@ public abstract class InputHandler : IDisposable {
                 _inputBuffer.Clear();
                 _releaseInputBuffer.Clear();
                 _holdInputBuffer.Clear();
+
+                // Clear key repeat system
+                _activeRepeatKey = null;
+                _heldKrrKeys.Clear();
             }
 
             _disposed = true;

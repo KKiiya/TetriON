@@ -831,7 +831,7 @@ public class TetrisGame {
         _keyboard.OnKeyPressed += HandleKeyPressed;
         _keyboard.OnKeyReleased += HandleKeyReleased;
 
-        TetriON.DebugLog("TetrisGame: Input event handlers subscribed");
+        // TetriON.DebugLog("TetrisGame: Input event handlers subscribed");
     }
 
     private void HandleInputAction(string actionName) {
@@ -855,10 +855,13 @@ public class TetrisGame {
             case "SD2":
                 if (!_areInProgress) MoveDown();
                 break;
+            default:
+                TetriON.DebugLog($"HandleInputAction: Unhandled action - {actionName}");
+                break;
         }
     }
 
-    private void HandleKeyPressed(string source, Keys key, bool isRepeat) {
+    private void HandleKeyPressed(string source, Keys key, string binding, bool isRepeat) {
         if (_gameOver) return;
 
         // Handle IRS during ARE delay
@@ -868,10 +871,10 @@ public class TetrisGame {
         }
 
         // Handle rotation and hold actions only on initial press (not repeats)
-        TetriON.DebugLog($"HandleKeyPressed: Key={key}, Source={source}, IsRepeat={isRepeat}");
+        // TetriON.DebugLog($"HandleKeyPressed: Key={key}, Source={source}, IsRepeat={isRepeat}");
         if (!isRepeat) {
             // Check which action this key is bound to for rotation/hold
-            switch (source) {
+            switch (binding) {
                 case "RCW":
                     Rotate(RotationDirection.CW);
                     break;
@@ -884,11 +887,14 @@ public class TetrisGame {
                 case "H":
                     Hold();
                     break;
+                default:
+                    TetriON.DebugLog($"HandleKeyPressed: Unhandled key press - Key={key}, Binding={binding}");
+                    break;
             }
         }
     }
 
-    private void HandleKeyReleased(string source, Keys key) {
+    private void HandleKeyReleased(string source, Keys key, string binding) {
         // Handle key release events if needed
         // Currently no specific release handling needed for Tetris gameplay
     }
@@ -1176,6 +1182,7 @@ public class TetrisGame {
                 break;
             default:
                 SetTargetLines(0); // No target for endless modes
+                TetriON.DebugLog($"SetGameModeSpecificTarget: No target lines for mode {gamemode}");
                 break;
         }
     }
