@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework.Input;
 
 namespace TetriON.Input.Support;
@@ -42,20 +40,21 @@ public class KeyBoard : InputHandler {
 
     private void SetupDefaultBindings() {
         // Tetris controls
-        BindKey("MoveLeft", Keys.A);
-        BindKey("MoveRight", Keys.D);
-        BindKey("SoftDrop", Keys.S);
-        BindKey("HardDrop", Keys.W);
-        BindKey("RotateClockwise", Keys.Up);
-        BindKey("RotateCounterClockwise", Keys.Q);
-        BindKey("Hold", Keys.C);
-        BindKey("Pause", Keys.Escape);
+        BindKey("ML", Keys.A);
+        BindKey("MR", Keys.D);
+        BindKey("SD", Keys.S);
+        BindKey("HD", Keys.Space);
+        BindKey("RCW", Keys.X);
+        BindKey("RCCW", Keys.Z);
+        BindKey("R180", Keys.V);
+        BindKey("H", Keys.C);
+        BindKey("P", Keys.Escape);
 
         // Alternative controls
-        BindKey("MoveLeft2", Keys.Left);
-        BindKey("MoveRight2", Keys.Right);
-        BindKey("SoftDrop2", Keys.Down);
-        BindKey("HardDrop2", Keys.Space);
+        BindKey("ML2", Keys.Left);
+        BindKey("MR2", Keys.Right);
+        BindKey("SD2", Keys.Down);
+        BindKey("HD2", Keys.Space);
 
         // Menu controls
         BindKey("MenuUp", Keys.Up);

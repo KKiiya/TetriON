@@ -27,18 +27,22 @@ public abstract class InputHandler : IDisposable {
     protected readonly Dictionary<Keys, InputState> _keyStates = [];
     protected readonly Dictionary<string, KeyBinding> _keyBindings = [];
     protected readonly Dictionary<string, ComboBinding> _comboBindings = [];
+    protected readonly List<InputEvent> _releaseInputBuffer = new(32);
+    protected readonly List<InputEvent> _holdInputBuffer = new(32);
     protected readonly List<InputEvent> _inputBuffer = new(32);
 
     // Configuration
     protected float _keyRepeatDelay = 0.5f; // Seconds before key repeat starts
     protected float _keyRepeatRate = 0.1f;  // Seconds between repeats
+    protected float _keyHoldThreshold = 0.2f; // Seconds before a key is considered "held"
     protected int _maxInputBufferSize = 32;
     protected bool _enableInputBuffering = true;
 
     private bool _disposed;
+    private bool _paused;
 
     public virtual void Update(GameTime gameTime) {
-        if (_disposed) return;
+        if (_disposed || _paused) return;
 
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -89,15 +93,20 @@ public abstract class InputHandler : IDisposable {
             state.RepeatTimer = 0f;
             RaiseKeyReleased(key);
 
-            // Add to input buffer
+            // Add to release buffer
             if (_enableInputBuffering) {
-                AddToInputBuffer(new InputEvent(InputEventType.KeyReleased, key));
+                AddToReleaseBuffer(new InputEvent(InputEventType.KeyReleased, key));
             }
         }
         // Key held
         else if (isPressed && wasPressed) {
             state.IsPressed = false; // Only true on the frame it was pressed
             state.IsHeld = true;
+
+            // Add to hold buffer for long-press detection
+            if (_enableInputBuffering && state.HeldDuration > _keyHoldThreshold) {
+                AddToHoldBuffer(new InputEvent(InputEventType.KeyHeld, key));
+            }
         }
         // Key not pressed
         else {
@@ -117,7 +126,7 @@ public abstract class InputHandler : IDisposable {
             // Check for bound actions
             CheckKeyBindingAction(key);
         } catch (Exception ex) {
-            System.Diagnostics.Debug.WriteLine($"Error in key pressed event: {ex.Message}");
+            TetriON.DebugLog($"Error in key pressed event: {ex.Message}");
         }
     }
 
@@ -125,7 +134,7 @@ public abstract class InputHandler : IDisposable {
         try {
             OnKeyReleased?.Invoke(GetSourceName(), key);
         } catch (Exception ex) {
-            System.Diagnostics.Debug.WriteLine($"Error in key released event: {ex.Message}");
+            TetriON.DebugLog($"Error in key released event: {ex.Message}");
         }
     }
 
@@ -136,7 +145,7 @@ public abstract class InputHandler : IDisposable {
             // Check for bound combo actions
             CheckComboBindingAction(keys);
         } catch (Exception ex) {
-            System.Diagnostics.Debug.WriteLine($"Error in key combo pressed event: {ex.Message}");
+            TetriON.DebugLog($"Error in key combo pressed event: {ex.Message}");
         }
     }
 
@@ -144,7 +153,7 @@ public abstract class InputHandler : IDisposable {
         try {
             OnKeyComboReleased?.Invoke(GetSourceName(), keys);
         } catch (Exception ex) {
-            System.Diagnostics.Debug.WriteLine($"Error in key combo released event: {ex.Message}");
+            TetriON.DebugLog($"Error in key combo released event: {ex.Message}");
         }
     }
 
@@ -152,7 +161,7 @@ public abstract class InputHandler : IDisposable {
         try {
             OnInputAction?.Invoke(actionName);
         } catch (Exception ex) {
-            System.Diagnostics.Debug.WriteLine($"Error in input action event: {ex.Message}");
+            TetriON.DebugLog($"Error in input action event: {ex.Message}");
         }
     }
 
@@ -226,7 +235,7 @@ public abstract class InputHandler : IDisposable {
         }
     }
 
-    private bool AreKeysEqual(Keys[] keys1, Keys[] keys2) {
+    private static bool AreKeysEqual(Keys[] keys1, Keys[] keys2) {
         if (keys1.Length != keys2.Length) return false;
 
         Array.Sort(keys1);
@@ -251,28 +260,132 @@ public abstract class InputHandler : IDisposable {
         _inputBuffer.Add(inputEvent);
     }
 
+    protected void AddToReleaseBuffer(InputEvent inputEvent) {
+        if (_releaseInputBuffer.Count >= _maxInputBufferSize) {
+            _releaseInputBuffer.RemoveAt(0); // Remove oldest
+        }
+
+        _releaseInputBuffer.Add(inputEvent);
+    }
+
+    protected void AddToHoldBuffer(InputEvent inputEvent) {
+        if (_holdInputBuffer.Count >= _maxInputBufferSize) {
+            _holdInputBuffer.RemoveAt(0); // Remove oldest
+        }
+
+        _holdInputBuffer.Add(inputEvent);
+    }
+
     protected virtual void ProcessInputBuffer() {
-        // Process buffered inputs - can be overridden for custom logic
-        // Default implementation just clears processed events
-        for (int i = _inputBuffer.Count - 1; i >= 0; i--) {
-            var inputEvent = _inputBuffer[i];
-            if (inputEvent.IsProcessed) {
-                _inputBuffer.RemoveAt(i);
+        // Process all three input buffers
+        ProcessSpecificBuffer(_inputBuffer, "Main");
+        ProcessSpecificBuffer(_releaseInputBuffer, "Release");
+        ProcessSpecificBuffer(_holdInputBuffer, "Hold");
+    }
+
+    protected virtual void ProcessSpecificBuffer(List<InputEvent> buffer, string bufferType) {
+        // Process buffered inputs with actual logic
+        for (int i = buffer.Count - 1; i >= 0; i--) {
+            var inputEvent = buffer[i];
+
+            if (!inputEvent.IsProcessed) {
+                // Process the buffered input event
+                ProcessBufferedInput(inputEvent, bufferType);
+
+                // Mark as processed
+                inputEvent.IsProcessed = true;
+            }
+
+            // Remove processed events or old events (older than 1 second)
+            float currentTime = (float)DateTime.Now.TimeOfDay.TotalSeconds;
+            if (inputEvent.IsProcessed || (currentTime - inputEvent.Timestamp) > 1.0f) {
+                buffer.RemoveAt(i);
             }
         }
+    }
+
+    protected virtual void ProcessBufferedInput(InputEvent inputEvent, string bufferType = "Main") {
+        // Default processing: re-fire the input event for delayed processing
+        // This allows for input buffering during frame drops or processing delays
+
+        switch (inputEvent.Type) {
+            case InputEventType.KeyPressed:
+                if (bufferType != "Release" && bufferType != "Hold") {
+                    RaiseKeyPressed(inputEvent.Key, true);
+                }
+                break;
+            case InputEventType.KeyReleased:
+                if (bufferType != "Hold") {
+                    RaiseKeyReleased(inputEvent.Key);
+                }
+                break;
+            case InputEventType.KeyHeld:
+                if (bufferType == "Hold") {
+                    // Process held events from hold buffer
+                    if (_keyStates.TryGetValue(inputEvent.Key, out var state) && state.IsHeld) {
+                        OnKeyHeld?.Invoke(GetSourceName(), inputEvent.Key, state.HeldDuration);
+                    }
+                }
+                break;
+        }
+
+        // Custom processing can be implemented in derived classes
+        OnProcessBufferedInput(inputEvent, bufferType);
+    }
+
+    protected virtual void OnProcessBufferedInput(InputEvent inputEvent, string bufferType = "Main") {
+        // Override in derived classes for custom buffered input processing
+        // For example: combo detection, sequence processing, etc.
+        // bufferType can be "Main", "Release", or "Hold" for specialized handling
     }
 
     public void ClearInputBuffer() {
         _inputBuffer.Clear();
     }
 
+    public void ClearReleaseBuffer() {
+        _releaseInputBuffer.Clear();
+    }
+
+    public void ClearHoldBuffer() {
+        _holdInputBuffer.Clear();
+    }
+
+    public void ClearAllBuffers() {
+        _inputBuffer.Clear();
+        _releaseInputBuffer.Clear();
+        _holdInputBuffer.Clear();
+    }
+
     public IReadOnlyList<InputEvent> GetInputBuffer() {
         return _inputBuffer.AsReadOnly();
+    }
+
+    public IReadOnlyList<InputEvent> GetReleaseBuffer() {
+        return _releaseInputBuffer.AsReadOnly();
+    }
+
+    public IReadOnlyList<InputEvent> GetHoldBuffer() {
+        return _holdInputBuffer.AsReadOnly();
     }
 
     #endregion
 
     #region State Queries
+
+    public bool IsBindPressed(string actionName) {
+        if (_keyBindings.TryGetValue(actionName, out var binding)) {
+            return IsKeyPressed(binding.Key);
+        }
+        return false;
+    }
+
+    public bool IsBindHeld(string actionName) {
+        if (_keyBindings.TryGetValue(actionName, out var binding)) {
+            return IsKeyHeld(binding.Key);
+        }
+        return false;
+    }
 
     public bool IsKeyPressed(Keys key) {
         return _keyStates.TryGetValue(key, out var state) && state.IsPressed;
@@ -309,23 +422,43 @@ public abstract class InputHandler : IDisposable {
         _keyRepeatRate = Math.Max(0.01f, rate);
     }
 
+    public void SetKeyHoldThreshold(float threshold) {
+        _keyHoldThreshold = Math.Max(0f, threshold);
+    }
+
     public void SetInputBufferSize(int size) {
         _maxInputBufferSize = Math.Max(1, size);
+
+        // Trim all buffers to new size
         while (_inputBuffer.Count > _maxInputBufferSize) {
             _inputBuffer.RemoveAt(0);
+        }
+        while (_releaseInputBuffer.Count > _maxInputBufferSize) {
+            _releaseInputBuffer.RemoveAt(0);
+        }
+        while (_holdInputBuffer.Count > _maxInputBufferSize) {
+            _holdInputBuffer.RemoveAt(0);
         }
     }
 
     public void EnableInputBuffering(bool enabled) {
         _enableInputBuffering = enabled;
         if (!enabled) {
-            _inputBuffer.Clear();
+            ClearAllBuffers();
         }
     }
 
     #endregion
 
     protected abstract string GetSourceName();
+
+    public void Pause() {
+        _paused = true;
+    }
+
+    public void Resume() {
+        _paused = false;
+    }
 
     #region IDisposable Implementation
 
@@ -350,6 +483,8 @@ public abstract class InputHandler : IDisposable {
                 _keyBindings.Clear();
                 _comboBindings.Clear();
                 _inputBuffer.Clear();
+                _releaseInputBuffer.Clear();
+                _holdInputBuffer.Clear();
             }
 
             _disposed = true;
@@ -371,25 +506,15 @@ public class InputState {
     public float RepeatTimer { get; set; }
 }
 
-public class KeyBinding {
-    public string ActionName { get; }
-    public Keys Key { get; }
-
-    public KeyBinding(string actionName, Keys key) {
-        ActionName = actionName;
-        Key = key;
-    }
+public class KeyBinding(string actionName, Keys key) {
+    public string ActionName { get; } = actionName;
+    public Keys Key { get; } = key;
 }
 
-public class ComboBinding {
-    public string ActionName { get; }
-    public Keys[] Keys { get; }
+public class ComboBinding(string actionName, Keys[] keys) {
+    public string ActionName { get; } = actionName;
+    public Keys[] Keys { get; } = keys;
     public bool IsActive { get; set; }
-
-    public ComboBinding(string actionName, Keys[] keys) {
-        ActionName = actionName;
-        Keys = keys;
-    }
 }
 
 public enum InputEventType {
