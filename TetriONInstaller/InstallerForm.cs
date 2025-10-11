@@ -5,8 +5,7 @@ using Microsoft.Win32;
 
 namespace TetriONInstaller;
 
-public partial class InstallerForm : Form
-{
+public partial class InstallerForm : Form {
     private ProgressBar progressBar;
     private Label statusLabel;
     private Button installButton;
@@ -19,15 +18,13 @@ public partial class InstallerForm : Form
     private string defaultInstallPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "TetriON");
     private bool isInstalling = false;
 
-    public InstallerForm()
-    {
+    public InstallerForm() {
         InitializeComponent();
     }
 
-    private void InitializeComponent()
-    {
+    private void InitializeComponent() {
         // Form setup
-        this.Text = "TetriON Installer";
+        this.Text = "TetriON Installer - Windows x64";
         this.Size = new Size(500, 400);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -35,23 +32,20 @@ public partial class InstallerForm : Form
         this.MinimizeBox = false;
 
         // Install path selection
-        var pathLabel = new Label
-        {
+        var pathLabel = new Label {
             Text = "Installation Directory:",
             Location = new Point(20, 20),
             Size = new Size(150, 23),
             AutoSize = true
         };
 
-        installPathTextBox = new TextBox
-        {
+        installPathTextBox = new TextBox {
             Text = defaultInstallPath,
             Location = new Point(20, 50),
             Size = new Size(350, 23)
         };
 
-        browseButton = new Button
-        {
+        browseButton = new Button {
             Text = "Browse...",
             Location = new Point(380, 49),
             Size = new Size(80, 25)
@@ -59,16 +53,14 @@ public partial class InstallerForm : Form
         browseButton.Click += BrowseButton_Click;
 
         // Shortcuts options
-        createDesktopShortcut = new CheckBox
-        {
+        createDesktopShortcut = new CheckBox {
             Text = "Create desktop shortcut",
             Location = new Point(20, 90),
             Size = new Size(200, 23),
             Checked = true
         };
 
-        createStartMenuShortcut = new CheckBox
-        {
+        createStartMenuShortcut = new CheckBox {
             Text = "Create Start Menu shortcut",
             Location = new Point(20, 120),
             Size = new Size(200, 23),
@@ -76,25 +68,22 @@ public partial class InstallerForm : Form
         };
 
         // Progress bar
-        progressBar = new ProgressBar
-        {
+        progressBar = new ProgressBar {
             Location = new Point(20, 180),
             Size = new Size(440, 23),
             Style = ProgressBarStyle.Continuous
         };
 
         // Status label
-        statusLabel = new Label
-        {
-            Text = "Ready to install TetriON",
+        statusLabel = new Label {
+            Text = "Ready to install TetriON for Windows x64",
             Location = new Point(20, 210),
             Size = new Size(440, 23),
             AutoSize = false,
         };
 
         // Buttons
-        installButton = new Button
-        {
+        installButton = new Button {
             Text = "Install",
             Location = new Point(300, 320),
             Size = new Size(80, 30),
@@ -102,8 +91,7 @@ public partial class InstallerForm : Form
         };
         installButton.Click += InstallButton_Click;
 
-        closeButton = new Button
-        {
+        closeButton = new Button {
             Text = "Close",
             Location = new Point(390, 320),
             Size = new Size(80, 30),
@@ -118,24 +106,20 @@ public partial class InstallerForm : Form
         });
     }
 
-    private void BrowseButton_Click(object sender, EventArgs e)
-    {
+    private void BrowseButton_Click(object sender, EventArgs e) {
         using var folderDialog = new FolderBrowserDialog();
         folderDialog.Description = "Select installation directory";
         folderDialog.SelectedPath = installPathTextBox.Text;
 
-        if (folderDialog.ShowDialog() == DialogResult.OK)
-        {
+        if (folderDialog.ShowDialog() == DialogResult.OK) {
             installPathTextBox.Text = folderDialog.SelectedPath;
         }
     }
 
-    private async void InstallButton_Click(object sender, EventArgs e)
-    {
+    private async void InstallButton_Click(object sender, EventArgs e) {
         if (isInstalling) return;
 
-        try
-        {
+        try {
             isInstalling = true;
             installButton.Enabled = false;
             browseButton.Enabled = false;
@@ -150,20 +134,15 @@ public partial class InstallerForm : Form
             var result = MessageBox.Show("Would you like to launch TetriON now?", "Launch Game",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-            if (result == DialogResult.Yes)
-            {
+            if (result == DialogResult.Yes) {
                 LaunchGame();
             }
 
             this.Close();
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             MessageBox.Show($"Installation failed: {ex.Message}", "Error",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-        finally
-        {
+        } finally {
             isInstalling = false;
             installButton.Enabled = true;
             browseButton.Enabled = true;
@@ -171,8 +150,7 @@ public partial class InstallerForm : Form
         }
     }
 
-    private async Task PerformInstallation()
-    {
+    private async Task PerformInstallation() {
         var installPath = installPathTextBox.Text;
 
         // Create installation directory
@@ -191,15 +169,13 @@ public partial class InstallerForm : Form
         progressBar.Value = 70;
 
         // Create shortcuts
-        if (createDesktopShortcut.Checked)
-        {
+        if (createDesktopShortcut.Checked) {
             UpdateStatus("Creating desktop shortcut...");
             CreateDesktopShortcut(installPath);
         }
         progressBar.Value = 80;
 
-        if (createStartMenuShortcut.Checked)
-        {
+        if (createStartMenuShortcut.Checked) {
             UpdateStatus("Creating Start Menu shortcut...");
             CreateStartMenuShortcut(installPath);
         }
@@ -213,70 +189,63 @@ public partial class InstallerForm : Form
         UpdateStatus("Installation completed successfully!");
     }
 
-    private async Task ExtractGameFiles(string installPath)
-    {
+    private async Task ExtractGameFiles(string installPath) {
         var assembly = Assembly.GetExecutingAssembly();
-        var resourceName = "TetriONInstaller.game_files.zip";
+
+        // Try to find the embedded resource (could be platform-specific)
+        var resourceNames = assembly.GetManifestResourceNames();
+        string resourceName = null;
+
+        // Look for platform-specific resource first, then fall back to generic
+        var possibleNames = new[] {
+            "TetriONInstaller.game_files_windows.zip",
+            "TetriONInstaller.game_files.zip"
+        };
+
+        foreach (var name in possibleNames) {
+            if (resourceNames.Contains(name)) {
+                resourceName = name;
+                break;
+            }
+        }
 
         using var stream = assembly.GetManifestResourceStream(resourceName);
         if (stream == null)
-            throw new InvalidOperationException("Game files not found in installer");
+            throw new InvalidOperationException($"Game files not found in installer. Available resources: {string.Join(", ", resourceNames)}");
 
         using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
 
         var totalFiles = archive.Entries.Count;
         var extractedFiles = 0;
 
-        foreach (var entry in archive.Entries)
-        {
+        foreach (var entry in archive.Entries) {
             if (string.IsNullOrEmpty(entry.Name)) continue;
 
-            // Handle Content/skins specially - extract to skins folder
-            if (entry.FullName.StartsWith("Content/skins/", StringComparison.OrdinalIgnoreCase) ||
-                entry.FullName.StartsWith("Content\\skins\\", StringComparison.OrdinalIgnoreCase))
-            {
+            // Extract all files from the pre-built platform archive
+            var destinationPath = Path.Combine(installPath, entry.FullName);
+            var destinationDir = Path.GetDirectoryName(destinationPath);
 
-                // Remove "Content/" prefix and extract to installation directory
-                var relativePath = entry.FullName.Substring(8); // Remove "Content/" or "Content\"
-                var destinationPath = Path.Combine(installPath, relativePath);
-                var destinationDir = Path.GetDirectoryName(destinationPath);
+            if (!string.IsNullOrEmpty(destinationDir)) {
+                Directory.CreateDirectory(destinationDir);
+            }
 
-                if (!string.IsNullOrEmpty(destinationDir)) Directory.CreateDirectory(destinationDir);
-                entry.ExtractToFile(destinationPath, true);
-            }
-            // Skip all other Content folder contents
-            else if (entry.FullName.StartsWith("Content/", StringComparison.OrdinalIgnoreCase) ||
-                     entry.FullName.StartsWith("Content\\", StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-            // Extract all other files normally
-            else
-            {
-                var destinationPath = Path.Combine(installPath, entry.FullName);
-                var destinationDir = Path.GetDirectoryName(destinationPath);
-
-                if (!string.IsNullOrEmpty(destinationDir)) Directory.CreateDirectory(destinationDir);
-                entry.ExtractToFile(destinationPath, true);
-            }
+            entry.ExtractToFile(destinationPath, true);
 
             extractedFiles++;
-            var fileProgress = (int)((double)extractedFiles / totalFiles * 40) + 10; // 10-50 range
-            progressBar.Value = Math.Min(fileProgress, 50);
+            var fileProgress = (int)((double)extractedFiles / totalFiles * 50) + 10; // 10-60 range
+            progressBar.Value = Math.Min(fileProgress, 60);
 
             UpdateStatus($"Extracting: {entry.Name}");
-            await Task.Delay(10); // Allow UI to update
+            await Task.Delay(5); // Allow UI to update
         }
 
-        // Skip file organization - leave all files where .NET expects them
-        UpdateStatus("Files extracted successfully");
+        // Files are already organized correctly from the pre-built platform archive
+        UpdateStatus("Platform files extracted successfully");
         progressBar.Value = 60;
     }
 
-    private async Task OrganizeInstallationFiles(string installPath)
-    {
-        try
-        {
+    private async Task OrganizeInstallationFiles(string installPath) {
+        try {
             var binFolder = Path.Combine(installPath, "bin");
             Directory.CreateDirectory(binFolder);
 
@@ -452,13 +421,11 @@ public partial class InstallerForm : Form
             };
 
             var movedCount = 0;
-            foreach (var dllPath in allDlls)
-            {
+            foreach (var dllPath in allDlls) {
                 var fileName = Path.GetFileName(dllPath);
 
                 // Move only explicitly listed libraries to /bin
-                if (librariesToMove.Contains(fileName))
-                {
+                if (librariesToMove.Contains(fileName)) {
                     var destPath = Path.Combine(binFolder, fileName);
                     File.Move(dllPath, destPath);
                     UpdateStatus($"Moved {fileName} to bin folder");
@@ -474,8 +441,7 @@ public partial class InstallerForm : Form
             var runtimesSource = Path.Combine(installPath, "runtimes");
             var runtimesDest = Path.Combine(binFolder, "runtimes");
 
-            if (Directory.Exists(runtimesSource))
-            {
+            if (Directory.Exists(runtimesSource)) {
                 Directory.Move(runtimesSource, runtimesDest);
                 UpdateStatus("Moved runtimes to bin folder");
                 await Task.Delay(50);
@@ -483,10 +449,8 @@ public partial class InstallerForm : Form
 
             // For .NET Core/5+ apps, modify the runtimeconfig.json to include additional probe paths
             var runtimeConfigPath = Path.Combine(installPath, "TetriON.runtimeconfig.json");
-            if (File.Exists(runtimeConfigPath))
-            {
-                try
-                {
+            if (File.Exists(runtimeConfigPath)) {
+                try {
                     var runtimeConfigContent = @"{
   ""runtimeOptions"": {
     ""tfm"": ""net8.0"",
@@ -504,9 +468,7 @@ public partial class InstallerForm : Form
 }";
                     await File.WriteAllTextAsync(runtimeConfigPath, runtimeConfigContent);
                     UpdateStatus("Updated runtime configuration for /bin folder");
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     System.Diagnostics.Debug.WriteLine($"Runtime config modification failed: {ex.Message}");
                 }
             }
@@ -525,41 +487,33 @@ public partial class InstallerForm : Form
             await File.WriteAllTextAsync(configPath, configContent);
 
             UpdateStatus("Created configuration files");
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             // If organization fails, continue anyway - the game should still work
             System.Diagnostics.Debug.WriteLine($"File organization failed: {ex.Message}");
         }
     }
 
-    private async Task CopyUninstaller(string installPath)
-    {
-        try
-        {
+    private async Task CopyUninstaller(string installPath) {
+        try {
             // Get the directory where the installer is located (use AppContext.BaseDirectory for single-file apps)
             var installerDir = AppContext.BaseDirectory;
             var uninstallerPath = Path.Combine(installerDir, "uninstall.exe");
 
             // If uninstaller is not found in installer directory, try looking in common build locations
-            if (!File.Exists(uninstallerPath))
-            {
+            if (!File.Exists(uninstallerPath)) {
                 // Try using Assembly location as fallback
                 var assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                if (!string.IsNullOrEmpty(assemblyDir))
-                {
+                if (!string.IsNullOrEmpty(assemblyDir)) {
                     uninstallerPath = Path.Combine(assemblyDir, "uninstall.exe");
                 }
 
                 // Try relative path from development build if still not found
-                if (!File.Exists(uninstallerPath) && !string.IsNullOrEmpty(assemblyDir))
-                {
+                if (!File.Exists(uninstallerPath) && !string.IsNullOrEmpty(assemblyDir)) {
                     uninstallerPath = Path.Combine(assemblyDir, "..", "TetriONUninstaller", "bin", "Release", "net8.0-windows", "TetriONUninstaller.exe");
                 }
             }
 
-            if (File.Exists(uninstallerPath))
-            {
+            if (File.Exists(uninstallerPath)) {
                 var destPath = Path.Combine(installPath, "uninstall.exe");
                 File.Copy(uninstallerPath, destPath, true);
 
@@ -571,27 +525,21 @@ public partial class InstallerForm : Form
                 };
 
                 var uninstallerDir = Path.GetDirectoryName(uninstallerPath);
-                foreach (var dep in dependencies)
-                {
+                foreach (var dep in dependencies) {
                     var srcDep = Path.Combine(uninstallerDir, dep);
                     var destDep = Path.Combine(installPath, dep.Replace("TetriONUninstaller", "uninstall"));
 
-                    if (File.Exists(srcDep))
-                    {
+                    if (File.Exists(srcDep)) {
                         File.Copy(srcDep, destDep, true);
                     }
                 }
 
                 UpdateStatus("Uninstaller copied successfully");
-            }
-            else
-            {
+            } else {
                 UpdateStatus("Warning: Uninstaller not found, skipping...");
                 System.Diagnostics.Debug.WriteLine($"Uninstaller not found at: {uninstallerPath}");
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             // If uninstaller copy fails, continue anyway
             System.Diagnostics.Debug.WriteLine($"Uninstaller copy failed: {ex.Message}");
             UpdateStatus("Warning: Could not install uninstaller");
@@ -600,8 +548,7 @@ public partial class InstallerForm : Form
         await Task.Delay(100); // Allow UI to update
     }
 
-    private void CreateDesktopShortcut(string installPath)
-    {
+    private void CreateDesktopShortcut(string installPath) {
         var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
         var shortcutPath = Path.Combine(desktopPath, "TetriON.lnk");
         var targetPath = Path.Combine(installPath, "TetriON.exe");
@@ -609,8 +556,7 @@ public partial class InstallerForm : Form
         CreateShortcut(shortcutPath, targetPath, installPath);
     }
 
-    private void CreateStartMenuShortcut(string installPath)
-    {
+    private void CreateStartMenuShortcut(string installPath) {
         var startMenuPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "TetriON");
         Directory.CreateDirectory(startMenuPath);
 
@@ -620,8 +566,7 @@ public partial class InstallerForm : Form
         CreateShortcut(shortcutPath, targetPath, installPath);
     }
 
-    private void CreateShortcut(string shortcutPath, string targetPath, string workingDirectory)
-    {
+    private void CreateShortcut(string shortcutPath, string targetPath, string workingDirectory) {
         // Using WScript.Shell COM object to create shortcuts
         var shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
         var shortcut = shell.GetType().InvokeMember("CreateShortcut",
@@ -637,10 +582,8 @@ public partial class InstallerForm : Form
             System.Reflection.BindingFlags.InvokeMethod, null, shortcut, null);
     }
 
-    private void RegisterUninstaller(string installPath)
-    {
-        try
-        {
+    private void RegisterUninstaller(string installPath) {
+        try {
             using var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\TetriON");
 
             key.SetValue("DisplayName", "TetriON");
@@ -651,9 +594,7 @@ public partial class InstallerForm : Form
             key.SetValue("DisplayIcon", Path.Combine(installPath, "TetriON.exe"));
             key.SetValue("NoModify", 1);
             key.SetValue("NoRepair", 1);
-        }
-        catch (UnauthorizedAccessException)
-        {
+        } catch (UnauthorizedAccessException) {
             // If we can't write to HKLM, try HKCU
             using var key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\TetriON");
 
@@ -668,35 +609,27 @@ public partial class InstallerForm : Form
         }
     }
 
-    private void LaunchGame()
-    {
-        try
-        {
+    private void LaunchGame() {
+        try {
             var gamePath = Path.Combine(installPathTextBox.Text, "TetriON.exe");
-            Process.Start(new ProcessStartInfo
-            {
+            Process.Start(new ProcessStartInfo {
                 FileName = gamePath,
                 UseShellExecute = true,
                 WorkingDirectory = installPathTextBox.Text
             });
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             MessageBox.Show($"Failed to launch game: {ex.Message}", "Error",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }
 
-    private void UpdateStatus(string status)
-    {
+    private void UpdateStatus(string status) {
         statusLabel.Text = status;
         statusLabel.Refresh();
     }
 
-    private void CheckDotNetRuntime()
-    {
-        if (!IsDotNet8Installed())
-        {
+    private void CheckDotNetRuntime() {
+        if (!IsDotNet8Installed()) {
             var result = MessageBox.Show(
                 ".NET 8.0 Runtime is required to run TetriON but was not found on your system.\n\n" +
                 "Would you like to download and install .NET 8.0 Runtime now?\n\n" +
@@ -705,12 +638,9 @@ public partial class InstallerForm : Form
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning);
 
-            if (result == DialogResult.Yes)
-            {
-                try
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
+            if (result == DialogResult.Yes) {
+                try {
+                    Process.Start(new ProcessStartInfo {
                         FileName = "https://dotnet.microsoft.com/download/dotnet/8.0/runtime",
                         UseShellExecute = true
                     });
@@ -720,9 +650,7 @@ public partial class InstallerForm : Form
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information);
                     Application.Exit();
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     MessageBox.Show($"Could not open download page: {ex.Message}", "Error",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
@@ -730,24 +658,18 @@ public partial class InstallerForm : Form
         }
     }
 
-    private bool IsDotNet8Installed()
-    {
-        try
-        {
+    private bool IsDotNet8Installed() {
+        try {
             // Check for .NET 8.0 runtime in registry
             using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\dotnet\Setup\InstalledVersions\x64\sharedhost") ??
-                             Registry.LocalMachine.OpenSubKey(@"SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedhost"))
-            {
-                if (key != null)
-                {
+                             Registry.LocalMachine.OpenSubKey(@"SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedhost")) {
+                if (key != null) {
                     var version = key.GetValue("Version")?.ToString();
-                    if (!string.IsNullOrEmpty(version))
-                    {
+                    if (!string.IsNullOrEmpty(version)) {
                         var versionParts = version.Split('.');
                         if (versionParts.Length >= 2 &&
                             int.TryParse(versionParts[0], out int major) &&
-                            major >= 8)
-                        {
+                            major >= 8) {
                             return true;
                         }
                     }
@@ -755,10 +677,8 @@ public partial class InstallerForm : Form
             }
 
             // Alternative check: try to run dotnet --version
-            try
-            {
-                var processStartInfo = new ProcessStartInfo
-                {
+            try {
+                var processStartInfo = new ProcessStartInfo {
                     FileName = "dotnet",
                     Arguments = "--list-runtimes",
                     RedirectStandardOutput = true,
@@ -766,26 +686,20 @@ public partial class InstallerForm : Form
                     CreateNoWindow = true
                 };
 
-                using (var process = Process.Start(processStartInfo))
-                {
-                    if (process != null)
-                    {
+                using (var process = Process.Start(processStartInfo)) {
+                    if (process != null) {
                         process.WaitForExit();
                         var output = process.StandardOutput.ReadToEnd();
                         return output.Contains("Microsoft.NETCore.App 8.") ||
                                output.Contains("Microsoft.WindowsDesktop.App 8.");
                     }
                 }
-            }
-            catch
-            {
+            } catch {
                 // Ignore errors from dotnet command
             }
 
             return false;
-        }
-        catch
-        {
+        } catch {
             // If we can't check, assume it's installed to avoid blocking installation
             return true;
         }
