@@ -122,56 +122,6 @@ public class T : Tetromino {
             //TetriON.DebugLog($"CheckTSpin: {filledCount}/4 corners filled, Regular T-spin=true");
             return true;
         }
-
-        // Mini T-Spin detection: Only 2 corners filled, but with specific patterns
-        if (filledCount == 2) {
-            // Determine front and back corners based on T-piece orientation
-            bool[] frontCorners = new bool[2];
-            bool[] backCorners = new bool[2];
-
-            switch (toRotation) {
-                case 0: // T pointing up
-                    frontCorners[0] = filled[0]; // Top-left
-                    frontCorners[1] = filled[1]; // Top-right
-                    backCorners[0] = filled[2];  // Bottom-left
-                    backCorners[1] = filled[3];  // Bottom-right
-                    break;
-                case 1: // T pointing right
-                    frontCorners[0] = filled[1]; // Top-right
-                    frontCorners[1] = filled[3]; // Bottom-right
-                    backCorners[0] = filled[0];  // Top-left
-                    backCorners[1] = filled[2];  // Bottom-left
-                    break;
-                case 2: // T pointing down
-                    frontCorners[0] = filled[2]; // Bottom-left
-                    frontCorners[1] = filled[3]; // Bottom-right
-                    backCorners[0] = filled[0];  // Top-left
-                    backCorners[1] = filled[1];  // Top-right
-                    break;
-                case 3: // T pointing left
-                    frontCorners[0] = filled[0]; // Top-left
-                    frontCorners[1] = filled[2]; // Bottom-left
-                    backCorners[0] = filled[1];  // Top-right
-                    backCorners[1] = filled[3];  // Bottom-right
-                    break;
-            }
-
-            // Mini T-Spin conditions:
-            // 1. Both front corners filled, OR
-            // 2. One front corner and one back corner filled (diagonal pattern)
-            bool bothFrontFilled = frontCorners[0] && frontCorners[1];
-            bool diagonalPattern = (frontCorners[0] && backCorners[1]) ||
-                                 (frontCorners[1] && backCorners[0]);
-
-            bool isMiniTSpin = bothFrontFilled || diagonalPattern;
-
-            //TetriON.DebugLog($"CheckTSpin: Mini T-spin check - front={frontCorners[0]},{frontCorners[1]}, back={backCorners[0]},{backCorners[1]}, bothFront={bothFrontFilled}, diagonal={diagonalPattern}, isMini={isMiniTSpin}");
-
-            if (isMiniTSpin) {
-                return true;
-            }
-        }
-
         //TetriON.DebugLog($"CheckTSpin: {filledCount}/4 corners filled, not a T-spin");
         return false;
     }
