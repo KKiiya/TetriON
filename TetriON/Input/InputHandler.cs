@@ -9,12 +9,12 @@ namespace TetriON.Input;
 public abstract class InputHandler : IDisposable {
 
     // Event delegates with better type safety
-    public delegate void KeyPressedEvent(string source, Keys key, string binding, bool isRepeat);
-    public delegate void KeyReleasedEvent(string source, Keys key, string binding);
-    public delegate void KeyHeldEvent(string source, Keys key, string binding, float duration);
-    public delegate void KeyComboPressedEvent(string source, Keys[] keys, string[] bindings);
-    public delegate void KeyComboReleasedEvent(string source, Keys[] keys, string[] bindings);
-    public delegate void InputActionEvent(string actionName);
+    public delegate bool KeyPressedEvent(string source, Keys key, string binding, bool isRepeat);
+    public delegate bool KeyReleasedEvent(string source, Keys key, string binding);
+    public delegate bool KeyHeldEvent(string source, Keys key, string binding, float duration);
+    public delegate bool KeyComboPressedEvent(string source, Keys[] keys, string[] bindings);
+    public delegate bool KeyComboReleasedEvent(string source, Keys[] keys, string[] bindings);
+    public delegate bool InputActionEvent(string actionName);
 
     // Events
     public event KeyPressedEvent OnKeyPressed;
@@ -83,10 +83,15 @@ public abstract class InputHandler : IDisposable {
             state.IsHeld = true;
             state.HeldDuration = 0f;
             state.RepeatTimer = 0f;
-            RaiseKeyPressed(key, false);
 
-            // Priority system: If this key allows KRR, add it to the stack and make it active
-            if (IsKeyAllowedForKRR(key)) {
+            // Raise key pressed event - if consumed, don't add to KRR stack
+            bool consumed = RaiseKeyPressed(key, false);
+
+            // Priority system: Add to KRR stack if the key allows KRR
+            // (We want keys that are handled by the game to repeat)
+            bool allowsKRR = IsKeyAllowedForKRR(key);
+            // TetriON.DebugLog($"InputHandler: Key {key} - consumed: {consumed}, allowsKRR: {allowsKRR}");
+            if (allowsKRR) {
                 // Remove key if it's already in the stack (to avoid duplicates)
                 _heldKrrKeys.Remove(key);
                 // Add to end of stack (most recent)
@@ -146,6 +151,7 @@ public abstract class InputHandler : IDisposable {
             // Handle key repeat (KRD/KRR) - only if this key allows KRR AND is the active repeat key
             if (IsKeyAllowedForKRR(key) && _activeRepeatKey == key) {
                 state.RepeatTimer += deltaTime;
+                // TetriON.DebugLog($"InputHandler: Key {key} held - RepeatTimer: {state.RepeatTimer:F3}s, HeldDuration: {state.HeldDuration:F3}s");
 
                 // Check if we should start repeating (after KRD delay)
                 float keyRepeatDelaySeconds = _keyRepeatDelay / 1000f;
@@ -157,7 +163,10 @@ public abstract class InputHandler : IDisposable {
                     if (state.RepeatTimer >= keyRepeatRateSeconds) {
                         // TetriON.DebugLog($"InputHandler: Active repeat key {key} triggered! Timer: {state.RepeatTimer:F3}s, Rate: {keyRepeatRateSeconds:F3}s");
                         state.RepeatTimer = 0f;
-                        RaiseKeyPressed(key, true); // isRepeat = true
+
+                        // Only trigger repeat if input isn't consumed
+                        bool consumed = RaiseKeyPressed(key, true); // isRepeat = true
+                        // If consumed, we continue repeating (current behavior maintained)
                     }
                 }
             }
@@ -189,18 +198,37 @@ public abstract class InputHandler : IDisposable {
 
     #region Event Raising
 
-    protected void RaiseKeyPressed(Keys key, bool isRepeat = false) {
+    protected bool RaiseKeyPressed(Keys key, bool isRepeat = false) {
         try {
             // Get binding name for this key
             string bindingName = GetKeyBindingName(key);
-            OnKeyPressed?.Invoke(GetSourceName(), key, bindingName, isRepeat);
 
-            // Check bound actions - allow repeats only for keys that have allowKRR = true
-            if (!isRepeat || IsKeyAllowedForKRR(key)) {
-                CheckKeyBindingAction(key);
+            // Invoke event and check if any handler consumed it
+            bool consumed = false;
+            if (OnKeyPressed != null) {
+                foreach (KeyPressedEvent handler in OnKeyPressed.GetInvocationList().Cast<KeyPressedEvent>()) {
+                    if (handler.Invoke(GetSourceName(), key, bindingName, isRepeat)) {
+                        consumed = true;
+                        break; // Stop processing if consumed
+                    }
+                }
             }
+
+            // Only check bound actions if the event wasn't consumed
+            if (!consumed) {
+                // Check bound actions - allow repeats only for keys that have allowKRR = true
+                if (!isRepeat || IsKeyAllowedForKRR(key)) {
+                    consumed = CheckKeyBindingAction(key);
+                }
+            }
+
+            // Debug log whether the key was handled
+            if (!consumed) TetriON.DebugLog($"InputHandler: Key {key} (repeat={isRepeat}) - NOT HANDLED");
+
+            return consumed;
         } catch (Exception ex) {
             TetriON.DebugLog($"Error in key pressed event: {ex.Message}");
+            return false;
         }
     }
 
@@ -244,11 +272,25 @@ public abstract class InputHandler : IDisposable {
         }
     }
 
-    protected void RaiseInputAction(string actionName) {
+    protected bool RaiseInputAction(string actionName) {
         try {
-            OnInputAction?.Invoke(actionName);
+            bool consumed = false;
+            if (OnInputAction != null) {
+                foreach (InputActionEvent handler in OnInputAction.GetInvocationList()) {
+                    if (handler.Invoke(actionName)) {
+                        consumed = true;
+                        break; // Stop processing if consumed
+                    }
+                }
+            }
+
+            // Debug log whether the action was handled
+            if (!consumed) TetriON.DebugLog($"InputHandler: Action '{actionName}' - NOT HANDLED");
+
+            return consumed;
         } catch (Exception ex) {
             TetriON.DebugLog($"Error in input action event: {ex.Message}");
+            return false;
         }
     }
 
@@ -352,20 +394,22 @@ public abstract class InputHandler : IDisposable {
         // TetriON.DebugLog("InputHandler: Active repeat key and stack cleared manually");
     }
 
-    protected void CheckKeyBindingAction(Keys key) {
+    protected bool CheckKeyBindingAction(Keys key) {
         foreach (var binding in _keyBindings.Values) {
             if (binding.Key == key) {
-                RaiseInputAction(binding.ActionName);
+                return RaiseInputAction(binding.ActionName);
             }
         }
+        return false;
     }
 
-    protected void CheckComboBindingAction(Keys[] keys) {
+    protected bool CheckComboBindingAction(Keys[] keys) {
         foreach (var binding in _comboBindings.Values) {
             if (AreKeysEqual(binding.Keys, keys)) {
-                RaiseInputAction(binding.ActionName);
+                return RaiseInputAction(binding.ActionName);
             }
         }
+        return false;
     }
 
     protected virtual void CheckKeyCombinations() {

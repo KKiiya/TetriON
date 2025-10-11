@@ -834,8 +834,8 @@ public class TetrisGame {
         // TetriON.DebugLog("TetrisGame: Input event handlers subscribed");
     }
 
-    private void HandleInputAction(string actionName) {
-        if (_gameOver) return;
+    private bool HandleInputAction(string actionName) {
+        if (_gameOver) return true;
 
         // Only handle movement and drop actions here (these can repeat with ARR)
         switch (actionName) {
@@ -856,18 +856,18 @@ public class TetrisGame {
                 if (!_areInProgress) MoveDown();
                 break;
             default:
-                TetriON.DebugLog($"HandleInputAction: Unhandled action - {actionName}");
-                break;
+                return false;
         }
+        return true;
     }
 
-    private void HandleKeyPressed(string source, Keys key, string binding, bool isRepeat) {
-        if (_gameOver) return;
+    private bool HandleKeyPressed(string source, Keys key, string binding, bool isRepeat) {
+        if (_gameOver) return true;
 
         // Handle IRS during ARE delay
         if (_areInProgress) {
             HandleIRSKeyPressed(key);
-            return;
+            return true;
         }
 
         // Handle rotation and hold actions only on initial press (not repeats)
@@ -888,15 +888,20 @@ public class TetrisGame {
                     Hold();
                     break;
                 default:
-                    TetriON.DebugLog($"HandleKeyPressed: Unhandled key press - Key={key}, Binding={binding}");
-                    break;
+                    return false;
             }
+            return true; // We handled a rotation or hold action
         }
+
+        // For repeats, let the action system handle movement
+        return false;
     }
 
-    private void HandleKeyReleased(string source, Keys key, string binding) {
+    private bool HandleKeyReleased(string source, Keys key, string binding) {
         // Handle key release events if needed
         // Currently no specific release handling needed for Tetris gameplay
+        // TetriON.DebugLog($"HandleKeyReleased: Key={key}, Source={source}, Binding={binding}");
+        return true;
     }
 
     private void HandleIRSKeyPressed(Keys key) {
