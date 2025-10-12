@@ -10,18 +10,18 @@
 ### Rotation
 - **Z** - Rotate counter-clockwise (left)
 - **X** - Rotate clockwise (right)
-- **E** - Rotate 180 degrees
+- **V** - Rotate 180 degrees
 
 ### Actions
 - **C** - Hold piece
 - **Space** - Hard drop (instant drop)
-- **R** - Restart game
-- **Escape** - Pause game
+- **R** - Restart game (unavailable)
+- **Escape** - Pause game (closes the game for now)
 
 ## Movement Mechanics
 
 ### DAS/ARR (Auto-Repeat)
-- **DAS (Delayed Auto Shift)**: ~8 frames (133ms) initial delay before auto-repeat
+- **DAS (Delayed Auto Shift)**: ~8 frames (170ms) initial delay before auto-repeat
 - **ARR (Auto Repeat Rate)**: ~3 frames (50ms) between repeated movements
 - Hold left/right arrows for continuous movement after initial delay
 
