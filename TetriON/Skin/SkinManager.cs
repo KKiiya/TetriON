@@ -28,7 +28,22 @@ public class SkinManager : IDisposable {
 
     // Valid asset names that are allowed to be loaded (security/validation)
     private static readonly HashSet<string> ValidTextureNames = [
+        // === GAME TEXTURES ===
         "tiles", "ghost_tiles", "missing_texture",
+
+        // === BACKGROUND AND UI ===
+        "menu_background", "menu_pattern", "menu_decorations",
+        "logo_main", "version_text", "splash",
+
+        // === MAIN MENU BUTTONS ===
+        "singleplayer_b", "singleplayer_b_click", "singleplayer_b_hover", "singleplayer_b_disabled",
+        "multiplayer_b", "multiplayer_b_click", "multiplayer_b_hover", "multiplayer_b_disabled",
+        "settings_b", "settings_b_click", "settings_b_hover", "settings_b_disabled",
+        "leaderboard_b", "leaderboard_b_click", "leaderboard_b_hover", "leaderboard_b_disabled",
+        "quit_b", "quit_b_click", "quit_b_hover", "quit_b_disabled",
+
+        // === MODAL SYSTEM ===
+        "modal_panel", "modal_titlebar", "modal_button", "modal_option_button"
     ];
 
     private static readonly HashSet<string> ValidSoundNames = [
@@ -332,19 +347,21 @@ public class SkinManager : IDisposable {
     /// <summary>
     /// Get a cached texture asset as TextureWrapper
     /// </summary>
-    public TextureWrapper GetTextureAsset(string textureName) {
+    public (bool success, TextureWrapper) GetTextureAsset(string textureName) {
         if (!ValidTextureNames.Contains(textureName)) {
             TetriON.DebugLog($"SkinManager: ✗ Attempted to get invalid texture '{textureName}', returning missing_texture. Valid names: [{string.Join(", ", ValidTextureNames)}]");
-            return GetTextureAsset("missing_texture");
+            var missingResultA = GetTextureAsset("missing_texture");
+            return (false, missingResultA.Item2);
         }
 
         if (_textureAssets.TryGetValue(textureName, out var textureWrapper)) {
             TetriON.DebugLog($"SkinManager: ✓ Retrieved texture asset '{textureName}' for skin '{_currentSkin}'");
-            return textureWrapper;
+            return (true, textureWrapper);
         }
 
-        TetriON.DebugLog($"SkinManager: ✗ Texture '{textureName}' not found in loaded assets. Available: [{string.Join(", ", _textureAssets.Keys)}]");
-        throw new KeyNotFoundException($"Texture '{textureName}' not found in loaded assets. Call LoadTextureAssets() first.");
+        TetriON.DebugLog($"SkinManager: ✗ Texture '{textureName}' not found in loaded assets. Available: [{string.Join(", ", _textureAssets.Keys)}], returning missing_texture");
+        var missingResultB = GetTextureAsset("missing_texture");
+        return (false, missingResultB.Item2);
     }
 
     /// <summary>
