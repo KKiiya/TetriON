@@ -29,6 +29,7 @@ public class TetriON : Microsoft.Xna.Framework.Game {
     private TetrisGame _tetrisGame;
 
     public SkinManager SkinManager { get; private set; }
+    public GameSession Session => _session;
 
     public TetriON() {
         DebugLog("TetriON: Constructor started");
