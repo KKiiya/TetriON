@@ -258,7 +258,8 @@ public class ModalManager : IDisposable {
     private ButtonWrapper CreateStandardButton(string text, Vector2 position, string id) {
         try {
             var skinManager = _session.GetSkinManager();
-            var buttonTexture = new InterfaceTextureWrapper(skinManager.GetTextureAsset("modal_button"), Vector2.Zero);
+            var (success, bTexture) = skinManager.GetTextureAsset("modal_button");
+            var buttonTexture = new InterfaceTextureWrapper(bTexture, Vector2.Zero);
             buttonTexture.SetTargetSizeScreenPercent(15f, 6f, ScaleMode.Proportional);
             buttonTexture.SetAnchorPreset(AnchorPreset.Center);
 
@@ -275,7 +276,8 @@ public class ModalManager : IDisposable {
     private ButtonWrapper CreateOptionButton(string text, Vector2 position, string id) {
         try {
             var skinManager = _session.GetSkinManager();
-            var buttonTexture = new InterfaceTextureWrapper(skinManager.GetTextureAsset("modal_option_button"), Vector2.Zero);
+            var (success, bTexture) = skinManager.GetTextureAsset("modal_option_button");
+            var buttonTexture = new InterfaceTextureWrapper(bTexture, Vector2.Zero);
             buttonTexture.SetTargetSizeScreenPercent(25f, 5f, ScaleMode.Proportional);
             buttonTexture.SetAnchorPreset(AnchorPreset.Center);
 

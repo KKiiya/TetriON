@@ -18,27 +18,36 @@ public class SingleplayerB : ButtonWrapper {
 
     public SingleplayerB(MenuWrapper menu, Vector2 position, string id = "singleplayer", Dictionary<string, InterfaceTextureWrapper> textures = null)
         : base(menu, position, id, textures) {
+        TetriON.DebugLog("SingleplayerB: Constructor started, calling InitializePrimaryConstructor");
+        // Initialize ButtonWrapper mouse events first
+        InitializePrimaryConstructor();
+        TetriON.DebugLog("SingleplayerB: InitializePrimaryConstructor completed");
+
         SkinManager skinManager = menu.GetGameSession().GetSkinManager() ?? throw new Exception("SkinManager is null");
-        _originalTexture = new InterfaceTextureWrapper(skinManager.GetTextureAsset("singleplayer_b"), Vector2.Zero);
+        var (success, texture) = skinManager.GetTextureAsset("singleplayer_b");
+        _originalTexture = new InterfaceTextureWrapper(texture, Vector2.Zero);
 
         // Smart resize for buttons - 20% screen width, 6% screen height max
         _originalTexture.SetTargetSizeScreenPercent(20f, 6f, ScaleMode.Proportional);
         _originalTexture.SetAnchorPreset(AnchorPreset.Center);
 
-        // Subscribe to enhanced mouse events
-        SetupMouseEvents();
-
         // Load different state textures
         try {
-            _clickTexture = new InterfaceTextureWrapper(skinManager.GetTextureAsset("singleplayer_b_click"), Vector2.Zero);
+            var (successClick, textureClick) = skinManager.GetTextureAsset("singleplayer_b_click");
+            if (!successClick) textureClick = texture; // Fallback to original if click texture not found
+            var (successHover, textureHover) = skinManager.GetTextureAsset("singleplayer_b_hover");
+            if (!successHover) textureHover = texture; // Fallback to original if hover texture not found
+            var (successDisabled, textureDisabled) = skinManager.GetTextureAsset("singleplayer_b_disabled");
+            if (!successDisabled) textureDisabled = texture; // Fallback to original if disabled texture not found
+            _clickTexture = new InterfaceTextureWrapper(textureClick, Vector2.Zero);
             _clickTexture.SetTargetSizeScreenPercent(20f, 6f, ScaleMode.Proportional);
             _clickTexture.SetAnchorPreset(AnchorPreset.Center);
 
-            _hoverTexture = new InterfaceTextureWrapper(skinManager.GetTextureAsset("singleplayer_b_hover"), Vector2.Zero);
+            _hoverTexture = new InterfaceTextureWrapper(textureHover, Vector2.Zero);
             _hoverTexture.SetTargetSizeScreenPercent(20f, 6f, ScaleMode.Proportional);
             _hoverTexture.SetAnchorPreset(AnchorPreset.Center);
 
-            _disabledTexture = new InterfaceTextureWrapper(skinManager.GetTextureAsset("singleplayer_b_disabled"), Vector2.Zero);
+            _disabledTexture = new InterfaceTextureWrapper(textureDisabled, Vector2.Zero);
             _disabledTexture.SetTargetSizeScreenPercent(20f, 6f, ScaleMode.Proportional);
             _disabledTexture.SetAnchorPreset(AnchorPreset.Center);
         } catch {
@@ -57,76 +66,62 @@ public class SingleplayerB : ButtonWrapper {
             hover: Color.LightGray,
             pressed: Color.Gray,
             disabled: Color.DarkGray,
-            selected: Color.Yellow
+            selected: Color.White
         );
-
-        // Subscribe to events
-        OnClicked += HandleButtonClick;
-        OnHoverEnter += HandleHoverEnter;
-        OnHoverExit += HandleHoverExit;
-    }
-
-    private void SetupMouseEvents() {
-        // Enhanced mouse event subscriptions
-        OnMousePressed += HandleMousePressed;
-        OnMouseReleased += HandleMouseReleased;
-        OnMouseHeld += HandleMouseHeld;
-        OnMouseHolding += HandleMouseHolding;
-        OnRightClicked += HandleRightClick;
-
-        TetriON.DebugLog("SingleplayerB: Enhanced mouse events configured");
     }
 
     public SingleplayerB(MenuWrapper menu, Vector2 position, string id = "singleplayer", InterfaceTextureWrapper texture = null)
         : this(menu, position, id, new Dictionary<string, InterfaceTextureWrapper> { { "original", texture } }) {
     }
 
-    private void HandleButtonClick(ButtonWrapper button) {
+    // Override virtual methods from ButtonWrapper base class
+    protected override void OnButtonClicked() {
+        TetriON.DebugLog("SingleplayerB: OnButtonClicked called - switching to click texture");
         OnSingleplayerButtonPressed?.Invoke();
-
         // Temporarily set click texture
-        SetTexture(_clickTexture);
+        if (IsEnabled()) SetTexture(_clickTexture);
     }
 
-    private void HandleHoverEnter(ButtonWrapper button) {
+    protected override void OnButtonHoverEnter() {
+        TetriON.DebugLog("SingleplayerB: OnButtonHoverEnter called - switching to hover texture");
         if (IsEnabled()) SetTexture(_hoverTexture);
     }
 
-    private void HandleHoverExit(ButtonWrapper button) {
+    protected override void OnButtonHoverExit() {
+        TetriON.DebugLog("SingleplayerB: OnButtonHoverExit called - switching to original texture");
         if (IsEnabled()) SetTexture(_originalTexture);
     }
 
-    // Enhanced mouse event handlers
-    private void HandleMousePressed(ButtonWrapper button) {
-        TetriON.DebugLog("SingleplayerB: Mouse pressed down");
+    protected override void OnButtonMousePressed() {
+        TetriON.DebugLog("SingleplayerB: OnButtonMousePressed called");
         // Visual feedback - make button slightly darker when pressed
         if (IsEnabled()) SetTexture(_clickTexture ?? _originalTexture);
     }
 
-    private void HandleMouseReleased(ButtonWrapper button) {
-        TetriON.DebugLog("SingleplayerB: Mouse released");
+    protected override void OnButtonMouseReleased() {
+        TetriON.DebugLog("SingleplayerB: OnButtonMouseReleased called");
         // Reset to hover texture if still hovering, otherwise original
         if (IsEnabled()) {
             SetTexture(IsHovered() ? (_hoverTexture ?? _originalTexture) : _originalTexture);
         }
     }
 
-    private void HandleMouseHeld(ButtonWrapper button) {
-        TetriON.DebugLog("SingleplayerB: Button held - showing quick game options");
+    protected override void OnButtonMouseHeld() {
+        TetriON.DebugLog("SingleplayerB: OnButtonMouseHeld called - showing quick game options");
         // Could show a context menu with quick game mode options
         // For now, just provide visual feedback
         // TODO: Implement quick game mode selection
     }
 
-    private void HandleMouseHolding(ButtonWrapper button, float duration) {
+    protected override void OnButtonMouseHolding(float duration) {
         // Continuous feedback while holding
         if (duration > 1.0f) {
-            TetriON.DebugLog($"SingleplayerB: Held for {duration:F1}s - could show progress indicator");
+            TetriON.DebugLog($"SingleplayerB: OnButtonMouseHolding - Held for {duration:F1}s - could show progress indicator");
         }
     }
 
-    private void HandleRightClick(ButtonWrapper button) {
-        TetriON.DebugLog("SingleplayerB: Right-clicked - showing quick start options");
+    protected override void OnButtonRightClicked() {
+        TetriON.DebugLog("SingleplayerB: OnButtonRightClicked called - showing quick start options");
         // Right-click could provide quick access to last played mode or settings
         // TODO: Implement context menu or quick start functionality
     }
@@ -139,11 +134,6 @@ public class SingleplayerB : ButtonWrapper {
 
     protected override void Dispose(bool disposing) {
         if (disposing) {
-            // Unsubscribe from events
-            OnClicked -= HandleButtonClick;
-            OnHoverEnter -= HandleHoverEnter;
-            OnHoverExit -= HandleHoverExit;
-
             // Clear custom event
             OnSingleplayerButtonPressed = null;
         }

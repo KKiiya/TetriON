@@ -70,12 +70,14 @@ public class ModalWrapper : IDisposable {
             var skinManager = _session.GetSkinManager();
 
             // Setup modal panel background
-            _modalPanel = new InterfaceTextureWrapper(skinManager.GetTextureAsset("modal_panel"), Vector2.Zero);
+            var (success, texture) = skinManager.GetTextureAsset("modal_panel");
+            _modalPanel = new InterfaceTextureWrapper(texture, Vector2.Zero);
             _modalPanel.SetAnchorPreset(AnchorPreset.Center);
             _modalPanel.SetTargetSizeScreenPercent(60f, 40f, ScaleMode.Stretch);
 
             // Setup title bar (optional)
-            _titleBar = new InterfaceTextureWrapper(skinManager.GetTextureAsset("modal_titlebar"), Vector2.Zero);
+            var (titleSuccess, titleTexture) = skinManager.GetTextureAsset("modal_titlebar");
+            _titleBar = new InterfaceTextureWrapper(titleTexture, Vector2.Zero);
             _titleBar.SetAnchorPreset(AnchorPreset.TopCenter);
             _titleBar.SetTargetSizeScreenPercent(58f, 8f, ScaleMode.Stretch);
 
@@ -91,7 +93,7 @@ public class ModalWrapper : IDisposable {
     private void CreateFallbackVisuals() {
         try {
             var skinManager = _session.GetSkinManager();
-            var fallbackTexture = skinManager.GetTextureAsset("missing_texture");
+            var (success, fallbackTexture) = skinManager.GetTextureAsset("missing_texture");
 
             _modalPanel = new InterfaceTextureWrapper(fallbackTexture, Vector2.Zero);
             _modalPanel.SetAnchorPreset(AnchorPreset.Center);
@@ -182,7 +184,8 @@ public class ModalWrapper : IDisposable {
     private ButtonWrapper CreateStandardButton(string text, Vector2 position, string id) {
         try {
             var skinManager = _session.GetSkinManager();
-            var buttonTexture = new InterfaceTextureWrapper(skinManager.GetTextureAsset("modal_button"), Vector2.Zero);
+            var (success, bTexture) = skinManager.GetTextureAsset("modal_button");
+            var buttonTexture = new InterfaceTextureWrapper(bTexture, Vector2.Zero);
             buttonTexture.SetTargetSizeScreenPercent(12f, 5f, ScaleMode.Proportional);
             buttonTexture.SetAnchorPreset(AnchorPreset.Center);
 

@@ -35,7 +35,8 @@ public class TextWrapper(SpriteFont font, string text, Vector2 normalizedPositio
             return new TextureWrapper(renderTarget);
         } catch {
             // Fallback to a simple texture if text rendering fails
-            return TetriON.Instance.SkinManager.GetTextureAsset("missing_texture");
+            var (_, texture) = TetriON.Instance.SkinManager.GetTextureAsset("missing_texture");
+            return texture;
         }
     }
 
