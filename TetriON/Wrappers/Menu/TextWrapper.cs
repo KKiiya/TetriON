@@ -10,6 +10,7 @@ public class TextWrapper(SpriteFont font, string text, Vector2 normalizedPositio
     private string _text = text;
     private Color _textColor = color;
     private Vector2 _textScale = Vector2.One;
+    private TextureWrapper _textTexture = CreateTextTexture(font, text, color);
 
     private static TextureWrapper CreateTextTexture(SpriteFont font, string text, Color color) {
         // This would need to be implemented to render text to a texture
@@ -30,8 +31,8 @@ public class TextWrapper(SpriteFont font, string text, Vector2 normalizedPositio
             spriteBatch.End();
 
             graphics.SetRenderTarget(null);
-
-            return new TextureWrapper(renderTarget, true);
+            graphics.BlendState = BlendState.AlphaBlend;
+            return new TextureWrapper(renderTarget);
         } catch {
             // Fallback to a simple texture if text rendering fails
             return TetriON.Instance.SkinManager.GetTextureAsset("missing_texture");
@@ -43,7 +44,7 @@ public class TextWrapper(SpriteFont font, string text, Vector2 normalizedPositio
             _text = newText;
             // Regenerate texture with new text
             var newTexture = CreateTextTexture(_font, _text, _textColor);
-            // Update the base texture (this would need proper implementation)
+            _textTexture = newTexture;
         }
     }
 
@@ -52,11 +53,27 @@ public class TextWrapper(SpriteFont font, string text, Vector2 normalizedPositio
             _textColor = color;
             // Regenerate texture with new color
             var newTexture = CreateTextTexture(_font, _text, _textColor);
-            // Update the base texture (this would need proper implementation)
+            _textTexture = newTexture;
         }
     }
 
     public string GetText() => _text;
     public Color GetTextColor() => _textColor;
     public SpriteFont GetFont() => _font;
+    public void SetFont(SpriteFont font) {
+        if (_font != font) {
+            _font = font;
+            // Regenerate texture with new font
+            var newTexture = CreateTextTexture(_font, _text, _textColor);
+            _textTexture = newTexture;
+        }
+    }
+    public void SetTextScale(Vector2 scale) {
+        _textScale = scale;
+        // Regenerate texture with new scale
+        var newTexture = CreateTextTexture(_font, _text, _textColor);
+        _textTexture = newTexture;
+    }
+    public Vector2 GetTextScale() => _textScale;
+    public override Texture2D GetTexture() => _textTexture.GetTexture();
 }

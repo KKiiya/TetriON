@@ -87,7 +87,7 @@ public class TextureWrapper : IDisposable {
         _size = new Rectangle(Point.Zero, new Point(_width, _height));
     }
 
-    public Texture2D GetTexture() {
+    public virtual Texture2D GetTexture() {
         return _texture;
     }
 
