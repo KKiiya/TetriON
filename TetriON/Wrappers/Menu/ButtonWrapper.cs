@@ -7,12 +7,12 @@ using TetriON.Wrappers.Content;
 
 namespace TetriON.Wrappers.Menu;
 
-public class ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string id = "", Dictionary<string, InterfaceTextureWrapper> textures = null) : IDisposable {
-    private readonly string _id = id ?? string.Empty;
-    private readonly GameSession _session = menu.GetGameSession() ?? throw new ArgumentNullException(nameof(menu));
-    private readonly Mouse _mouseInput = TetriON.Mouse;
-    private InterfaceTextureWrapper _texture = textures?["original"];
-    private Vector2 _normalizedPosition = normalizedPosition;
+public class ButtonWrapper : IDisposable {
+    private readonly string _id;
+    private readonly GameSession _session;
+    private readonly Mouse _mouseInput;
+    private InterfaceTextureWrapper _texture;
+    private Vector2 _normalizedPosition;
     private Color _color = Color.White;
     private Color _hoverColor = Color.LightGray;
     private Color _pressedColor = Color.Gray;
@@ -30,8 +30,12 @@ public class ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string 
     private bool _wasMouseDown;
     private float _holdDuration;
     private const float HOLD_THRESHOLD = 0.5f; // 500ms to trigger hold event
+    private bool _initialized = false;
+    private bool _hasLoggedUpdate = false;
+    private bool _hasLoggedMouseMove = false;
 
-
+    // Cached collision bounds to prevent flickering when textures change
+    private Rectangle? _cachedCollisionBounds = null;
 
     // Events
     public event Action<ButtonWrapper> OnClicked;
@@ -43,6 +47,28 @@ public class ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string 
     public event Action<ButtonWrapper, float> OnMouseHolding; // Continuous while holding
     public event Action<ButtonWrapper> OnRightClicked;
     public event Action<ButtonWrapper> OnMiddleClicked;
+
+    public ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string id = "", Dictionary<string, InterfaceTextureWrapper> textures = null) {
+        _id = id ?? string.Empty;
+        _session = menu?.GetGameSession() ?? TetriON.Instance?.Session ?? throw new InvalidOperationException("No GameSession available");
+        _mouseInput = TetriON.Mouse;
+        _texture = textures != null && textures.TryGetValue("original", out InterfaceTextureWrapper value) ? value : null;
+        _normalizedPosition = normalizedPosition;
+        InitializePrimaryConstructor();
+    }
+
+
+    // Initialize immediately after construction
+    public void InitializePrimaryConstructor() {
+        //TetriON.DebugLog($"ButtonWrapper[{_id}]: InitializePrimaryConstructor called!");
+        if (!_initialized) {
+            //TetriON.DebugLog($"ButtonWrapper[{_id}]: Calling Initialize() directly");
+            Initialize();
+            _initialized = true;
+        } else {
+            //TetriON.DebugLog($"ButtonWrapper[{_id}]: Already initialized, skipping");
+        }
+    }
 
     public ButtonWrapper(MenuWrapper menu, string id = "", InterfaceTextureWrapper texture = null)
         : this(menu, Vector2.Zero, id, new Dictionary<string, InterfaceTextureWrapper> { { "original", texture } }) {
@@ -57,10 +83,32 @@ public class ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string 
 
     // Initialize method to set up mouse event subscriptions
     private void Initialize() {
+        TetriON.DebugLog($"ButtonWrapper[{_id}]: Initialize() called, _mouseInput is {(_mouseInput != null ? "valid" : "null")}");
+
         if (_mouseInput != null) {
             _mouseInput.OnMouseButtonPressed += HandleMouseButtonPressed;
             _mouseInput.OnMouseButtonReleased += HandleMouseButtonReleased;
+            _mouseInput.OnMouseMoved += HandleMouseMoved;
+            TetriON.DebugLog($"ButtonWrapper[{_id}]: Mouse events subscribed successfully");
+        } else {
+            TetriON.DebugLog($"ButtonWrapper[{_id}]: ERROR - Mouse input is null, cannot subscribe to events");
         }
+
+        // Subscribe to our own events to call virtual methods
+        SubscribeToVirtualMethods();
+    }
+
+    // Subscribe to events and route them to virtual methods that subclasses can override
+    private void SubscribeToVirtualMethods() {
+        OnClicked += button => OnButtonClicked();
+        OnHoverEnter += button => OnButtonHoverEnter();
+        OnHoverExit += button => OnButtonHoverExit();
+        OnMousePressed += button => OnButtonMousePressed();
+        OnMouseReleased += button => OnButtonMouseReleased();
+        OnMouseHeld += button => OnButtonMouseHeld();
+        OnMouseHolding += (button, duration) => OnButtonMouseHolding(duration);
+        OnRightClicked += button => OnButtonRightClicked();
+        OnMiddleClicked += button => OnButtonMiddleClicked();
     }
 
     // Mouse event handlers
@@ -73,6 +121,7 @@ public class ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string 
             _holdDuration = 0f;
 
             // Fire appropriate events based on button type
+            TetriON.DebugLog($"ButtonWrapper: Mouse button pressed {button}");
             switch (button) {
                 case MouseButton.Left:
                     OnMousePressed?.Invoke(this);
@@ -106,30 +155,48 @@ public class ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string 
         _holdDuration = 0f;
     }
 
-    public void Update(GameTime gameTime, Mouse mouseInput = null) {
+    private void HandleMouseMoved(Vector2 position) {
+        // Debug: Log first few mouse movements to verify event is working
+        if (!_hasLoggedMouseMove) {
+            TetriON.DebugLog($"ButtonWrapper[{_id}]: HandleMouseMoved called at position {position}, enabled: {_isEnabled}, visible: {_isVisible}");
+            _hasLoggedMouseMove = true;
+        }
+
         if (_disposed || !_isEnabled || !_isVisible) return;
 
-        // Use static mouse input if none provided
-        Mouse mouse = mouseInput ?? _mouseInput;
-        if (mouse == null) return;
+        bool wasHovered = _isHovered;
+        bool isCurrentlyOver = IsMouseOver(position);
+
+        // Only update hover state if it actually changed
+        if (isCurrentlyOver != _isHovered) {
+            _isHovered = isCurrentlyOver;
+
+            // Fire hover events only on state change
+            if (_isHovered && !wasHovered) {
+                OnHoverEnter?.Invoke(this);
+                //TetriON.DebugLog($"ButtonWrapper[{_id}]: Mouse entered button at {position}");
+            } else if (!_isHovered && wasHovered) {
+                OnHoverExit?.Invoke(this);
+                //TetriON.DebugLog($"ButtonWrapper[{_id}]: Mouse exited button at {position}");
+            }
+        }
+    }
+
+    public void Update(GameTime gameTime, Mouse mouseInput = null) {
+        if (_disposed || !_isEnabled || !_isVisible) return;
 
         // Ensure initialization
         EnsureInitialized();
 
-        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-        // Update hover state based on mouse position
-        bool wasHovered = _isHovered;
-        _isHovered = IsMouseOver(mouse.Position);
-
-        // Fire hover events
-        if (_isHovered && !wasHovered) {
-            OnHoverEnter?.Invoke(this);
-        } else if (!_isHovered && wasHovered) {
-            OnHoverExit?.Invoke(this);
+        // Debug: Log once that update is being called
+        if (!_hasLoggedUpdate) {
+            TetriON.DebugLog($"ButtonWrapper[{_id}]: Update method called, initialized: {_initialized}");
+            _hasLoggedUpdate = true;
         }
 
-        // Handle mouse hold logic
+        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+        // Handle mouse hold logic (hover state is now managed by OnMouseMoved event)
         if (_wasMouseDown && _isPressed && _isHovered) {
             _holdDuration += deltaTime;
 
@@ -144,8 +211,6 @@ public class ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string 
         }
     }
 
-    private bool _initialized = false;
-
     private void EnsureInitialized() {
         if (!_initialized) {
             Initialize();
@@ -156,20 +221,29 @@ public class ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string 
     public bool IsMouseOver(Vector2 mousePosition) {
         if (_disposed || _texture?.GetTexture() == null) return false;
 
-        var texture = _texture.GetTexture();
-        var renderRes = _session.GetGameInstance().GetRenderResolution();
-        Vector2 screenPos = _normalizedPosition * new Vector2(renderRes.X, renderRes.Y);
-        Rectangle bounds = new((int)screenPos.X, (int)screenPos.Y, _texture.GetWidth(), _texture.GetHeight());
+        // Use cached collision bounds to prevent flickering when textures change sizes
+        if (_cachedCollisionBounds == null) {
+            var renderRes = _session.GetGameInstance().GetRenderResolution();
+            Vector2 baseScreenPos = _normalizedPosition * new Vector2(renderRes.X, renderRes.Y);
 
-        if (!bounds.Contains(mousePosition)) {
-            return false;
+            // Calculate bounds based on the current texture (this will be cached)
+            var effectiveSize = _texture.GetEffectiveSize();
+            var anchor = _texture.GetAnchor();
+            Vector2 anchorOffset = new Vector2(effectiveSize.X * anchor.X, effectiveSize.Y * anchor.Y);
+            Vector2 topLeftPos = baseScreenPos - anchorOffset;
+
+            // Cache the bounds with small padding for stability
+            const int padding = 2;
+            _cachedCollisionBounds = new Rectangle(
+                (int)Math.Round(topLeftPos.X) - padding,
+                (int)Math.Round(topLeftPos.Y) - padding,
+                (int)Math.Round(effectiveSize.X) + (padding * 2),
+                (int)Math.Round(effectiveSize.Y) + (padding * 2)
+            );
         }
 
-        // Pixel-perfect collision detection using TextureWrapper method
-        int pixelX = (int)(mousePosition.X - screenPos.X);
-        int pixelY = (int)(mousePosition.Y - screenPos.Y);
-
-        return !_texture.IsPixelTransparent(pixelX, pixelY);
+        // Use simple rectangular collision for buttons to avoid complexity and flickering
+        return _cachedCollisionBounds.Value.Contains(mousePosition);
     }
 
     public void Click() {
@@ -182,6 +256,44 @@ public class ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string 
 
     protected virtual void OnClick() {
         OnClicked?.Invoke(this);
+    }
+
+    // Virtual methods that subclasses can override instead of manually subscribing to events
+    protected virtual void OnButtonClicked() {
+        // Default implementation - subclasses can override
+    }
+
+    protected virtual void OnButtonHoverEnter() {
+        // Default implementation - subclasses can override
+    }
+
+    protected virtual void OnButtonHoverExit() {
+        // Default implementation - subclasses can override
+    }
+
+    protected virtual void OnButtonMousePressed() {
+        // Default implementation - subclasses can override
+    }
+
+    protected virtual void OnButtonMouseReleased() {
+        // Default implementation - subclasses can override
+    }
+
+    protected virtual void OnButtonMouseHeld() {
+        // Default implementation - subclasses can override
+    }
+
+    protected virtual void OnButtonMouseHolding(float duration) {
+        // Default implementation - subclasses can override
+        // Continuous feedback while holding
+    }
+
+    protected virtual void OnButtonRightClicked() {
+        // Default implementation - subclasses can override
+    }
+
+    protected virtual void OnButtonMiddleClicked() {
+        // Default implementation - subclasses can override
     }
 
     public void Draw() {
@@ -223,7 +335,10 @@ public class ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string 
     }
 
     public void SetTexture(InterfaceTextureWrapper texture) {
-        if (!_disposed) _texture = texture ?? throw new ArgumentNullException(nameof(texture));
+        if (!_disposed) {
+            _texture = texture ?? throw new ArgumentNullException(nameof(texture));
+            // Don't clear cached collision bounds to prevent flickering during texture switches
+        }
     }
 
     public void SetColors(Color normal, Color hover, Color pressed, Color disabled, Color selected) {
@@ -298,6 +413,7 @@ public class ButtonWrapper(MenuWrapper menu, Vector2 normalizedPosition, string 
                 if (_mouseInput != null && _initialized) {
                     _mouseInput.OnMouseButtonPressed -= HandleMouseButtonPressed;
                     _mouseInput.OnMouseButtonReleased -= HandleMouseButtonReleased;
+                    _mouseInput.OnMouseMoved -= HandleMouseMoved;
                 }
 
                 // Clear events

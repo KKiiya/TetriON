@@ -193,9 +193,7 @@ public abstract class MenuWrapper(GameSession session) : IDisposable {
 
         // Update buttons
         foreach (var button in _buttons) {
-            if (button != null) {
-                button.Update(gameTime, _mouseInput);
-            }
+            button?.Update(gameTime, _mouseInput);
         }
 
         // Custom update logic
