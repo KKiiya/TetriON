@@ -92,8 +92,10 @@ public class TetrisGame {
         _settings.ApplyGamemodePreset(Gamemode.Marathon);
         var sizeMultiplier = 1f;
         _spriteBatch = game.SpriteBatch;
-        _textures["tiles"] = game.SkinManager.GetTextureAsset("tiles");
-        _textures["ghost_tiles"] = game.SkinManager.GetTextureAsset("ghost_tiles");
+        var (_, tilesTexture) = game.SkinManager.GetTextureAsset("version_text");
+        var (_, ghostTilesTexture) = game.SkinManager.GetTextureAsset("ghost_tiles");
+        _textures["tiles"] = tilesTexture;
+        _textures["ghost_tiles"] = ghostTilesTexture;
         _grid = new Grid(game, _settings, sizeMultiplier);
 
         // Initialize sound effects
