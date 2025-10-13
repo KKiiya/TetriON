@@ -321,6 +321,11 @@ public class ModalManager : IDisposable {
     public int ModalCount => _modalStack.Count;
     public ModalWrapper CurrentModal => _modalStack.Count > 0 ? _modalStack.Peek() : null;
 
+    /// <summary>
+    /// Check if input should be blocked for underlying UI elements
+    /// </summary>
+    public bool ShouldBlockInput => HasActiveModal;
+
     #endregion
 
     #region IDisposable

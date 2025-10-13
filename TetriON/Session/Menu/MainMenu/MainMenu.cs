@@ -29,6 +29,10 @@ public class MainMenu : MenuWrapper {
     public MainMenu(GameSession session) : base(session) {
         _skinManager = session.GetSkinManager();
         _modalManager = new ModalManager(session);
+
+        // Register this modal manager as the active one
+        session.SetActiveModalManager(_modalManager);
+
         SetupBackground();
         SetupTitleElements();
         SetupButtons();

@@ -115,6 +115,9 @@ public class ButtonWrapper : IDisposable {
     private void HandleMouseButtonPressed(Vector2 position, MouseButton button) {
         if (_disposed || !_isEnabled || !_isVisible) return;
 
+        // Check if input is blocked by a modal
+        if (ShouldBlockInput()) return;
+
         if (IsMouseOver(position)) {
             _isPressed = true;
             _wasMouseDown = true;
@@ -140,6 +143,14 @@ public class ButtonWrapper : IDisposable {
     private void HandleMouseButtonReleased(Vector2 position, MouseButton button) {
         if (_disposed || !_isEnabled || !_isVisible) return;
 
+        // Check if input is blocked by a modal
+        if (ShouldBlockInput()) {
+            // Reset pressed state even if blocked to prevent stuck states
+            _isPressed = false;
+            _wasMouseDown = false;
+            return;
+        }
+
         bool wasPressed = _wasMouseDown && _isPressed;
         _isPressed = false;
         _wasMouseDown = false;
@@ -163,6 +174,16 @@ public class ButtonWrapper : IDisposable {
         }
 
         if (_disposed || !_isEnabled || !_isVisible) return;
+
+        // Check if input is blocked by a modal
+        if (ShouldBlockInput()) {
+            // Exit hover state if input is blocked
+            if (_isHovered) {
+                _isHovered = false;
+                OnHoverExit?.Invoke(this);
+            }
+            return;
+        }
 
         bool wasHovered = _isHovered;
         bool isCurrentlyOver = IsMouseOver(position);
@@ -194,6 +215,17 @@ public class ButtonWrapper : IDisposable {
             _hasLoggedUpdate = true;
         }
 
+        // Check if input is blocked by a modal
+        if (ShouldBlockInput()) {
+            // Reset any active input states when blocked
+            if (_isPressed || _wasMouseDown) {
+                _isPressed = false;
+                _wasMouseDown = false;
+                _holdDuration = 0f;
+            }
+            return;
+        }
+
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         // Handle mouse hold logic (hover state is now managed by OnMouseMoved event)
@@ -216,6 +248,17 @@ public class ButtonWrapper : IDisposable {
             Initialize();
             _initialized = true;
         }
+    }
+
+    /// <summary>
+    /// Check if input should be blocked due to active modals
+    /// </summary>
+    private bool ShouldBlockInput() {
+        if (_disposed || _session == null) return false;
+
+        // If this button doesn't have a menu (like modal buttons), don't block input
+        // This allows modal buttons to work even when modals are active
+        return _session.IsInputBlocked();
     }
 
     public bool IsMouseOver(Vector2 mousePosition) {

@@ -4,6 +4,7 @@ using TetriON.Account;
 using TetriON.Session.Menu.MainMenu;
 using TetriON.Skins;
 using TetriON.Wrappers.Menu;
+using TetriON.Wrappers.Modal;
 
 namespace TetriON.session;
 
@@ -16,6 +17,7 @@ public class GameSession {
 
     private MenuWrapper[] _menus;
     private MenuWrapper _currentMenu;
+    private ModalManager _activeModalManager;
 
     public GameSession(TetriON game) {
         _credentials = new Credentials("TetriONadmin");
@@ -59,6 +61,18 @@ public class GameSession {
 
     public TetriON GetGameInstance() {
         return _game;
+    }
+
+    public void SetActiveModalManager(ModalManager modalManager) {
+        _activeModalManager = modalManager;
+    }
+
+    public ModalManager GetActiveModalManager() {
+        return _activeModalManager;
+    }
+
+    public bool IsInputBlocked() {
+        return _activeModalManager?.ShouldBlockInput ?? false;
     }
 
     public void Draw() {

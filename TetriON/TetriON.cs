@@ -111,10 +111,10 @@ public class TetriON : Microsoft.Xna.Framework.Game {
     }
 
     protected override void Update(GameTime gameTime) {
+        if (!IsActive) return;
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Microsoft.Xna.Framework.Input.Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
-
         // TODO: Add your update logic here
         // Temporarily disable potentially conflicting input handlers
         // Controller?.Update(gameTime);
