@@ -38,11 +38,12 @@ public class MainMenu : MenuWrapper {
     private void SetupBackground() {
         try {
             // Main background
-            var backgroundTexture = _skinManager.GetTextureAsset("menu_background");
+            var (success, backgroundTexture) = _skinManager.GetTextureAsset("menu_background");
             SetBackground(backgroundTexture);
 
             // Background pattern overlay - scale to screen with slight overfill
-            _backgroundPattern = new InterfaceTextureWrapper(_skinManager.GetTextureAsset("menu_pattern"), Vector2.Zero);
+            var (patternSuccess, patternTexture) = _skinManager.GetTextureAsset("menu_pattern");
+            _backgroundPattern = new InterfaceTextureWrapper(patternTexture, Vector2.Zero);
             _backgroundPattern.SetNormalizedPosition(new Vector2(0.5f, 0.5f));
             _backgroundPattern.SetAnchorPreset(AnchorPreset.Center);
             _backgroundPattern.SetTargetSizeScreenPercent(120f, 120f, ScaleMode.Fill); // Slight overfill for seamless coverage
@@ -56,14 +57,16 @@ public class MainMenu : MenuWrapper {
     private void SetupTitleElements() {
         try {
             // Main title/logo - smart resize to 40% of screen width max
-            _titleLogo = new InterfaceTextureWrapper(_skinManager.GetTextureAsset("logo_main"), Vector2.Zero);
+            var (logoSuccess, logoTexture) = _skinManager.GetTextureAsset("logo_main");
+            _titleLogo = new InterfaceTextureWrapper(logoTexture, Vector2.Zero);
             _titleLogo.SetNormalizedPosition(new Vector2(0.5f, 0.15f));
             _titleLogo.SetAnchorPreset(AnchorPreset.Center);
             _titleLogo.SetTargetSizeScreenPercent(40f, 20f, ScaleMode.Proportional);
             AddTexture(_titleLogo);
 
             // Version text - small, bottom corner
-            _versionText = new InterfaceTextureWrapper(_skinManager.GetTextureAsset("version_text"), Vector2.Zero);
+            var (versionSuccess, versionTexture) = _skinManager.GetTextureAsset("version_text");
+            _versionText = new InterfaceTextureWrapper(versionTexture, Vector2.Zero);
             _versionText.SetNormalizedPosition(new Vector2(0.95f, 0.95f));
             _versionText.SetAnchorPreset(AnchorPreset.BottomRight);
             _versionText.SetTargetSizeScreenPercent(8f, 4f, ScaleMode.Proportional);
@@ -71,7 +74,8 @@ public class MainMenu : MenuWrapper {
         } catch {
             // If custom title assets don't exist, use splash as fallback
             try {
-                _titleLogo = new InterfaceTextureWrapper(_skinManager.GetTextureAsset("splash"), Vector2.Zero);
+                var (splashSuccess, splashTexture) = _skinManager.GetTextureAsset("splash");
+                _titleLogo = new InterfaceTextureWrapper(splashTexture, Vector2.Zero);
                 _titleLogo.SetNormalizedPosition(new Vector2(0.5f, 0.15f));
                 _titleLogo.SetAnchorPreset(AnchorPreset.Center);
                 // Auto-fit to screen for large missing textures
@@ -130,14 +134,16 @@ public class MainMenu : MenuWrapper {
     private void SetupDecorations() {
         try {
             // Decorative elements (particles, effects, etc.) - moderate size
-            _decorativeElements = new InterfaceTextureWrapper(_skinManager.GetTextureAsset("menu_decorations"), Vector2.Zero);
+            var (decorSuccess, decorTexture) = _skinManager.GetTextureAsset("menu_decorations");
+            _decorativeElements = new InterfaceTextureWrapper(decorTexture, Vector2.Zero);
             _decorativeElements.SetNormalizedPosition(new Vector2(0.1f, 0.1f));
             _decorativeElements.SetAnchorPreset(AnchorPreset.TopLeft);
             _decorativeElements.SetTargetSizeScreenPercent(15f, 15f, ScaleMode.Proportional);
             AddTexture(_decorativeElements);
 
             // Additional decorative elements on the right - smaller
-            var rightDecoration = new InterfaceTextureWrapper(_skinManager.GetTextureAsset("menu_decorations"), Vector2.Zero);
+            var (rightDecorSuccess, rightDecorTexture) = _skinManager.GetTextureAsset("menu_decorations");
+            var rightDecoration = new InterfaceTextureWrapper(rightDecorTexture, Vector2.Zero);
             rightDecoration.SetNormalizedPosition(new Vector2(0.9f, 0.7f));
             rightDecoration.SetAnchorPreset(AnchorPreset.Center);
             rightDecoration.SetTargetSizeScreenPercent(12f, 12f, ScaleMode.Proportional);
@@ -157,7 +163,7 @@ public class MainMenu : MenuWrapper {
             "Select Game Mode",
             ["Classic", "Sprint", "Ultra", "Zen Mode"],
             (selectedIndex) => {
-                string[] modes = { "Classic", "Sprint", "Ultra", "Zen Mode" };
+                string[] modes = ["Classic", "Sprint", "Ultra", "Zen Mode"];
                 _modalManager.ShowInformation(
                     "Starting Game",
                     $"Starting {modes[selectedIndex]} mode..."
