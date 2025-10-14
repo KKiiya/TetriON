@@ -19,6 +19,7 @@ public class BitmapFontComponent {
         _size = size;
         _charSpacing = charSpacing;
         _lineSpacing = lineSpacing;
+        SetupFont();
     }
 
     private void SetupFont() {
