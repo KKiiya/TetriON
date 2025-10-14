@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TetriON.Wrappers.Content;
@@ -33,8 +34,10 @@ public class TextWrapper(SpriteFont font, string text, Vector2 normalizedPositio
             graphics.SetRenderTarget(null);
             graphics.BlendState = BlendState.AlphaBlend;
             return new TextureWrapper(renderTarget);
-        } catch {
+        } catch (Exception ex) {
             // Fallback to a simple texture if text rendering fails
+            TetriON.DebugLog($"TextWrapper: ERROR in CreateTextTexture(): {ex.Message}");
+            TetriON.DebugLog($"TextWrapper: Stack trace: {ex.StackTrace}");
             var (_, texture) = TetriON.Instance.SkinManager.GetTextureAsset("missing_texture");
             return texture;
         }
