@@ -31,6 +31,9 @@
         <PackageReference Include="System.Text.Json" Version="9.0.10" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\TetriON.Shared\TetriON.Shared.csproj" />
+    </ItemGroup>
+    <ItemGroup>
       <Folder Include="Session\Menu\MainMenu\Content\" />
     </ItemGroup>
 	<ItemGroup>
