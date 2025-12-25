@@ -1,22 +1,5 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 #
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetriON", "TetriON\TetriON.csproj", "{12345678-1234-1234-1234-123456789012}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetriON.Android", "TetriON.Android\TetriON.Android.csproj", "{12345678-1234-1234-1234-123456789013}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetriON.iOS", "TetriON.iOS\TetriON.iOS.csproj", "{12345678-1234-1234-1234-123456789014}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetriON.macOS", "TetriON.macOS\TetriON.macOS.csproj", "{12345678-1234-1234-1234-123456789015}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetriON.Linux", "TetriON.Linux\TetriON.Linux.csproj", "{12345678-1234-1234-1234-123456789016}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetriONInstaller", "TetriONInstaller\TetriONInstaller.csproj", "{12345678-1234-1234-1234-123456789017}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TetriONUninstaller", "TetriONUninstaller\TetriONUninstaller.csproj", "{12345678-1234-1234-1234-123456789018}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetriON.Server", "TetriON.Server\TetriON.Server.csproj", "{8E0A0FF1-0CB1-4765-8CD0-A903BD70C905}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
