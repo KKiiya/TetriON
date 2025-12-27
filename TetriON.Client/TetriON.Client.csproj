@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TetriON.Core\TetriON.Core.csproj" />
+    <ProjectReference Include="..\TetriON.Shared\TetriON.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.*" />
+  </ItemGroup>
+
 </Project>

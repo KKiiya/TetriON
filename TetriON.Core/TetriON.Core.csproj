@@ -5,4 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TetriON.Shared\TetriON.Shared.csproj" />
+  </ItemGroup>
+
 </Project>
