@@ -10,7 +10,7 @@ namespace TetriON.Client.Networking {
         private GameServerClient _gameServerClient;
 
         public NetworkManager() {
-            
+
         }
 
         // TODO: Implement connection management and message routing

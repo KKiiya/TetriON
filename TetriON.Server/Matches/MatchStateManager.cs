@@ -5,7 +5,7 @@ namespace TetriON.Server.Matches {
     /// Manages match state synchronization
     /// </summary>
     public class MatchStateManager {
-        
+
         // TODO: Implement state synchronization logic
     }
 }

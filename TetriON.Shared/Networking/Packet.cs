@@ -21,29 +21,29 @@ namespace TetriON.Shared.Networking {
         Login,
         Logout,
         Register,
-        
+
         // Lobby
         CreateLobby,
         JoinLobby,
         LeaveLobby,
         LobbyUpdate,
-        
+
         // Game
         GameStart,
         GameMove,
         GameState,
         GameEnd,
-        
+
         // Friends
         AddFriend,
         RemoveFriend,
         FriendRequest,
-        
+
         // Matchmaking
         QueueMatch,
         CancelQueue,
         MatchFound,
-        
+
         // General
         Ping,
         Pong,

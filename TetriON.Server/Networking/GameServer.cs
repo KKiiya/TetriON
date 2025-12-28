@@ -8,7 +8,7 @@ namespace TetriON.Server.Networking {
     /// WebSocket server for handling game client connections
     /// </summary>
     public class GameServer {
-        
+
         // TODO: Implement WebSocket server for client connections
     }
 }

@@ -7,7 +7,7 @@ namespace TetriON.Client.Services {
     /// Communicates with the Go web app
     /// </summary>
     public class FriendsService {
-        
+
         // TODO: Implement friends management methods
     }
 }

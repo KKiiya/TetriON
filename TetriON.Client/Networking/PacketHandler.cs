@@ -5,7 +5,7 @@ namespace TetriON.Client.Networking {
     /// Handles packet serialization and deserialization
     /// </summary>
     public class PacketHandler {
-        
+
         // TODO: Implement packet handling logic
     }
 }

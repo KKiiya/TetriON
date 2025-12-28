@@ -5,7 +5,7 @@ namespace TetriON.Client.Services {
     /// Manages authentication tokens and session
     /// </summary>
     public class AuthenticationManager {
-        
+
         // TODO: Implement authentication token management
     }
 }

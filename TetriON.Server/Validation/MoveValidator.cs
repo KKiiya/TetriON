@@ -5,7 +5,7 @@ namespace TetriON.Server.Validation {
     /// Validates client moves and game state
     /// </summary>
     public class MoveValidator {
-        
+
         // TODO: Implement move validation logic
     }
 }
