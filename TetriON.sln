@@ -8,7 +8,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetriON.Client", "TetriON.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetriON.Server", "TetriON.Server\TetriON.Server.csproj", "{71CE4BA4-FD36-4451-AC95-F7DE3DE72627}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetriON.Platform.Windows", "TetriON.Platform.Desktop\TetriON.Platform.Windows.csproj", "{5A512447-992D-4B3A-A680-1B7B3614164C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetriON.Platform.Desktop", "TetriON.Platform.Desktop\TetriON.Platform.Desktop.csproj", "{5A512447-992D-4B3A-A680-1B7B3614164C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetriON.Platform.Android", "TetriON.Platform.Android\TetriON.Platform.Android.csproj", "{BC50A345-69EF-4F57-8101-8459F8041EB8}"
 EndProject

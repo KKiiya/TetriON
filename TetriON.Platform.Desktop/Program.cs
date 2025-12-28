@@ -1,2 +1,2 @@
-﻿using var game = new TetriON.Platform.Windows.Game1();
+﻿using var game = new TetriON.Platform.Desktop.Game1();
 game.Run();

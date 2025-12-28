@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace TetriON.Platform.Windows;
+namespace TetriON.Platform.Desktop;
 
 public class Game1 : Game
 {
