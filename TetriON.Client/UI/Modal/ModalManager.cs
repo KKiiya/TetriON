@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TetriON.Client.UI.Modal
-{
-    public class ModalManager
-    {
-        
+namespace TetriON.Client.UI.Modal {
+    public class ModalManager {
+
     }
 }

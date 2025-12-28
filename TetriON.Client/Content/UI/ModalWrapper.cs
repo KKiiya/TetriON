@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TetriON.Client.Wrappers
-{
-    public class ModalWrapper
-    {
-        
+namespace TetriON.Client.Wrappers {
+    public class ModalWrapper {
+
     }
 }

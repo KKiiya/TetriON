@@ -4,8 +4,7 @@ using Android.OS;
 using Android.Views;
 using Microsoft.Xna.Framework;
 
-namespace TetriON.Platform.Android
-{
+namespace TetriON.Platform.Android {
     [Activity(
         Label = "@string/app_name",
         MainLauncher = true,
@@ -15,13 +14,11 @@ namespace TetriON.Platform.Android
         ScreenOrientation = ScreenOrientation.FullUser,
         ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenSize
     )]
-    public class Activity1 : AndroidGameActivity
-    {
+    public class Activity1 : AndroidGameActivity {
         private Game1 _game;
         private View _view;
 
-        protected override void OnCreate(Bundle bundle)
-        {
+        protected override void OnCreate(Bundle bundle) {
             base.OnCreate(bundle);
 
             _game = new Game1();

@@ -1,16 +1,13 @@
-﻿using System;
+using System;
 using Foundation;
 using UIKit;
 
-namespace TetriON.Platform.iOS
-{
+namespace TetriON.Platform.iOS {
     [Register("AppDelegate")]
-    class Program : UIApplicationDelegate
-    {
+    class Program : UIApplicationDelegate {
         private static Game1 game;
 
-        internal static void RunGame()
-        {
+        internal static void RunGame() {
             game = new Game1();
             game.Run();
         }
@@ -18,13 +15,11 @@ namespace TetriON.Platform.iOS
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        static void Main(string[] args)
-        {
+        static void Main(string[] args) {
             UIApplication.Main(args, null, typeof(Program));
         }
 
-        public override void FinishedLaunching(UIApplication app)
-        {
+        public override void FinishedLaunching(UIApplication app) {
             RunGame();
         }
     }
