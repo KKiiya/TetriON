@@ -15,7 +15,7 @@ namespace TetriON.Shared.Models {
         public DateTime CreatedAt { get; set; }
 
         public Lobby() {
-            PlayerIds = new List<string>();
+            PlayerIds = [];
         }
     }
 

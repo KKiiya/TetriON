@@ -5,10 +5,10 @@ namespace TetriON.Shared.Models {
     /// Game server information
     /// </summary>
     public class GameServerInfo {
-        public string ServerId { get; set; }
-        public string ServerName { get; set; }
-        public string Region { get; set; }
-        public string IpAddress { get; set; }
+        public required string ServerId { get; set; }
+        public required string ServerName { get; set; }
+        public required string Region { get; set; }
+        public required string IpAddress { get; set; }
         public int Port { get; set; }
         public int CurrentPlayers { get; set; }
         public int MaxPlayers { get; set; }

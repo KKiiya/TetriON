@@ -5,8 +5,8 @@ namespace TetriON.Shared.Models {
     /// Match result data model
     /// </summary>
     public class MatchResult {
-        public string MatchId { get; set; }
-        public string WinnerId { get; set; }
+        public required string MatchId { get; set; }
+        public required string WinnerId { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public TimeSpan Duration { get; set; }

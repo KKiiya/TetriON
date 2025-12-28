@@ -5,8 +5,8 @@ namespace TetriON.Shared.Models {
     /// Friend data model
     /// </summary>
     public class Friend {
-        public string UserId { get; set; }
-        public string Username { get; set; }
+        public required string UserId { get; set; }
+        public required string Username { get; set; }
         public FriendStatus Status { get; set; }
         public DateTime AddedAt { get; set; }
     }
