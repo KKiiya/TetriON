@@ -5,10 +5,10 @@ namespace TetriON.Client.State {
     /// Manages client state transitions and persistence
     /// </summary>
     public class StateManager {
-        private ClientState _currentState;
+        private readonly ClientState _currentState;
 
         public StateManager() {
-            _currentState = new ClientState();
+            //_currentState = new ClientState();
         }
 
         // TODO: Implement state management methods

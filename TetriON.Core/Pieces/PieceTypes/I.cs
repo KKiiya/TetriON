@@ -1,10 +1,86 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TetriON.Core.Pieces.PieceTypes {
-    public class I {
+namespace TetriON.Core.Pieces.PieceTypes;
 
+public class I : Tetromino {
+
+    private readonly Color _color = Color.Cyan;
+    private const string Shape = "I";
+    private int _rotation;
+    private Point _lastKickOffset;
+    private bool[][] _matrix = [
+        [false, false, false, false],
+        [true, true, true, true],
+        [false, false, false, false],
+        [false, false, false, false]
+    ];
+
+    private readonly Dictionary<int, bool[][]> _rotations = new() {
+        [0] = [
+            [false, false, false, false],
+            [true, true, true, true],
+            [false, false, false, false],
+            [false, false, false, false]
+        ],
+        [1] = [
+            [false, false, true, false],
+            [false, false, true, false],
+            [false, false, true, false],
+            [false, false, true, false]
+        ],
+        [2] = [
+            [false, false, false, false],
+            [false, false, false, false],
+            [true, true, true, true],
+            [false, false, false, false]
+        ],
+        [3] = [
+            [false, true, false, false],
+            [false, true, false, false],
+            [false, true, false, false],
+            [false, true, false, false]
+        ]
+    };
+
+    public override Color GetColor() {
+        return _color;
+    }
+
+    public override string GetShape() {
+        return Shape;
+    }
+
+    public override bool[][] GetMatrix() {
+        return _matrix;
+    }
+
+    public override int GetRotationState() {
+        return _rotation;
+    }
+
+    public override void SetRotationState(int rotation) {
+        _rotation = rotation;
+        _matrix = _rotations[_rotation];
+    }
+
+    public override void ResetOrientation() {
+        _rotation = 0;
+        _matrix = _rotations[_rotation];
+    }
+
+    public override Dictionary<int, bool[][]> GetRotations() {
+        return _rotations;
+    }
+
+    public override Point GetLastKickOffset() {
+        return _lastKickOffset;
+    }
+
+    public override void SetLastKickOffset(Point offset) {
+        _lastKickOffset = offset;
     }
 }
