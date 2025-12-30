@@ -10,6 +10,7 @@ public class I : Tetromino {
 
     private readonly Color _color = Color.Cyan;
     private const string Shape = "I";
+    private readonly byte _id = GetTileId(Shape);
     private int _rotation;
     private Point _lastKickOffset;
     private bool[][] _matrix = [
@@ -46,6 +47,10 @@ public class I : Tetromino {
         ]
     };
 
+    public override byte GetId() {
+        return _id;
+    }
+
     public override Color GetColor() {
         return _color;
     }
@@ -72,15 +77,15 @@ public class I : Tetromino {
         _matrix = _rotations[_rotation];
     }
 
-    public override Dictionary<int, bool[][]> GetRotations() {
-        return _rotations;
-    }
-
     public override Point GetLastKickOffset() {
         return _lastKickOffset;
     }
 
     public override void SetLastKickOffset(Point offset) {
         _lastKickOffset = offset;
+    }
+
+    public override Dictionary<int, bool[][]> GetRotations() {
+        return _rotations;
     }
 }

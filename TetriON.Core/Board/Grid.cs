@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
 using TetriON.Core.Game;
-using TetriON.Core.Rules;
 
 namespace TetriON.Core.Board;
 
@@ -23,12 +18,13 @@ public class Grid {
     private readonly Cell[,] _bufferCells;
     #endregion
 
+    #region Constructor
     public Grid(TetrisGame game, int width, int height) {
         _width = width;
         _height = height;
         _totalHeight = height + _bufferHeight;
         _game = game;
-        //_wallKickSystem = _game.GetSettings().GetWallKickSystem();
+        _wallKickSystem = _game.GetSettings().GetWallKickSystem();
 
         _cells = new Cell[width, height];
         for (int x = 0; x < width; x++) {
@@ -44,7 +40,56 @@ public class Grid {
             }
         }
     }
+    #endregion
 
+    public Cell GetCell(int x, int y) {
+        if (x < 0 || x >= _width || y < 0 || y >= _height) {
+            throw new ArgumentOutOfRangeException("Cell coordinates are out of bounds.");
+        }
+        return _cells[x, y];
+    }
+
+    public void Clear() {
+        for (int x = 0; x < _width; x++) {
+            for (int y = 0; y < _height; y++) _cells[x, y].Vacate();
+        }
+    }
+
+    #region Grid Methods
+    public int GetWidth() {
+        return _width;
+    }
+
+    public int GetHeight() {
+        return _height;
+    }
+
+    public int GetTotalHeight() {
+        return _totalHeight;
+    }
+
+    public Cell[,] GetCells() {
+        return _cells;
+    }
+
+    public Cell[,] GetBufferCells() {
+        return _bufferCells;
+    }
+
+    public KickSystem GetWallKickSystem() {
+        return _wallKickSystem;
+    }
+
+    public TetrisGame GetGame() {
+        return _game;
+    }
+
+    public Dictionary<string, Point[]> GetWallKicks(bool isI) {
+        return isI ? _wallKickSystem.IKicks : _wallKickSystem.Kicks;
+    }
+    #endregion
+
+    #region Line Clearing
     public int ClearLines() {
         int linesCleared = 0;
 
@@ -82,52 +127,9 @@ public class Grid {
 
         return linesCleared;
     }
+    #endregion
 
-    public Cell GetCell(int x, int y) {
-        if (x < 0 || x >= _width || y < 0 || y >= _height) {
-            throw new ArgumentOutOfRangeException("Cell coordinates are out of bounds.");
-        }
-        return _cells[x, y];
-    }
-
-    public void Clear() {
-        for (int x = 0; x < _width; x++) {
-            for (int y = 0; y < _height; y++) _cells[x, y].Vacate();
-        }
-    }
-
-    public int GetWidth() {
-        return _width;
-    }
-
-    public int GetHeight() {
-        return _height;
-    }
-
-    public int GetTotalHeight() {
-        return _totalHeight;
-    }
-
-    public Cell[,] GetCells() {
-        return _cells;
-    }
-
-    public Cell[,] GetBufferCells() {
-        return _bufferCells;
-    }
-
-    public KickSystem GetWallKickSystem() {
-        return _wallKickSystem;
-    }
-
-    public TetrisGame GetGame() {
-        return _game;
-    }
-
-    public Dictionary<string, Point[]> GetWallKicks(bool isI) {
-        return isI ? _wallKickSystem.IKicks : _wallKickSystem.Kicks;
-    }
-
+    #region Cell and Row Checks
     public bool IsRowEmpty(int y) {
         for (int x = 0; x < _width; x++) {
             if (_cells[x, y].IsOccupied) return false;
@@ -197,4 +199,5 @@ public class Grid {
 
         return true;
     }
+    #endregion
 }

@@ -9,15 +9,30 @@ namespace TetriON.Core.Pieces;
 
 public abstract class Tetromino {
 
-    /// <summary>
-    /// Mechanics state for T-Spin detection
-    /// </summary>
-    public static class Mechanics {
-        public static bool IsMini { get; set; } = false;
+    // Tile ID to name mapping (coloring)
+    private static readonly Dictionary<byte, string> Tiles = new() {
+        [0x00] = "empty",
+        [0x01] = "S",
+        [0x02] = "L",
+        [0x03] = "O",
+        [0x04] = "Z",
+        [0x05] = "I",
+        [0x06] = "J",
+        [0x07] = "T",
+        [0x08] = "tile9",
+        [0x09] = "garbage",
+        [0x0A] = "tile10",
+        [0x0B] = "tile11"
+    };
+
+    public static byte GetTileId(string name) {
+        return Tiles.FirstOrDefault(kv => kv.Value == name).Key;
     }
 
 
     #region Abstract Methods
+
+    public abstract byte GetId();
 
     public abstract Color GetColor();
 
@@ -118,6 +133,8 @@ public abstract class Tetromino {
     }
     #endregion
 
+
+    #region  Private Methods
     private bool IsSpin(Grid grid, Point pivot) {
         // All-spin detection: check if piece is completely surrounded in all 4 directions
         // Get all coordinates of the current piece
@@ -148,14 +165,14 @@ public abstract class Tetromino {
             }
 
             // If we can move in any direction, it's not a spin
-            if (canMoveInThisDirection) {
-                return false;
-            }
+            if (canMoveInThisDirection) return false;
         }
 
         // All directions are blocked, it's a valid spin
         return true;
     }
+    #endregion
+
 
     #region Enums
     public enum RotationDirection {
