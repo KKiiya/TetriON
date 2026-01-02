@@ -10,12 +10,20 @@ public class GameSettings {
 
     private readonly KickSystem _wallKickSystem;
 
+    #region Constructor
+    public GameSettings() {
+        _wallKickSystem = WallKicks.GetKicks(KickType);
+    }
+    #endregion
+
+
     #region Board Settings
     public int GridWidth { get; set; } = 10;
     public int GridHeight { get; set; } = 20;
     public int VisibleHeight { get; set; } = 20; // Rows visible to player (top rows are buffer zone)
     public int BufferZoneHeight { get; set; } = 20; // Hidden rows above visible area
     #endregion
+
 
     #region Rotation & Kicks
     public bool EnableWallKicks { get; set; } = true;
@@ -24,12 +32,14 @@ public class GameSettings {
     public string KickType { get; set; } = WallKicks.KickType.SRS;
     #endregion
 
+
     #region Spin Detection
     public bool EnableTSpins { get; set; } = true;
     public bool EnableTSpinMini { get; set; } = true;
     public bool EnableAllSpins { get; set; } = false; // Z-spin, S-spin, L-spin, J-spin
     public TSpinDetectionType TSpinDetection { get; set; } = TSpinDetectionType.ThreeCorner;
     #endregion
+
 
     #region Piece Generation
     public BagType PieceBagType { get; set; } = BagType.SevenBag;
@@ -40,6 +50,7 @@ public class GameSettings {
     public int HoldLimit { get; set; } = 1; // Times you can hold per piece (if not infinite)
     #endregion
 
+
     #region Movement Mechanics
     public bool EnableHardDrop { get; set; } = true;
     public bool HardDropLocks { get; set; } = true; // Instantly locks piece
@@ -47,12 +58,14 @@ public class GameSettings {
     public bool SoftDropLocks { get; set; } = false;
     #endregion
 
+
     #region Lock Delay
     public int LockDelay { get; set; } = 30; // Frames (500ms at 60fps)
     public int MaxLockResets { get; set; } = 15; // Move/rotate resets before force lock
     public bool ResetLockDelayOnMove { get; set; } = true;
     public bool ResetLockDelayOnRotate { get; set; } = true;
     #endregion
+
 
     #region Gravity
     public float Gravity { get; set; } = 1.0f; // Cells per frame (1G = 1 row/frame)
@@ -62,6 +75,7 @@ public class GameSettings {
     public float MaxGravity { get; set; } = 20.0f; // Maximum gravity (20G)
     #endregion
 
+
     #region Delays & Timing
     public int ARE { get; set; } = 0; // Entry delay before next piece spawns
     public int LineARE { get; set; } = 0; // Additional ARE after line clear
@@ -70,9 +84,11 @@ public class GameSettings {
     public int SpawnDelay { get; set; } = 0; // Total delay before new piece is controllable
     #endregion
 
+
     #region Ghost Piece
     public bool ShowGhostPiece { get; set; } = true;
     #endregion
+
 
     #region Scoring System
     // Base Points
@@ -81,6 +97,7 @@ public class GameSettings {
     public int TripleLinePoints { get; set; } = 500;
     public int TetrisPoints { get; set; } = 800;
 
+
     // T-Spin Points
     public int TSpinMiniPoints { get; set; } = 100;
     public int TSpinMiniSinglePoints { get; set; } = 200;
@@ -88,14 +105,17 @@ public class GameSettings {
     public int TSpinDoublePoints { get; set; } = 1200;
     public int TSpinTriplePoints { get; set; } = 1600;
 
+
     // All-Spin Points (if enabled)
     public int AllSpinSinglePoints { get; set; } = 400;
     public int AllSpinDoublePoints { get; set; } = 800;
     public int AllSpinTriplePoints { get; set; } = 1200;
 
+
     // Drop Points
     public int SoftDropPointsPerCell { get; set; } = 1;
     public int HardDropPointsPerCell { get; set; } = 2;
+
 
     // Perfect Clear (All Clear)
     public bool EnablePerfectClear { get; set; } = true;
@@ -107,6 +127,7 @@ public class GameSettings {
     public int PerfectClearTSpinDoublePoints { get; set; } = 1800;
     public int PerfectClearTSpinTriplePoints { get; set; } = 2600;
     #endregion
+
 
     #region Bonus Multipliers
     // Back-to-Back (B2B)
@@ -126,6 +147,7 @@ public class GameSettings {
     public float PointsPerLevel { get; set; } = 1.0f; // Multiplier increases per level
     #endregion
 
+
     #region Difficulty Progression
     public int StartLevel { get; set; } = 1;
     public int LinesPerLevel { get; set; } = 10;
@@ -136,6 +158,7 @@ public class GameSettings {
     public bool EnableDynamicDifficulty { get; set; } = false;
     public float DifficultyAdjustmentRate { get; set; } = 0.05f;
     #endregion
+
 
     #region Garbage/Attack System
     public bool EnableGarbage { get; set; } = true;
@@ -158,6 +181,7 @@ public class GameSettings {
     public int BackToBackGarbageBonus { get; set; } = 1;
     #endregion
 
+
     #region Game Modes
     public int TargetLines { get; set; } = 40; // For Sprint mode
     public int TargetScore { get; set; } = 100000; // For Score Attack
@@ -165,10 +189,12 @@ public class GameSettings {
     public int DigDepth { get; set; } = 10; // Lines of garbage for Cheese mode
     #endregion
 
+
     #region Online Settings
     public int MaxPlayers { get; set; } = 4;
     public bool EnableSpectating { get; set; } = true;
     #endregion
+
 
     #region Advanced Features
     public bool EnableSonicDrop { get; set; } = false; // Instant drop without lock
@@ -183,17 +209,12 @@ public class GameSettings {
     public bool EnableIHS { get; set; } = false; // Hold piece during spawn
     #endregion
 
-    #region Constructor
-    public GameSettings() {
-        _wallKickSystem = WallKicks.GetKicks(KickType);
-    }
 
+    #region Methods
     public KickSystem GetWallKickSystem() {
         return _wallKickSystem;
     }
-    #endregion
 
-    #region Methods
     public int CalculateLineClearPoints(int linesCleared, bool isTSpin, bool isMini, bool isBackToBack, int comboLevel, int level) {
         int basePoints = 0;
 
@@ -239,9 +260,7 @@ public class GameSettings {
         }
 
         // Apply level multiplier
-        if (EnableLevelMultiplier) {
-            basePoints = (int)(basePoints * (1 + (level * PointsPerLevel * 0.01f)));
-        }
+        if (EnableLevelMultiplier) basePoints = (int)(basePoints * (1 + (level * PointsPerLevel * 0.01f)));
 
         return basePoints;
     }
@@ -274,23 +293,18 @@ public class GameSettings {
         }
 
         // Back-to-Back bonus
-        if (EnableBackToBack && isBackToBack && (isTSpin || linesCleared == 4)) {
-            garbage += BackToBackGarbageBonus;
-        }
+        if (EnableBackToBack && isBackToBack && (isTSpin || linesCleared == 4)) garbage += BackToBackGarbageBonus;
 
         // Combo bonus
-        if (EnableCombo && comboLevel >= ComboMinimum) {
-            garbage += comboLevel * ComboGarbagePerLevel;
-        }
+        if (EnableCombo && comboLevel >= ComboMinimum) garbage += comboLevel * ComboGarbagePerLevel;
 
         // Perfect Clear bonus
-        if (EnablePerfectClear && isPerfectClear) {
-            garbage += PerfectClearGarbage;
-        }
+        if (EnablePerfectClear && isPerfectClear) garbage += PerfectClearGarbage;
 
         return garbage;
     #endregion
     }
+
 
     #region Enums
     // ========================= ENUMS =========================
@@ -305,6 +319,7 @@ public class GameSettings {
         TotallyRandom
     }
 
+
     public enum TSpinDetectionType {
         ThreeCorner,    // Modern (Guideline)
         FourCorner,     // Strict
@@ -312,16 +327,19 @@ public class GameSettings {
         TwistOnly       // Only counts if rotated into position
     }
 
+
     public enum LockDelayType {
         Classic,    // Fixed timer
         Extended,   // Resets on move/rotate up to limit
         Infinite    // Never force locks
     }
 
+
     public enum ComboScalingType {
         Linear,
         Exponential
     }
+
 
     public enum GarbageBlockingType {
         None,           // Garbage always appears
@@ -329,6 +347,7 @@ public class GameSettings {
         LineClear,      // Blocked during any line clear
         Full            // Blocked until piece locks
     }
+
 
     public enum GameMode {
         Marathon,       // Standard endless
@@ -339,6 +358,7 @@ public class GameSettings {
         Versus,         // Multiplayer
         Battle          // Knockout style
     }
+
 
     public enum TargetingMode {
         Knockout,       // Target player closest to losing

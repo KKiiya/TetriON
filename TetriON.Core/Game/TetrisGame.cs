@@ -10,6 +10,8 @@ namespace TetriON.Core.Game;
 
 public class TetrisGame {
 
+    private bool _running;
+
     #region Game Properties
     private readonly GameSettings _settings;
     #endregion
@@ -33,6 +35,7 @@ public class TetrisGame {
 
 
     public TetrisGame(GameSettings settings) {
+        _running = false;
         _settings = settings;
         _grid = new Grid(this, settings.GridWidth, settings.GridHeight);
         _nextTetrominos = new Tetromino[5]; // Example: next 5 pieces
@@ -114,5 +117,13 @@ public class TetrisGame {
         _tetrominoPoint = point;
     }
 
+    public bool IsRunning() {
+        return _running;
+    }
+
     // Additional game logic methods would go here
+    public void Update(TimeSpan elapsedTime) {
+        if (!_running) return;
+
+    }
 }
