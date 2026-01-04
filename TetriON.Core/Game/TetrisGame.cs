@@ -74,6 +74,7 @@ public class TetrisGame {
         // Initialize next tetrominos
     }
 
+    #region Getters and Setters
     public GameSettings GetSettings() {
         return _settings;
     }
@@ -153,7 +154,10 @@ public class TetrisGame {
     public bool IsRunning() {
         return _running;
     }
+    #endregion
 
+
+    #region Game Logic Methods
     // Additional game logic methods would go here
     public void Start() {
         _running = true;
@@ -252,4 +256,5 @@ public class TetrisGame {
         _grid.Clear();
         _bagGenerator.Reset();
     }
+    #endregion
 }
