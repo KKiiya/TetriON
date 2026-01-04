@@ -25,6 +25,7 @@ public class Cell {
     public void Vacate() {
         IsOccupied = false;
         CellColor = Color.Empty;
+        Type = CellType.Normal;
     }
 
     public enum CellType {
