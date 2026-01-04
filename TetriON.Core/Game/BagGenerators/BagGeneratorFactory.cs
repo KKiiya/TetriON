@@ -1,3 +1,5 @@
+using static TetriON.Core.Game.GameSettings;
+
 namespace TetriON.Core.Game.BagGenerators;
 
 /// <summary>
