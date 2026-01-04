@@ -181,6 +181,12 @@ public abstract class Tetromino {
         Flip = 2,
     }
 
+    public enum MoveDirection {
+        LEFT,
+        RIGHT,
+        DOWN
+    }
+
     /// <summary>
     /// Collision action types for detailed collision detection
     /// </summary>
