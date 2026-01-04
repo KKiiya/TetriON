@@ -76,6 +76,15 @@ public class Grid {
         return _bufferCells;
     }
 
+    public void OccupyCell(int x, int y, Color color) {
+        if (x < 0 || x >= _width || y < 0 || y >= _totalHeight) {
+            throw new ArgumentOutOfRangeException("Cell coordinates are out of bounds.");
+        }
+
+        if (y < _height) _cells[x, y].Occupy(color);
+        else _bufferCells[x, y - _height].Occupy(color);
+    }
+
     public KickSystem GetWallKickSystem() {
         return _wallKickSystem;
     }
@@ -97,7 +106,7 @@ public class Grid {
             bool isLineFull = true;
 
             for (int x = 0; x < _width; x++) {
-                if (!_cells[x, y].IsOccupied) {
+                if (!_cells[x, y].IsOccupied || _cells[x, y].Type == Cell.CellType.Locked) {
                     isLineFull = false;
                     break;
                 }
