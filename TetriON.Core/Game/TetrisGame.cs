@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TetriON.Core.Board;
 using TetriON.Core.Game.BagGenerators;
 using TetriON.Core.Pieces;
+using TetriON.Core.Pieces.PieceTypes;
 using static TetriON.Core.Pieces.Tetromino;
 
 namespace TetriON.Core.Game;
@@ -26,6 +27,7 @@ public class TetrisGame {
     private readonly Grid _grid;
     private readonly Tetromino[] _nextTetrominos;
     private Point _tetrominoPoint;
+    private Point _ghostTetrominoPoint;
     private Tetromino? _currentTetromino;
     private Tetromino? _heldTetromino;
     private bool _canHold;
@@ -39,6 +41,22 @@ public class TetrisGame {
     private long _targetLines; // For modes with line targets
     #endregion
 
+
+    #region Events
+    // Define events here (e.g., OnLineClear, OnLevelUp, etc.)
+    public event Action<long>? OnLineClear;
+    public event Action<long>? OnLevelUp;
+    public event Action<long>? OnScoreChange;
+    public event Action? OnGameOver;
+    public event Action? OnGameStart;
+    public event Action? OnPieceLock;
+    public event Action? OnPieceHold;
+    public event Action? OnPieceSpawn;
+    public event Action<MoveDirection>? OnPieceMove;
+    public event Action<RotationDirection>? OnPieceRotate;
+    public event Action? OnHardDrop;
+    public event Action? OnSoftDrop;
+    #endregion
 
     public TetrisGame(GameSettings settings) {
         _running = false;
@@ -148,7 +166,6 @@ public class TetrisGame {
     public void Update(TimeSpan elapsedTime) {
         if (!_running) return;
 
-
         _lastUpdateTime += elapsedTime;
     }
 
@@ -186,10 +203,12 @@ public class TetrisGame {
         _currentTetromino = _bagGenerator.GetNextPiece();
         _tetrominoPoint = new Point(_settings.GridWidth / 2 - 2, 0); // Reset position
         _canHold = true;
+        OnHardDrop?.Invoke();
     }
 
     public void RotateTetromino(RotationDirection direction) {
         _currentTetromino?.Rotate(_grid, _tetrominoPoint, direction);
+        OnPieceRotate?.Invoke(direction);
     }
 
     public void MoveTetromino(MoveDirection direction) {
@@ -203,6 +222,7 @@ public class TetrisGame {
         };
 
         if (_currentTetromino.CanFitAt(_grid, newPoint)) _tetrominoPoint = newPoint;
+        OnPieceMove?.Invoke(direction);
     }
 
     public void HoldTetromino() {
@@ -216,6 +236,7 @@ public class TetrisGame {
 
         _tetrominoPoint = new Point(_settings.GridWidth / 2 - 2, 0); // Reset position
         _canHold = false;
+        OnPieceHold?.Invoke();
     }
 
     public void Finish() {
