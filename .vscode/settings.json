@@ -6,5 +6,8 @@
     "editor.defaultFormatter": "ms-dotnettools.csharp",
 
     // Format on save (optional but convenient)
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "cSpell.words": [
+        "Tetri"
+    ]
 }
