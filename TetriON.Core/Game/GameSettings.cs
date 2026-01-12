@@ -60,7 +60,7 @@ public class GameSettings {
 
 
     #region Lock Delay
-    public int LockDelay { get; set; } = 30; // Frames (500ms at 60fps)
+    public float LockDelay { get; set; } = 0.5f; // Seconds (500ms)
     public int MaxLockResets { get; set; } = 15; // Move/rotate resets before force lock
     public bool ResetLockDelayOnMove { get; set; } = true;
     public bool ResetLockDelayOnRotate { get; set; } = true;
@@ -68,11 +68,7 @@ public class GameSettings {
 
 
     #region Gravity
-    public float Gravity { get; set; } = 1.0f; // Cells per frame (1G = 1 row/frame)
     public bool EnableGravity { get; set; } = true;
-    public int GravityIncreasePer { get; set; } = 10; // Lines cleared before gravity increases
-    public float GravityIncreaseAmount { get; set; } = 0.1f; // Amount to increase
-    public float MaxGravity { get; set; } = 20.0f; // Maximum gravity (20G)
     #endregion
 
 
