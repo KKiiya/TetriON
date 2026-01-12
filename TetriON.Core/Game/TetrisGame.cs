@@ -7,6 +7,7 @@ using TetriON.Core.Board;
 using TetriON.Core.Game.BagGenerators;
 using TetriON.Core.Pieces;
 using TetriON.Core.Pieces.PieceTypes;
+using TetriON.Core.Rules;
 using static TetriON.Core.Pieces.Tetromino;
 
 namespace TetriON.Core.Game;
@@ -34,11 +35,21 @@ public class TetrisGame {
     #endregion
 
 
+    #region Lock Delay Properties
+    private float _lockDelayTimer; // Current lock delay timer
+    private int _lockResetCount; // Number of times lock delay has been reset
+    private bool _isPieceOnGround; // Whether current piece is touching ground
+    private int _lowestYReached; // Lowest Y position piece has reached (for movement detection)
+    #endregion
+
+
     #region Game Stats
     private long _level;
     private long _score;
     private long _lines;
     private long _targetLines; // For modes with line targets
+    private float _gravity; // Current gravity in Gs
+    private bool _wasLastSpin; // Whether last move was a T-Spin
     #endregion
 
 
@@ -151,6 +162,14 @@ public class TetrisGame {
         _tetrominoPoint = point;
     }
 
+    public Point GetGhostTetrominoPoint() {
+        return _ghostTetrominoPoint;
+    }
+
+    public void SetGhostTetrominoPoint(Point point) {
+        _ghostTetrominoPoint = point;
+    }
+
     public bool IsRunning() {
         return _running;
     }
@@ -161,16 +180,49 @@ public class TetrisGame {
     // Additional game logic methods would go here
     public void Start() {
         _running = true;
-        _currentTetromino = _bagGenerator.GetNextPiece();
+        _lastUpdateTime = TimeSpan.Zero;
+        _gravity = Gravity.GetGravity((int)_level);
+        _bagGenerator.Reset();
+        SpawnNextPiece();
         List<Tetromino> nextPieces = _bagGenerator.PeekNext(_nextTetrominos.Length);
         for (int i = 0; i < _nextTetrominos.Length; i++) _nextTetrominos[i] = nextPieces[i];
-
+        OnGameStart?.Invoke();
     }
 
     public void Update(TimeSpan elapsedTime) {
         if (!_running) return;
 
         _lastUpdateTime += elapsedTime;
+
+        // Update lock delay timer if piece is on ground
+        if (_currentTetromino != null && IsOnGround()) {
+            _isPieceOnGround = true;
+            _lockDelayTimer += (float)elapsedTime.TotalSeconds;
+
+            // Check if lock delay has expired or max resets reached
+            if (_lockDelayTimer >= _settings.LockDelay || _lockResetCount >= _settings.MaxLockResets) LockPiece();
+        } else _isPieceOnGround = false;
+    }
+
+
+
+    public Tetromino FetchNextTetromino() {
+        var nextPiece = _bagGenerator.GetNextPiece();
+        List<Tetromino> nextPieces = _bagGenerator.PeekNext(_nextTetrominos.Length);
+        for (int i = 0; i < _nextTetrominos.Length; i++) _nextTetrominos[i] = nextPieces[i];
+        return nextPiece;
+    }
+
+    public void SpawnNextPiece() {
+        _currentTetromino = FetchNextTetromino();
+        var startX = (_settings.GridWidth / 2) - 2;
+        if (_currentTetromino.GetType() == typeof(O)) startX += 1; // Center O piece
+        _tetrominoPoint = new Point(startX, 0);
+        _canHold = true;
+        ResetLockDelay();
+        _lowestYReached = 0;
+
+        OnPieceSpawn?.Invoke();
     }
 
     public void UpdateGravity() {
@@ -211,7 +263,11 @@ public class TetrisGame {
     }
 
     public void RotateTetromino(RotationDirection direction) {
-        _currentTetromino?.Rotate(_grid, _tetrominoPoint, direction);
+        if (_currentTetromino == null) return;
+
+        (var point, bool rotated) = _currentTetromino.Rotate(_grid, _tetrominoPoint, direction);
+        _wasLastSpin = rotated;
+        if (rotated) OnRotationDetected();
         OnPieceRotate?.Invoke(direction);
     }
 
@@ -225,7 +281,16 @@ public class TetrisGame {
             _ => _tetrominoPoint
         };
 
-        if (_currentTetromino.CanFitAt(_grid, newPoint)) _tetrominoPoint = newPoint;
+        if (_currentTetromino.CanFitAt(_grid, newPoint)) {
+            _tetrominoPoint = newPoint;
+
+            // Track movement and reset lock delay if enabled
+            OnMovementDetected();
+
+            // Update lowest Y reached for movement detection
+            if (_tetrominoPoint.Y > _lowestYReached) _lowestYReached = _tetrominoPoint.Y;
+        }
+
         OnPieceMove?.Invoke(direction);
     }
 
@@ -243,6 +308,38 @@ public class TetrisGame {
         OnPieceHold?.Invoke();
     }
 
+    public bool ShouldLevelUp() {
+        return _lines >= _targetLines;
+    }
+
+    public void LevelUp(bool force = false) {
+        if (!ShouldLevelUp() && !force) return;
+        _level++;
+        _targetLines += _settings.LinesPerLevel;
+        _gravity = Gravity.GetGravity((int)_level);
+        OnLevelUp?.Invoke(_level);
+    }
+
+    public void LockPiece() {
+        if (_currentTetromino == null) return;
+
+        // Lock the piece in place on the grid
+        var coords = _currentTetromino.GetPieceCoordinates(_tetrominoPoint);
+        foreach (var coord in coords) {
+            _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.GetColor());
+        }
+
+        int linesCleared = _grid.ClearLines();
+        bool wereCleared = linesCleared > 0;
+        if (wereCleared) OnLineClear?.Invoke(linesCleared);
+        // TODO: Check for T-Spins and scoring
+
+        ResetLockDelay();
+        SpawnNextPiece();
+        _wasLastSpin = false;
+        OnPieceLock?.Invoke();
+    }
+
     public void Finish() {
         _running = false;
         _currentTetromino = null;
@@ -255,6 +352,93 @@ public class TetrisGame {
         _lastUpdateTime = TimeSpan.Zero;
         _grid.Clear();
         _bagGenerator.Reset();
+    }
+    #endregion
+
+
+    #region Lock Delay Methods
+    /// <summary>
+    /// Checks if the current piece is on the ground (cannot move down)
+    /// </summary>
+    private bool IsOnGround() {
+        if (_currentTetromino == null) return false;
+
+        Point belowPoint = new(_tetrominoPoint.X, _tetrominoPoint.Y + 1);
+        return !_currentTetromino.CanFitAt(_grid, belowPoint);
+    }
+
+    /// <summary>
+    /// Resets the lock delay timer and counter
+    /// </summary>
+    private void ResetLockDelay() {
+        _lockDelayTimer = 0f;
+        _lockResetCount = 0;
+        _isPieceOnGround = false;
+    }
+
+    /// <summary>
+    /// Called when piece moves horizontally or down
+    /// Resets lock delay if conditions are met
+    /// </summary>
+    private void OnMovementDetected() {
+        if (!_isPieceOnGround) return;
+
+        // Reset lock delay on movement if enabled and under max resets
+        if (_settings.ResetLockDelayOnMove && _lockResetCount < _settings.MaxLockResets) {
+            _lockDelayTimer = 0f;
+            _lockResetCount++;
+        }
+    }
+
+    /// <summary>
+    /// Called when piece rotates
+    /// Resets lock delay if conditions are met
+    /// </summary>
+    private void OnRotationDetected() {
+        if (!_isPieceOnGround) return;
+
+        // Reset lock delay on rotation if enabled and under max resets
+        if (_settings.ResetLockDelayOnRotate && _lockResetCount < _settings.MaxLockResets) {
+            _lockDelayTimer = 0f;
+            _lockResetCount++;
+        }
+    }
+
+    /// <summary>
+    /// Gets the current lock delay timer value
+    /// </summary>
+    public float GetLockDelayTimer() {
+        return _lockDelayTimer;
+    }
+
+    /// <summary>
+    /// Gets the number of lock delay resets performed
+    /// </summary>
+    public int GetLockResetCount() {
+        return _lockResetCount;
+    }
+
+    /// <summary>
+    /// Checks if piece is currently on ground and lock delay is active
+    /// </summary>
+    public bool IsLockDelayActive() {
+        return _isPieceOnGround;
+    }
+
+    /// <summary>
+    /// Gets the lowest Y position the current piece has reached
+    /// Used for detecting if player moved piece up (infinity stall prevention)
+    /// </summary>
+    public int GetLowestYReached() {
+        return _lowestYReached;
+    }
+
+    /// <summary>
+    /// Checks if the piece has moved down since the lowest point
+    /// Returns true if piece moved down, false if moved up
+    /// </summary>
+    public bool HasMovedDown() {
+        return _tetrominoPoint.Y >= _lowestYReached;
     }
     #endregion
 }
