@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TetriON.Core {
-    public class TetrONTick {
+namespace TetriON.Core;
 
-    }
+public class TetrONTick {
+
 }

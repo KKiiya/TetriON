@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Concurrent;
 
-namespace TetriON.Server.Networking {
-    /// <summary>
-    /// Manages all connected clients
-    /// </summary>
-    public class ConnectionManager {
-        private ConcurrentDictionary<string, ClientHandler> _clients;
+namespace TetriON.Server.Networking;
 
-        public ConnectionManager() {
-            _clients = new ConcurrentDictionary<string, ClientHandler>();
-        }
+/// <summary>
+/// Manages all connected clients
+/// </summary>
+public class ConnectionManager {
+    private ConcurrentDictionary<string, ClientHandler> _clients;
 
-        // TODO: Implement connection management methods
+    public ConnectionManager() {
+        _clients = new ConcurrentDictionary<string, ClientHandler>();
     }
+
+    // TODO: Implement connection management methods
 }

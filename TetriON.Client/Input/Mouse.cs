@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TetriON.Client.Input {
-    public class Mouse {
+namespace TetriON.Client.Input;
 
-    }
+public class Mouse {
+
 }

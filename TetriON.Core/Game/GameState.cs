@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TetriON.Core.Game {
-    public class GameState {
+namespace TetriON.Core.Game;
 
-    }
+public class GameState {
+
 }
+

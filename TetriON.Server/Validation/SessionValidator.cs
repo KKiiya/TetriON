@@ -1,11 +1,11 @@
 using System;
 
-namespace TetriON.Server.Validation {
-    /// <summary>
-    /// Validates player sessions with web app
-    /// </summary>
-    public class SessionValidator {
+namespace TetriON.Server.Validation;
 
-        // TODO: Implement session validation logic
-    }
+/// <summary>
+/// Validates player sessions with web app
+/// </summary>
+public class SessionValidator {
+
+    // TODO: Implement session validation logic
 }

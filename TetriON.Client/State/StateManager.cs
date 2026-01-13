@@ -1,16 +1,16 @@
 using System;
 
-namespace TetriON.Client.State {
-    /// <summary>
-    /// Manages client state transitions and persistence
-    /// </summary>
-    public class StateManager {
-        private readonly ClientState _currentState;
+namespace TetriON.Client.State;
 
-        public StateManager() {
-            //_currentState = new ClientState();
-        }
+/// <summary>
+/// Manages client state transitions and persistence
+/// </summary>
+public class StateManager {
+    private readonly ClientState _currentState;
 
-        // TODO: Implement state management methods
+    public StateManager() {
+        //_currentState = new ClientState();
     }
+
+    // TODO: Implement state management methods
 }

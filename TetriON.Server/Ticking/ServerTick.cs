@@ -1,16 +1,16 @@
 using System;
 
-namespace TetriON.Server.Ticking {
-    /// <summary>
-    /// Manages server tick rate and game loop
-    /// </summary>
-    public class ServerTick {
-        private int _tickRate;
+namespace TetriON.Server.Ticking;
 
-        public ServerTick(int tickRate = 60) {
-            _tickRate = tickRate;
-        }
+/// <summary>
+/// Manages server tick rate and game loop
+/// </summary>
+public class ServerTick {
+    private int _tickRate;
 
-        // TODO: Implement server tick logic
+    public ServerTick(int tickRate = 60) {
+        _tickRate = tickRate;
     }
+
+    // TODO: Implement server tick logic
 }

@@ -3,12 +3,12 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TetriON.Server.Networking {
-    /// <summary>
-    /// WebSocket server for handling game client connections
-    /// </summary>
-    public class GameServer {
+namespace TetriON.Server.Networking;
 
-        // TODO: Implement WebSocket server for client connections
-    }
+/// <summary>
+/// WebSocket server for handling game client connections
+/// </summary>
+public class GameServer {
+
+    // TODO: Implement WebSocket server for client connections
 }

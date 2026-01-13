@@ -1,30 +1,30 @@
 using System;
 using System.Collections.Concurrent;
 
-namespace TetriON.Server.Matches {
-    /// <summary>
-    /// Manages player information and states
-    /// </summary>
-    public class PlayerManager {
-        private ConcurrentDictionary<string, PlayerInfo> _players;
+namespace TetriON.Server.Matches;
 
-        public PlayerManager() {
-            _players = new ConcurrentDictionary<string, PlayerInfo>();
-        }
+/// <summary>
+/// Manages player information and states
+/// </summary>
+public class PlayerManager {
+    private ConcurrentDictionary<string, PlayerInfo> _players;
 
-        // TODO: Implement player management methods
+    public PlayerManager() {
+        _players = new ConcurrentDictionary<string, PlayerInfo>();
     }
 
-    public class PlayerInfo {
-        public string PlayerId { get; set; }
-        public string Username { get; set; }
-        public string CurrentRoomId { get; set; }
-        public PlayerState State { get; set; }
-    }
+    // TODO: Implement player management methods
+}
 
-    public enum PlayerState {
-        Idle,
-        InLobby,
-        InGame
-    }
+public class PlayerInfo {
+    public string PlayerId { get; set; }
+    public string Username { get; set; }
+    public string CurrentRoomId { get; set; }
+    public PlayerState State { get; set; }
+}
+
+public enum PlayerState {
+    Idle,
+    InLobby,
+    InGame
 }

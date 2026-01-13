@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TetriON.Client.Input.Support {
-    public class Controller {
+namespace TetriON.Client.Input.Support;
 
-    }
+public class Controller {
+
 }
+

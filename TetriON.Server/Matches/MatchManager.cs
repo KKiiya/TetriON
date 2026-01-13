@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
 
-namespace TetriON.Server.Matches {
-    /// <summary>
-    /// Manages all active game matches
-    /// </summary>
-    public class MatchManager {
-        private Dictionary<string, GameRoom> _activeMatches;
+namespace TetriON.Server.Matches;
 
-        public MatchManager() {
-            _activeMatches = new Dictionary<string, GameRoom>();
-        }
+/// <summary>
+/// Manages all active game matches
+/// </summary>
+public class MatchManager {
+    private Dictionary<string, GameRoom> _activeMatches;
 
-        // TODO: Implement match management methods
+    public MatchManager() {
+        _activeMatches = new Dictionary<string, GameRoom>();
     }
+
+    // TODO: Implement match management methods
 }

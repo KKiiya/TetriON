@@ -2,20 +2,20 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace TetriON.Client.Networking {
-    /// <summary>
-    /// HTTP client for communicating with the Go web app API
-    /// Handles accounts, lobbies, friends, etc.
-    /// </summary>
-    public class WebAppClient {
-        private readonly HttpClient _httpClient;
-        private string _baseUrl;
+namespace TetriON.Client.Networking;
 
-        public WebAppClient(string baseUrl) {
-            _baseUrl = baseUrl;
-            _httpClient = new HttpClient();
-        }
+/// <summary>
+/// HTTP client for communicating with the Go web app API
+/// Handles accounts, lobbies, friends, etc.
+/// </summary>
+public class WebAppClient {
+    private readonly HttpClient _httpClient;
+    private string _baseUrl;
 
-        // TODO: Implement API methods for accounts, lobbies, friends
+    public WebAppClient(string baseUrl) {
+        _baseUrl = baseUrl;
+        _httpClient = new HttpClient();
     }
+
+    // TODO: Implement API methods for accounts, lobbies, friends
 }

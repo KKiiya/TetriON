@@ -1,25 +1,25 @@
 using System;
 using System.Collections.Generic;
 
-namespace TetriON.Server.Matches {
-    /// <summary>
-    /// Represents a game room with players
-    /// </summary>
-    public class GameRoom {
-        public string RoomId { get; set; }
-        public List<string> PlayerIds { get; set; }
-        public GameRoomState State { get; set; }
+namespace TetriON.Server.Matches;
 
-        public GameRoom() {
-            PlayerIds = new List<string>();
-        }
+/// <summary>
+/// Represents a game room with players
+/// </summary>
+public class GameRoom {
+    public string RoomId { get; set; }
+    public List<string> PlayerIds { get; set; }
+    public GameRoomState State { get; set; }
 
-        // TODO: Implement game room logic
+    public GameRoom() {
+        PlayerIds = [];
     }
 
-    public enum GameRoomState {
-        Waiting,
-        Playing,
-        Finished
-    }
+    // TODO: Implement game room logic
+}
+
+public enum GameRoomState {
+    Waiting,
+    Playing,
+    Finished
 }

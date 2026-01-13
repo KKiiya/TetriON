@@ -1,11 +1,11 @@
 using System;
 
-namespace TetriON.Server.Matches {
-    /// <summary>
-    /// Manages match state synchronization
-    /// </summary>
-    public class MatchStateManager {
+namespace TetriON.Server.Matches;
 
-        // TODO: Implement state synchronization logic
-    }
+/// <summary>
+/// Manages match state synchronization
+/// </summary>
+public class MatchStateManager {
+
+    // TODO: Implement state synchronization logic
 }
