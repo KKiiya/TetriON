@@ -7,8 +7,11 @@ namespace TetriON.Client.Services;
 /// Handles user account operations (login, register, profile)
 /// Communicates with the Go web app
 /// </summary>
-public class AccountService {
+public class AccountService : IDisposable {
 
     // TODO: Implement account management methods
+    public void Dispose() {
+        // TODO: Cleanup resources if needed
+    }
 }
 

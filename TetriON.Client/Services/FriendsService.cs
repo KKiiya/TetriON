@@ -7,8 +7,11 @@ namespace TetriON.Client.Services;
 /// Handles friend operations (add, remove, list, status)
 /// Communicates with the Go web app
 /// </summary>
-public class FriendsService {
+public class FriendsService : IDisposable {
 
     // TODO: Implement friends management methods
+    public void Dispose() {
+        // TODO: Cleanup resources if needed
+    }
 }
 

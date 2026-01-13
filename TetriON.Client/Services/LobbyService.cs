@@ -7,8 +7,11 @@ namespace TetriON.Client.Services;
 /// Handles lobby operations (create, join, leave, list)
 /// Communicates with the Go web app
 /// </summary>
-public class LobbyService {
+public class LobbyService : IDisposable {
 
     // TODO: Implement lobby management methods
+    public void Dispose() {
+        // TODO: Cleanup resources if needed
+    }
 }
 

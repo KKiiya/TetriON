@@ -7,8 +7,11 @@ namespace TetriON.Client.Services;
 /// Handles matchmaking operations (queue, cancel, match found)
 /// Communicates with the Go web app
 /// </summary>
-public class MatchmakingService {
+public class MatchmakingService : IDisposable {
 
     // TODO: Implement matchmaking methods
+    public void Dispose() {
+        // TODO: Cleanup resources if needed
+    }
 }
 
