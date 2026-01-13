@@ -187,6 +187,16 @@ public class GameSettings {
 
 
     #region Online Settings
+    private GameType _gameType = GameType.Local;
+
+    public GameType GetGameType() {
+        return _gameType;
+    }
+
+    public void SetGameType(GameType gameType) {
+        _gameType = gameType;
+    }
+
     public int MaxPlayers { get; set; } = 4;
     public bool EnableSpectating { get; set; } = true;
     #endregion
@@ -362,6 +372,13 @@ public class GameSettings {
         Random,         // Random target
         Attackers,      // Target who attacked you
         Manual          // Player chooses
+    }
+
+
+    public enum GameType {
+        Local,
+        LocalMultiplayer,
+        Online
     }
     #endregion
 }

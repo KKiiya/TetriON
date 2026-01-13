@@ -10,6 +10,7 @@ public static class Scoring {
 
     #region Constants
     private static readonly long ComboBasePoints = 50;
+    private static readonly double BackToBackBaseMultiplier = 1.5;
     #endregion
 
 
@@ -40,27 +41,27 @@ public static class Scoring {
 
 
     #region Public Methods
-    public static long GetLineClearPoints(int linesCleared, bool isBackToBack) {
+    public static long GetLineClearPoints(int linesCleared, bool isBackToBack = false) {
         if (linesCleared <= 0) return 0;
         ClearType clearType = (ClearType)(linesCleared - 1);
         if (LineClearPoints.TryGetValue(clearType, out long basePoints)) {
-            return isBackToBack ? (long)(basePoints * 1.5) : basePoints;
+            return isBackToBack ? (long)(basePoints * BackToBackBaseMultiplier) : basePoints;
         }
         throw new ArgumentOutOfRangeException(nameof(linesCleared), "Lines cleared must be between 1 and 5.");
     }
 
-    public static long GetPerfectClearPoints(int linesCleared) {
+    public static long GetPerfectClearPoints(int linesCleared, bool isBackToBack = false) {
         if (linesCleared <= 0) return 0;
         ClearType clearType = (ClearType)(linesCleared - 1);
         if (PerfectClearPoints.TryGetValue(clearType, out long points)) {
-            return points;
+            return isBackToBack ? (long)(points * BackToBackBaseMultiplier) : points;
         }
         throw new ArgumentOutOfRangeException(nameof(linesCleared), "Lines cleared must be between 1 and 5.");
     }
 
-    public static long GetTSpinPoints(TSpinType tSpinType, bool isBackToBack) {
+    public static long GetTSpinPoints(TSpinType tSpinType, bool isBackToBack = false) {
         if (TSpinPoints.TryGetValue(tSpinType, out long basePoints)) {
-            return isBackToBack ? (long)(basePoints * 1.5) : basePoints;
+            return isBackToBack ? (long)(basePoints * BackToBackBaseMultiplier) : basePoints;
         }
         throw new ArgumentOutOfRangeException(nameof(tSpinType), "Invalid T-Spin type.");
     }

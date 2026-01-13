@@ -482,8 +482,8 @@ public static class WallKicks {
     };
 
     public static KickSystem GetKicks(string name) {
-        if (KICKS.TryGetValue(name, out KickSystem value)) return value;
-        return KICKS["none"];
+        if (KICKS.TryGetValue(name, out KickSystem? value)) return value;
+        return KICKS["SRS"];
     }
 }
 

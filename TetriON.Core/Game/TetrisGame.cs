@@ -47,12 +47,17 @@ public class TetrisGame {
     #endregion
 
 
+    #region B2B Tracking
+    private bool _lastClearWasDifficult;
+    private int _backToBackCount;
+    #endregion
+
     #region Game Stats
     private long _level;
     private long _score;
     private long _lines;
     private long _targetLines; // For modes with line targets
-    private long _comboCount;
+    private int _comboCount;
     private float _gravity; // Current gravity in Gs
     #endregion
 
@@ -62,6 +67,12 @@ public class TetrisGame {
     public event Action<long>? OnLineClear;
     public event Action<long>? OnLevelUp;
     public event Action<long>? OnScoreChange;
+    public event Action<long>? OnComboIncrease;
+    public event Action<long>? OnBackToBackIncrease;
+    public event Action<long>? OnBackToBackEnd;
+    public event Action<long>? OnPerfectClear;
+    public event Action<int>? OnAttackSent;
+    public event Action<int>? OnAttackReceived;
     public event Action? OnGameOver;
     public event Action? OnGameStart;
     public event Action? OnPieceLock;
@@ -132,6 +143,7 @@ public class TetrisGame {
 
     public void AddScore(long score) {
         _score += score;
+        OnScoreChange?.Invoke(_score);
     }
 
     public void SetScore(long score) {
@@ -187,6 +199,15 @@ public class TetrisGame {
         _ghostTetrominoPoint = point;
     }
 
+    public int GetBackToBackCount() {
+        return _backToBackCount;
+    }
+
+    public bool IsBackToBackActive() {
+        return _lastClearWasDifficult && _backToBackCount > 0;
+    }
+
+
     public bool IsRunning() {
         return _running;
     }
@@ -235,6 +256,13 @@ public class TetrisGame {
         ResetLockDelay();
         _lowestYReached = 0;
 
+        // Check if piece can spawn (game over if it can't)
+        if (_currentTetromino != null && !_currentTetromino.CanFitAt(_grid, _tetrominoPoint)) {
+            _running = false;
+            OnGameOver?.Invoke();
+            return;
+        }
+
         OnPieceSpawn?.Invoke();
     }
 
@@ -270,9 +298,9 @@ public class TetrisGame {
     public void RotateTetromino(RotationDirection direction) {
         if (_currentTetromino == null) return;
 
-        (var point, bool rotated) = _currentTetromino.Rotate(_grid, _tetrominoPoint, direction);
-        _wasLastSpin = rotated;
-        if (rotated) OnRotationDetected();
+        (var point, bool spin) = _currentTetromino.Rotate(_grid, _tetrominoPoint, direction);
+        _wasLastSpin = spin;
+        if (spin) OnRotationDetected();
         OnPieceRotate?.Invoke(direction);
     }
 
@@ -339,12 +367,17 @@ public class TetrisGame {
         foreach (var coord in coords) _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.GetColor());
 
         int linesCleared = _grid.ClearLines();
+        _lines += linesCleared;
         bool wereCleared = linesCleared > 0;
-        if (wereCleared) OnLineClear?.Invoke(linesCleared);
+        if (wereCleared) {
+            OnLineClear?.Invoke(linesCleared);
+            LevelUp();
+        }
         if (!wereCleared && _comboCount > 0) _comboCount = 0;
         else _previousLineClear = false;
 
-        CalculateScore(linesCleared, wereCleared, _wasLastHardDrop);
+        AddScore(CalculateScore(linesCleared, _wasLastHardDrop));
+        CalculateAttack(linesCleared);
         ResetLockDelay();
         FetchNextTetromino();
         SpawnNextPiece();
@@ -354,31 +387,56 @@ public class TetrisGame {
         OnPieceLock?.Invoke();
     }
 
-    public void CalculateScore(int linesCleared, bool wereCleared, bool wasLastHardDrop = false) {
-        if (wereCleared && linesCleared == 0) return;
-        if (wereCleared) {
-            _lines += linesCleared;
-            LevelUp();
+    public long CalculateScore(int linesCleared, bool wasLastHardDrop = false) {
+        bool wereCleared = linesCleared > 0;
+        if (wereCleared && linesCleared == 0) return 0;
+        if (!wereCleared) return 0;
+
+        long totalPoints = 0;
+        bool isDifficultClear = IsDifficultClear(linesCleared, _wasLastSpin);
+        bool applyB2B = isDifficultClear && _lastClearWasDifficult;
+
+        if (_grid.IsClear()) {
+            long perfectClearBonus = Scoring.GetPerfectClearPoints(linesCleared, applyB2B);
+            totalPoints += perfectClearBonus;
+            OnPerfectClear?.Invoke(linesCleared);
+        } else {
+            if (_previousLineClear) {
+                _comboCount++;
+                OnComboIncrease?.Invoke(_comboCount);
+            } else _comboCount = 0;
+            long lineClearPoints = Scoring.GetLineClearPoints(linesCleared, applyB2B);
+            long comboPoints = Scoring.GetComboPoints(_comboCount);
+            totalPoints += lineClearPoints + comboPoints;
         }
 
-        if (wereCleared) {
-            if (_grid.IsClear()) {
-                // Perfect Clear bonus
-                long perfectClearBonus = Scoring.GetPerfectClearPoints(linesCleared);
-                AddScore(perfectClearBonus);
-                OnScoreChange?.Invoke(_score);
-            } else {
-                // TODO: Handle back-to-back
-                if (_previousLineClear) _comboCount++;
-                else _comboCount = 0;
-                long lineClearPoints = Scoring.GetLineClearPoints(linesCleared, false);
-                long comboPoints = Scoring.GetComboPoints((int)_comboCount);
-                AddScore(lineClearPoints + comboPoints);
-                OnScoreChange?.Invoke(_score);
+        if (isDifficultClear) {
+            _lastClearWasDifficult = true;
+            _backToBackCount++;
+            OnBackToBackIncrease?.Invoke(_backToBackCount);
+        } else {
+            if (_lastClearWasDifficult && _backToBackCount > 0) {
+                OnBackToBackEnd?.Invoke(_backToBackCount);
             }
+            _lastClearWasDifficult = false;
+            _backToBackCount = 0;
         }
         var dropPoints = Scoring.GetDropPoints(_lastDropDistance, wasLastHardDrop);
-        AddScore(dropPoints);
+        totalPoints += dropPoints;
+        return totalPoints;
+    }
+
+    public void CalculateAttack(int linesCleared) {
+        bool wereCleared = linesCleared > 0;
+        if (!wereCleared) return;
+
+        bool applyB2B = IsDifficultClear(linesCleared, _wasLastSpin) && _lastClearWasDifficult;
+        int totalAttack = Attack.CalculateTotalAttack(linesCleared, _wasLastSpin, applyB2B, _comboCount, _grid.IsClear());
+
+        if (totalAttack > 0) {
+            OnAttackSent?.Invoke(totalAttack);
+            // In a multiplayer context, you would notify the target player(s) here
+        }
     }
 
     public void ResetPosition() {
@@ -486,6 +544,16 @@ public class TetrisGame {
     /// </summary>
     public bool HasMovedDown() {
         return _tetrominoPoint.Y >= _lowestYReached;
+    }
+
+    private bool IsDifficultClear(int linesCleared, bool wasSpin) {
+        // Tetris (4 lines) is always difficult
+        if (linesCleared == 4) return true;
+
+        // T-Spin or All-Spin clears are difficult (excluding T-Spin Mini in some rules)
+        if (wasSpin && linesCleared > 0) return true;
+
+        return false;
     }
     #endregion
 }
