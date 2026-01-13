@@ -32,6 +32,10 @@ public class TetrisGame {
     private Tetromino? _currentTetromino;
     private Tetromino? _heldTetromino;
     private bool _canHold;
+    private bool _wasLastSpin; // Whether last move was a T-Spin
+    private bool _previousLineClear;
+    private int _lastDropDistance;
+    private bool _wasLastHardDrop;
     #endregion
 
 
@@ -48,8 +52,8 @@ public class TetrisGame {
     private long _score;
     private long _lines;
     private long _targetLines; // For modes with line targets
+    private long _comboCount;
     private float _gravity; // Current gravity in Gs
-    private bool _wasLastSpin; // Whether last move was a T-Spin
     #endregion
 
 
@@ -126,8 +130,21 @@ public class TetrisGame {
         return _score;
     }
 
+    public void AddScore(long score) {
+        _score += score;
+    }
+
     public void SetScore(long score) {
         _score = score;
+    }
+
+
+    public float GetGravity() {
+        return _gravity;
+    }
+
+    public bool WasLastSpin() {
+        return _wasLastSpin;
     }
 
     public long GetLines() {
@@ -200,24 +217,20 @@ public class TetrisGame {
             _lockDelayTimer += (float)elapsedTime.TotalSeconds;
 
             // Check if lock delay has expired or max resets reached
-            if (_lockDelayTimer >= _settings.LockDelay || _lockResetCount >= _settings.MaxLockResets) LockPiece();
+            if (ShouldLockTetromino()) LockPiece();
         } else _isPieceOnGround = false;
     }
 
 
 
-    public Tetromino FetchNextTetromino() {
-        var nextPiece = _bagGenerator.GetNextPiece();
+    public void FetchNextTetromino() {
+        _currentTetromino = _bagGenerator.GetNextPiece();
         List<Tetromino> nextPieces = _bagGenerator.PeekNext(_nextTetrominos.Length);
         for (int i = 0; i < _nextTetrominos.Length; i++) _nextTetrominos[i] = nextPieces[i];
-        return nextPiece;
     }
 
     public void SpawnNextPiece() {
-        _currentTetromino = FetchNextTetromino();
-        var startX = (_settings.GridWidth / 2) - 2;
-        if (_currentTetromino.GetType() == typeof(O)) startX += 1; // Center O piece
-        _tetrominoPoint = new Point(startX, 0);
+        ResetPosition();
         _canHold = true;
         ResetLockDelay();
         _lowestYReached = 0;
@@ -231,14 +244,10 @@ public class TetrisGame {
         Point newPoint = new(_tetrominoPoint.X, _tetrominoPoint.Y + 1);
         if (_currentTetromino.CanFitAt(_grid, newPoint)) _tetrominoPoint = newPoint;
         else {
-            // Lock piece in place
-            var coords = _currentTetromino.GetPieceCoordinates(_tetrominoPoint);
-            foreach (var coord in coords) _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.GetColor());
-
-            // Spawn next piece
-            _currentTetromino = _bagGenerator.GetNextPiece();
-            _tetrominoPoint = new Point(_settings.GridWidth / 2 - 2, 0); // Reset position
-            _canHold = true;
+            if (ShouldLockTetromino()) {
+                LockPiece();
+                OnSoftDrop?.Invoke();
+            }
         }
     }
 
@@ -250,15 +259,11 @@ public class TetrisGame {
             newY++;
         }
         _tetrominoPoint = new Point(_tetrominoPoint.X, newY);
+        _lastDropDistance = newY - _tetrominoPoint.Y;
+        _wasLastHardDrop = true;
 
         // Lock piece in place
-        var coords = _currentTetromino.GetPieceCoordinates(_tetrominoPoint);
-        foreach (var coord in coords) _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.GetColor());
-
-        // Spawn next piece
-        _currentTetromino = _bagGenerator.GetNextPiece();
-        _tetrominoPoint = new Point(_settings.GridWidth / 2 - 2, 0); // Reset position
-        _canHold = true;
+        LockPiece();
         OnHardDrop?.Invoke();
     }
 
@@ -303,13 +308,19 @@ public class TetrisGame {
             _currentTetromino = _bagGenerator.GetNextPiece();
         } else (_heldTetromino, _currentTetromino) = (_currentTetromino, _heldTetromino);
 
-        _tetrominoPoint = new Point(_settings.GridWidth / 2 - 2, 0); // Reset position
+        ResetPosition();
         _canHold = false;
         OnPieceHold?.Invoke();
     }
 
     public bool ShouldLevelUp() {
         return _lines >= _targetLines;
+    }
+
+    public bool ShouldLockTetromino() {
+        if (_currentTetromino == null) return false;
+
+        return _isPieceOnGround && (_lockDelayTimer >= _settings.LockDelay || _lockResetCount >= _settings.MaxLockResets);
     }
 
     public void LevelUp(bool force = false) {
@@ -325,19 +336,55 @@ public class TetrisGame {
 
         // Lock the piece in place on the grid
         var coords = _currentTetromino.GetPieceCoordinates(_tetrominoPoint);
-        foreach (var coord in coords) {
-            _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.GetColor());
-        }
+        foreach (var coord in coords) _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.GetColor());
 
         int linesCleared = _grid.ClearLines();
         bool wereCleared = linesCleared > 0;
         if (wereCleared) OnLineClear?.Invoke(linesCleared);
-        // TODO: Check for T-Spins and scoring
+        if (!wereCleared && _comboCount > 0) _comboCount = 0;
+        else _previousLineClear = false;
 
+        CalculateScore(linesCleared, wereCleared, _wasLastHardDrop);
         ResetLockDelay();
+        FetchNextTetromino();
         SpawnNextPiece();
-        _wasLastSpin = false;
+
+        if (wereCleared) _previousLineClear = true;
+        _wasLastHardDrop = false;
         OnPieceLock?.Invoke();
+    }
+
+    public void CalculateScore(int linesCleared, bool wereCleared, bool wasLastHardDrop = false) {
+        if (wereCleared && linesCleared == 0) return;
+        if (wereCleared) {
+            _lines += linesCleared;
+            LevelUp();
+        }
+
+        if (wereCleared) {
+            if (_grid.IsClear()) {
+                // Perfect Clear bonus
+                long perfectClearBonus = Scoring.GetPerfectClearPoints(linesCleared);
+                AddScore(perfectClearBonus);
+                OnScoreChange?.Invoke(_score);
+            } else {
+                // TODO: Handle back-to-back
+                if (_previousLineClear) _comboCount++;
+                else _comboCount = 0;
+                long lineClearPoints = Scoring.GetLineClearPoints(linesCleared, false);
+                long comboPoints = Scoring.GetComboPoints((int)_comboCount);
+                AddScore(lineClearPoints + comboPoints);
+                OnScoreChange?.Invoke(_score);
+            }
+        }
+        var dropPoints = Scoring.GetDropPoints(_lastDropDistance, wasLastHardDrop);
+        AddScore(dropPoints);
+    }
+
+    public void ResetPosition() {
+        var startX = (_settings.GridWidth / 2) - 2;
+        if (_currentTetromino?.GetType() == typeof(O)) startX += 1; // Center O piece
+        _tetrominoPoint = new Point(startX, 0);
     }
 
     public void Finish() {

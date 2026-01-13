@@ -139,6 +139,13 @@ public class Grid {
     #endregion
 
     #region Cell and Row Checks
+    public bool IsClear() {
+        for (int y = 0; y < _height; y++) {
+            if (!IsRowEmpty(y)) return false;
+        }
+        return true;
+    }
+
     public bool IsRowEmpty(int y) {
         for (int x = 0; x < _width; x++) {
             if (_cells[x, y].IsOccupied) return false;
