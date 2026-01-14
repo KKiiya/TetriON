@@ -10,6 +10,11 @@ namespace TetriON.Client.Services;
 public class AccountService : IDisposable {
 
     // TODO: Implement account management methods
+
+    public void Initialize() {
+
+    }
+
     public void Dispose() {
         // TODO: Cleanup resources if needed
     }

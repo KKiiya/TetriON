@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework.Graphics;
 using TetriON.Client.UI;
 using static TetriON.Client.UI.Composers;
 
@@ -12,7 +13,10 @@ namespace TetriON.Client.Animations;
 /// Base class for UI elements that support smooth resizing, animations and adjustments.
 /// Uses normalized values (0.0 to 1.0) to interpolate between original and target states.
 /// </summary>
-public abstract class Adjustable {
+public abstract class Adjustable(ClientController controller) {
+
+    public ClientController Controller { get; } = controller ?? throw new ArgumentNullException(nameof(controller));
+    public SpriteBatch spriteBatch => Controller.SpriteBatch;
 
 
     #region Original State Properties

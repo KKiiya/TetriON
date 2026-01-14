@@ -9,6 +9,11 @@ namespace TetriON.Client.Services;
 /// </summary>
 public class FriendsService : IDisposable {
 
+
+    public void Initialize() {
+
+    }
+
     // TODO: Implement friends management methods
     public void Dispose() {
         // TODO: Cleanup resources if needed

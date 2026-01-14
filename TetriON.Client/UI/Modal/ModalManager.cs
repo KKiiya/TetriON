@@ -3,22 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using TetriON.Client.Animations;
 using static TetriON.Client.UI.Composers;
 
 namespace TetriON.Client.UI.Modal;
 
-public class ModalManager : IDisposable {
+public class ModalManager(ClientController controller) : Adjustable(controller), IDisposable {
 
-    private readonly ClientController _controller;
+    private readonly ClientController _controller = controller ?? throw new ArgumentNullException(nameof(controller));
     private readonly Stack<ModalWrapper> _modalStack = new();
     private bool _disposed;
 
-    public ModalManager(ClientController controller) {
-        _controller = controller ?? throw new ArgumentNullException(nameof(controller));
-    }
 
     #region Modal Stack Management
-
     /// <summary>
     /// Show a modal and add it to the stack
     /// </summary>
@@ -83,8 +80,8 @@ public class ModalManager : IDisposable {
     /// <summary>
     /// Create and show a confirmation modal (Yes/No)
     /// </summary>
-    public ModalWrapper ShowConfirmation(string title, string message, Action<bool> callback = null) {
-        var modal = new ModalWrapper(_session, ModalWrapper.ModalType.Confirmation);
+    public ModalWrapper ShowConfirmation(string title, string message, Action<bool>? callback = null) {
+        var modal = new ModalWrapper(_controller, ModalWrapper.ModalType.Confirmation);
         modal.SetTitle(title);
         modal.SetMessage(message);
         modal.SetLayout(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.3f));
@@ -100,8 +97,8 @@ public class ModalManager : IDisposable {
     /// <summary>
     /// Create and show an information modal (OK only)
     /// </summary>
-    public ModalWrapper ShowInformation(string title, string message, Action callback = null) {
-        var modal = new ModalWrapper(_session, ModalWrapper.ModalType.Information);
+    public ModalWrapper ShowInformation(string title, string message, Action? callback = null) {
+        var modal = new ModalWrapper(_controller, ModalWrapper.ModalType.Information);
         modal.SetTitle(title);
         modal.SetMessage(message);
         modal.SetLayout(new Vector2(0.5f, 0.5f), new Vector2(0.45f, 0.25f));
@@ -117,8 +114,8 @@ public class ModalManager : IDisposable {
     /// <summary>
     /// Create and show a custom modal
     /// </summary>
-    public ModalWrapper ShowCustomModal(Action<ModalWrapper> setupAction = null) {
-        var modal = new ModalWrapper(_session, ModalWrapper.ModalType.Custom);
+    public ModalWrapper ShowCustomModal(Action<ModalWrapper>? setupAction = null) {
+        var modal = new ModalWrapper(_controller, ModalWrapper.ModalType.Custom);
         setupAction?.Invoke(modal);
         ShowModal(modal);
         return modal;
@@ -127,8 +124,8 @@ public class ModalManager : IDisposable {
     /// <summary>
     /// Create and show a selection modal
     /// </summary>
-    public ModalWrapper ShowSelection(string title, string[] options, Action<int> callback = null) {
-        var modal = new ModalWrapper(_session, ModalWrapper.ModalType.Selection);
+    public ModalWrapper ShowSelection(string title, string[] options, Action<int>? callback = null) {
+        var modal = new ModalWrapper(_controller, ModalWrapper.ModalType.Selection);
         modal.SetTitle(title);
 
         // Dynamic sizing based on number of options
@@ -208,7 +205,7 @@ public class ModalManager : IDisposable {
     /// <summary>
     /// Show game over modal
     /// </summary>
-    public ModalWrapper ShowGameOver(int score, bool isHighScore = false, Action onRestart = null, Action onMenu = null) {
+    public ModalWrapper ShowGameOver(int score, bool isHighScore = false, Action? onRestart = null, Action? onMenu = null) {
         return ShowCustomModal(modal => {
             modal.SetTitle(isHighScore ? "New High Score!" : "Game Over");
             modal.SetLayout(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.4f));
@@ -257,7 +254,7 @@ public class ModalManager : IDisposable {
 
     private ButtonWrapper CreateStandardButton(string text, Vector2 position, string id) {
         try {
-            var skinManager = _session.GetSkinManager();
+            var skinManager = _controller.SkinManager;
             var (success, bTexture) = skinManager.GetTextureAsset("modal_button");
             var buttonTexture = new InterfaceTextureWrapper(bTexture, Vector2.Zero);
             buttonTexture.SetTargetSizeScreenPercent(15f, 6f, ScaleMode.Proportional);
@@ -275,7 +272,7 @@ public class ModalManager : IDisposable {
 
     private ButtonWrapper CreateOptionButton(string text, Vector2 position, string id) {
         try {
-            var skinManager = _session.GetSkinManager();
+            var skinManager = _controller.SkinManager;
             var (success, bTexture) = skinManager.GetTextureAsset("modal_option_button");
             var buttonTexture = new InterfaceTextureWrapper(bTexture, Vector2.Zero);
             buttonTexture.SetTargetSizeScreenPercent(25f, 5f, ScaleMode.Proportional);
@@ -347,6 +344,5 @@ public class ModalManager : IDisposable {
     ~ModalManager() {
         Dispose(false);
     }
-
     #endregion
 }

@@ -18,6 +18,13 @@ public class ServiceManager : IDisposable {
         MatchmakingService = new MatchmakingService();
     }
 
+    public void Initialize() {
+        AccountService.Initialize();
+        LobbyService.Initialize();
+        FriendsService.Initialize();
+        MatchmakingService.Initialize();
+    }
+
     public void Dispose() {
         AccountService.Dispose();
         LobbyService.Dispose();

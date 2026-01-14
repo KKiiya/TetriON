@@ -13,10 +13,10 @@ namespace TetriON.Client.UI.Modal;
 public class ModalWrapper : IDisposable {
 
     // Modal Properties
-    private readonly ClientController Controller { get; }
     private readonly List<ButtonWrapper> _buttons = new(8);
     private readonly List<InterfaceTextureWrapper> _textures = new(16);
     private readonly List<ModalTextElement> _texts = new(8);
+    private ClientController Controller { get; }
 
     // Modal State
     private bool _isVisible;
@@ -133,7 +133,7 @@ public class ModalWrapper : IDisposable {
 
     private void SetupInputHandlers() {
         _hasInputHandler = true;
-        _mouseInput = TetriON.Mouse;
+        _mouseInput = Controller.InputManager.GetMouseInput();
 
         if (_mouseInput != null) {
             _mouseInput.OnMouseButtonPressed += OnMousePressed;

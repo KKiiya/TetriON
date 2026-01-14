@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using TetriON.Client.Animations;
 using TetriON.Client.Input;
 using TetriON.Client.Networking;
@@ -26,10 +27,12 @@ public class ClientController {
     public SkinManager SkinManager { get; }
     public ModalManager ModalManager { get; }
     public AnimationPlayer AnimationPlayer { get; }
+    public SpriteBatch SpriteBatch { get; }
 
     public ClientController(Game game) {
         Game = game;
 
+        SpriteBatch = new SpriteBatch(game.GraphicsDevice);
         // Initialize in dependency order
         InputManager = new InputManager(this);
         NetworkManager = new NetworkManager();
@@ -42,13 +45,25 @@ public class ClientController {
 
     // Lifecycle methods
     public void Initialize() {
-        // Post-construction initialization
+        InputManager.Initialize();
+        SkinManager.LoadAllAssets();
+        ServiceManager.Initialize();
+        NetworkManager.Initialize();
+        StateManager.Initialize();
+        ModalManager.Initialize();
+        AnimationPlayer.Initialize();
     }
 
     public void Update(float deltaTime) {
         InputManager.Update(deltaTime);
         AnimationPlayer.Update(deltaTime); // Critical!
         // Other updates...
+    }
+
+    public void Draw() {
+        SpriteBatch.Begin();
+        // Drawing code...
+        SpriteBatch.End();
     }
 
     public void Shutdown() {

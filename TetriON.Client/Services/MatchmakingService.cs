@@ -9,6 +9,11 @@ namespace TetriON.Client.Services;
 /// </summary>
 public class MatchmakingService : IDisposable {
 
+
+    public void Initialize() {
+
+    }
+
     // TODO: Implement matchmaking methods
     public void Dispose() {
         // TODO: Cleanup resources if needed

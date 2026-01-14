@@ -9,6 +9,10 @@ namespace TetriON.Client.Services;
 /// </summary>
 public class LobbyService : IDisposable {
 
+    public void Initialize() {
+
+    }
+
     // TODO: Implement lobby management methods
     public void Dispose() {
         // TODO: Cleanup resources if needed
