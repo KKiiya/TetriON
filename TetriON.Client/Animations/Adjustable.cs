@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework.Graphics;
 using TetriON.Client.UI;
 using static TetriON.Client.UI.Composers;
 
@@ -16,7 +11,6 @@ namespace TetriON.Client.Animations;
 public abstract class Adjustable(ClientController controller) {
 
     public ClientController Controller { get; } = controller ?? throw new ArgumentNullException(nameof(controller));
-    public SpriteBatch spriteBatch => Controller.SpriteBatch;
 
 
     #region Original State Properties
@@ -267,6 +261,14 @@ public abstract class Adjustable(ClientController controller) {
     /// Get current size
     /// </summary>
     public virtual Size GetSize() => CurrentSize;
+
+    /// <summary>
+    /// Get current center point
+    /// </summary>
+    public virtual Point GetCenter() => new(
+        CurrentPosition.X + CurrentSize.Width / 2,
+        CurrentPosition.Y + CurrentSize.Height / 2
+    );
 
     /// <summary>
     /// Get current opacity (0.0 to 1.0)

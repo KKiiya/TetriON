@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TetriON.Client.UI {
-    public class TextWrapper {
+namespace TetriON.Client.Content.UI;
 
-    }
+public class TextWrapper {
+
 }
