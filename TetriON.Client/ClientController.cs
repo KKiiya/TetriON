@@ -1,17 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TetriON.Client.Animations;
+using TetriON.Client.Content.UI.Modal;
 using TetriON.Client.Input;
 using TetriON.Client.Networking;
 using TetriON.Client.Services;
 using TetriON.Client.Skin;
 using TetriON.Client.State;
-using TetriON.Client.UI.Modal;
-using TetriON.Core.Pieces.PieceTypes;
 
 namespace TetriON.Client;
 
@@ -35,23 +30,21 @@ public class ClientController {
         SpriteBatch = new SpriteBatch(game.GraphicsDevice);
         // Initialize in dependency order
         InputManager = new InputManager(this);
-        NetworkManager = new NetworkManager();
-        StateManager = new StateManager();
-        ServiceManager = new ServiceManager();
+        NetworkManager = new NetworkManager(this);
+        StateManager = new StateManager(this);
+        ServiceManager = new ServiceManager(this);
         SkinManager = new SkinManager(this);
         ModalManager = new ModalManager(this);
-        AnimationPlayer = new AnimationPlayer();
+        AnimationPlayer = new AnimationPlayer(this);
     }
 
     // Lifecycle methods
     public void Initialize() {
-        InputManager.Initialize();
+        //InputManager.Initialize();
         SkinManager.LoadAllAssets();
         ServiceManager.Initialize();
         NetworkManager.Initialize();
         StateManager.Initialize();
-        ModalManager.Initialize();
-        AnimationPlayer.Initialize();
     }
 
     public void Update(float deltaTime) {

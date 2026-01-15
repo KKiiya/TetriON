@@ -1,6 +1,6 @@
 using System.Drawing;
-using TetriON.Client.UI;
-using static TetriON.Client.UI.Composers;
+using TetriON.Client.Content.UI;
+using static TetriON.Client.Content.UI.Composers;
 
 namespace TetriON.Client.Animations;
 

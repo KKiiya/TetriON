@@ -350,7 +350,7 @@ public class CheckBoxWrapper(ClientController controller, string id = "") : Menu
         base.OnDisposing();
 
         // Unsubscribe from events
-        OnClicked -= HandleClicked;
+        //OnClicked -= HandleClicked;
 
         // Dispose textures
         _checkedTexture?.Dispose();
@@ -359,13 +359,9 @@ public class CheckBoxWrapper(ClientController controller, string id = "") : Menu
         _uncheckedTexture = null;
     }
 
-# endregy>Event args for checkbox state changes.</summary>
-    public class CheckedChangedEventArgs : EventArgs {
-        public bool OldValue { get; }
-        public bool NewValue { get; }
-
-        public CheckedChangedEventArgs(bool oldValue, bool newValue) {
-            OldValue = oldValue;
-            NewValue = newValue;
-        }
+    #endregion
+    public class CheckedChangedEventArgs(bool oldValue, bool newValue) : EventArgs {
+        public bool OldValue { get; } = oldValue;
+        public bool NewValue { get; } = newValue;
     }
+}

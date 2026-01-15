@@ -7,9 +7,15 @@ namespace TetriON.Client.State;
 /// </summary>
 public class StateManager : IDisposable {
     private readonly ClientState _currentState;
+    private readonly ClientController _clientController;
 
-    public StateManager() {
+    public StateManager(ClientController clientController) {
+        _clientController = clientController;
         //_currentState = new ClientState();
+    }
+
+    public void Initialize() {
+        // Initialize state
     }
 
     public void Dispose() {

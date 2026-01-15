@@ -6,6 +6,8 @@
     <ApplicationId>com.companyname.TetriON.Platform.Android</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <AndroidSdkDirectory>C:\android-sdk</AndroidSdkDirectory>
+    <JavaSdkDirectory>C:\Program Files\Java\jdk-21</JavaSdkDirectory>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*" />

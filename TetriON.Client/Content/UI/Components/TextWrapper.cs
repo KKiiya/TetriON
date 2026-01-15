@@ -201,7 +201,7 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
     public override void Initialize() {
         // Subscribe to click event if clickable
         if (_isClickable) {
-            OnClicked += HandleClicked;
+            //OnClicked += HandleClicked;
         }
 
         RecalculateIfNeeded();
@@ -474,7 +474,7 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
 
         // Unsubscribe from events
         if (_isClickable) {
-            OnClicked -= HandleClicked;
+            //OnClicked -= HandleClicked;
         }
 
         // Clear cached data

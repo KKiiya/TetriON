@@ -1,6 +1,6 @@
 using System;
 
-namespace TetriON.Client.Service;
+namespace TetriON.Client.Services;
 
 /// <summary>
 /// Manages authentication tokens and session

@@ -8,21 +8,18 @@ namespace TetriON.Client.Animations;
 /// Central animation player. Manages and updates all active animations.
 /// Call Update(deltaTime) each frame from your game loop.
 /// </summary>
-public sealed class AnimationPlayer : IDisposable {
+/// <remarks>
+/// Create a new animation player
+/// </remarks>
+public sealed class AnimationPlayer(ClientController clientController) : IDisposable {
 
-    private readonly List<AnimationHandle> _activeHandles;
-    private readonly List<AnimationHandle> _toRemove;
+    private readonly ClientController _clientController = clientController;
+
+    private readonly List<AnimationHandle> _activeHandles = [];
+    private readonly List<AnimationHandle> _toRemove = [];
 
     /// <summary>Number of active animations</summary>
     public int ActiveCount => _activeHandles.Count;
-
-    /// <summary>
-    /// Create a new animation player
-    /// </summary>
-    public AnimationPlayer() {
-        _activeHandles = [];
-        _toRemove = [];
-    }
 
     /// <summary>
     /// Play a single animation

@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TetriON.Client.UI;
+namespace TetriON.Client.Content.UI;
 
 public class Composers {
 

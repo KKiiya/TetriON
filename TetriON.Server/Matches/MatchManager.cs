@@ -10,7 +10,7 @@ public class MatchManager {
     private Dictionary<string, GameRoom> _activeMatches;
 
     public MatchManager() {
-        _activeMatches = new Dictionary<string, GameRoom>();
+        _activeMatches = [];
     }
 
     // TODO: Implement match management methods

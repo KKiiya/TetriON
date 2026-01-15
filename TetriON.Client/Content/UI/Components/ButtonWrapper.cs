@@ -115,7 +115,7 @@ public class ButtonWrapper(ClientController controller, string id = "") : MenuCo
     /// </summary>
     public void Click() {
         if (!CanReceiveInput) return;
-        SafeInvoke(OnClicked, new ComponentEventArgs());
+        //SafeInvoke(OnClicked, new ComponentEventArgs());
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ public class ButtonWrapper(ClientController controller, string id = "") : MenuCo
     /// </summary>
     public void RightClick() {
         if (!CanReceiveInput) return;
-        SafeInvoke(OnRightClicked, new ComponentEventArgs());
+        //SafeInvoke(OnRightClicked, new ComponentEventArgs());
     }
 
     /// <summary>
@@ -131,7 +131,7 @@ public class ButtonWrapper(ClientController controller, string id = "") : MenuCo
     /// </summary>
     public void MiddleClick() {
         if (!CanReceiveInput) return;
-        SafeInvoke(OnMiddleClicked, new ComponentEventArgs());
+        //SafeInvoke(OnMiddleClicked, new ComponentEventArgs());
     }
 
     #endregion

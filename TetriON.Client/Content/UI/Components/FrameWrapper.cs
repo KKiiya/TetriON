@@ -223,9 +223,9 @@ public class FrameWrapper : MenuComponent {
 
     public override void Initialize() {
         // Subscribe to input events
-        OnMousePressed += HandleMousePressed;
-        OnMouseReleased += HandleMouseReleased;
-        OnMouseHolding += HandleMouseHolding;
+        //OnMousePressed += HandleMousePressed;
+        //OnMouseReleased += HandleMouseReleased;
+        //OnMouseHolding += HandleMouseHolding;
 
         // Initialize all children
         foreach (var child in Children) {
@@ -666,9 +666,9 @@ public class FrameWrapper : MenuComponent {
         base.OnDisposing();
 
         // Unsubscribe from events
-        OnMousePressed -= HandleMousePressed;
-        OnMouseReleased -= HandleMouseReleased;
-        OnMouseHolding -= HandleMouseHolding;
+        //OnMousePressed -= HandleMousePressed;
+        //OnMouseReleased -= HandleMouseReleased;
+        //OnMouseHolding -= HandleMouseHolding;
 
         // Dispose textures
         _backgroundTexture?.Dispose();

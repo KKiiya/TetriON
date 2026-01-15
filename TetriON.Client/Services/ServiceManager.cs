@@ -5,18 +5,13 @@ namespace TetriON.Client.Services;
 /// <summary>
 /// Manages all client services
 /// </summary>
-public class ServiceManager : IDisposable {
-    public AccountService AccountService { get; private set; }
-    public LobbyService LobbyService { get; private set; }
-    public FriendsService FriendsService { get; private set; }
-    public MatchmakingService MatchmakingService { get; private set; }
+public class ServiceManager(ClientController clientController) : IDisposable {
 
-    public ServiceManager() {
-        AccountService = new AccountService();
-        LobbyService = new LobbyService();
-        FriendsService = new FriendsService();
-        MatchmakingService = new MatchmakingService();
-    }
+    private readonly ClientController _clientController = clientController;
+    public AccountService AccountService { get; private set; } = new AccountService();
+    public LobbyService LobbyService { get; private set; } = new LobbyService();
+    public FriendsService FriendsService { get; private set; } = new FriendsService();
+    public MatchmakingService MatchmakingService { get; private set; } = new MatchmakingService();
 
     public void Initialize() {
         AccountService.Initialize();

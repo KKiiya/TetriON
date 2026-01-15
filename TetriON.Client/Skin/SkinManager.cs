@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
+using TetriON.Client.Content.Media;
 using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.Skin;
@@ -83,12 +84,15 @@ public class SkinManager : IDisposable {
     private static readonly string SupportedAudioExtension = ".wav";
     private static readonly string SupportedTextureExtensions = ".png";
 
+    private readonly ClientController _controller;
+
     private string _currentSkin = "default";
     private Game _instance;
     private GraphicsDevice? _graphicsDevice;
 
     public SkinManager(ClientController controller) {
-        _instance = controller.Game;
+        _controller = controller;
+        _instance = _controller.Game;
         Initialize(_instance.GraphicsDevice);
     }
 
@@ -291,7 +295,7 @@ public class SkinManager : IDisposable {
         foreach (var textureName in ValidTextureNames) {
             try {
                 var texture = LoadCustomTexture(textureName);
-                var textureWrapper = new TextureWrapper(texture, true); // ownsTexture = true
+                var textureWrapper = new TextureWrapper(_controller, texture, true); // ownsTexture = true
                 _textureAssets[textureName] = textureWrapper;
                 loadedCount++;
                 Logger.Log($"SkinManager: ✓ Loaded texture '{textureName}' ({texture.Width}x{texture.Height})", Logger.LogLevel.Info);
@@ -330,7 +334,7 @@ public class SkinManager : IDisposable {
             try {
                 // Load sound effect directly from SkinManager, then wrap it
                 var soundEffect = LoadCustomSoundEffect(soundName);
-                var soundWrapper = new SoundWrapper(soundEffect, soundName);
+                var soundWrapper = new SoundWrapper(_controller, soundEffect, soundName);
                 _audioAssets[soundName] = soundWrapper;
                 loadedCount++;
                 Logger.Log($"SkinManager: ✓ Loaded sound '{soundName}'", Logger.LogLevel.Info);

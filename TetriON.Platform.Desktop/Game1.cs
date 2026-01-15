@@ -1,22 +1,26 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using TetriON.Client;
 
 namespace TetriON.Platform.Desktop;
 
 public class Game1 : Game {
+
+    private readonly ClientController _clientController;
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
 
     public Game1() {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-        IsMouseVisible = true;
+        IsMouseVisible = false;
+        _clientController = new ClientController(this);
     }
 
     protected override void Initialize() {
         // TODO: Add your initialization logic here
-
+        _clientController.Initialize();
         base.Initialize();
     }
 
@@ -31,6 +35,7 @@ public class Game1 : Game {
 
         // TODO: Add your update logic here
 
+        _clientController.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
         base.Update(gameTime);
     }
 
@@ -38,7 +43,7 @@ public class Game1 : Game {
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
         // TODO: Add your drawing code here
-
+        _clientController.Draw();
         base.Draw(gameTime);
     }
 }
