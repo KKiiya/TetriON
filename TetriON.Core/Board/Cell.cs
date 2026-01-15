@@ -11,6 +11,7 @@ public class Cell {
     public bool IsOccupied { get; private set; }
     public Color CellColor { get; private set; }
     public CellType Type { get; set; } = CellType.Normal;
+    public byte Identifier { get; set; } = 0;
 
     public Cell() {
         IsOccupied = false;
@@ -26,6 +27,7 @@ public class Cell {
         IsOccupied = false;
         CellColor = Color.Empty;
         Type = CellType.Normal;
+        Identifier = 0;
     }
 
     public enum CellType {
