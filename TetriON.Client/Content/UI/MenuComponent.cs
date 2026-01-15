@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using TetriON.Client.Animations;
@@ -12,7 +9,13 @@ namespace TetriON.Client.Content.UI;
 /// Provides state management, input handling, hierarchy support, and integrates with Adjustable for animations.
 /// Thread-safe for event invocation. Must call Initialize() after construction.
 /// </summary>
-public abstract class MenuComponent : Adjustable, IDisposable {
+/// <remarks>
+/// Initializes a new instance of the MenuComponent class.
+/// </remarks>
+/// <param name="controller">The client controller instance.</param>
+public abstract class MenuComponent(ClientController controller, string id = "") : Adjustable(controller), IDisposable {
+
+    private readonly string _id = id ?? string.Empty;
 
     #region Fields
     private bool _isHovered;
@@ -36,47 +39,50 @@ public abstract class MenuComponent : Adjustable, IDisposable {
     #region Events
 
     /// <summary>Fired when the component is left-clicked.</summary>
-    public event Action? OnClicked;
+    public event EventHandler<ComponentEventArgs>? OnClicked;
 
     /// <summary>Fired when mouse enters the component bounds.</summary>
-    public event Action? OnHoverEnter;
+    public event EventHandler<ComponentEventArgs>? OnHoverEnter;
 
     /// <summary>Fired when mouse exits the component bounds.</summary>
-    public event Action? OnHoverExit;
+    public event EventHandler<ComponentEventArgs>? OnHoverExit;
 
     /// <summary>Fired when mouse button is pressed down on the component.</summary>
-    public event Action? OnMousePressed;
+    public event EventHandler<ComponentEventArgs>? OnMousePressed;
 
     /// <summary>Fired when mouse button is released on the component.</summary>
-    public event Action? OnMouseReleased;
+    public event EventHandler<ComponentEventArgs>? OnMouseReleased;
 
     /// <summary>Fired once when mouse is held for the threshold duration.</summary>
-    public event Action? OnMouseHeld;
+    public event EventHandler<ComponentEventArgs>? OnMouseHeld;
 
     /// <summary>Fired continuously while mouse is held, provides hold duration in seconds.</summary>
-    public event Action<float>? OnMouseHolding;
+    public event EventHandler<HoldEventArgs>? OnMouseHolding;
 
     /// <summary>Fired when the component is right-clicked.</summary>
-    public event Action? OnRightClicked;
+    public event EventHandler<ComponentEventArgs>? OnRightClicked;
 
     /// <summary>Fired when the component is middle-clicked.</summary>
-    public event Action? OnMiddleClicked;
+    public event EventHandler<ComponentEventArgs>? OnMiddleClicked;
 
     /// <summary>Fired when the component gains focus.</summary>
-    public event Action? OnFocusGained;
+    public event EventHandler<ComponentEventArgs>? OnFocusGained;
 
     /// <summary>Fired when the component loses focus.</summary>
-    public event Action? OnFocusLost;
+    public event EventHandler<ComponentEventArgs>? OnFocusLost;
 
     /// <summary>Fired when IsEnabled changes.</summary>
-    public event Action<bool>? OnEnabledChanged;
+    public event EventHandler<StateChangedEventArgs<bool>>? OnEnabledChanged;
 
     /// <summary>Fired when IsVisible changes.</summary>
-    public event Action<bool>? OnVisibilityChanged;
+    public event EventHandler<StateChangedEventArgs<bool>>? OnVisibilityChanged;
 
     #endregion
 
     #region Properties
+
+    /// <summary>Gets the unique identifier for this component.</summary>
+    public string Identifier => _id;
 
     /// <summary>Gets whether this component has been disposed.</summary>
     public bool IsDisposed {
@@ -91,10 +97,10 @@ public abstract class MenuComponent : Adjustable, IDisposable {
             if (_isHovered != value) {
                 _isHovered = value;
                 if (value) {
-                    SafeInvoke(OnHoverEnter);
+                    SafeInvoke(OnHoverEnter, new ComponentEventArgs());
                     OnHoverStateChanged(true);
                 } else {
-                    SafeInvoke(OnHoverExit);
+                    SafeInvoke(OnHoverExit, new ComponentEventArgs());
                     OnHoverStateChanged(false);
                 }
             }
@@ -135,7 +141,7 @@ public abstract class MenuComponent : Adjustable, IDisposable {
                     IsPressed = false;
                     IsFocused = false;
                 }
-                SafeInvoke(OnEnabledChanged, value);
+                SafeInvoke(OnEnabledChanged, new StateChangedEventArgs<bool>(value));
                 OnEnabledStateChanged(value);
             }
         }
@@ -152,7 +158,7 @@ public abstract class MenuComponent : Adjustable, IDisposable {
                     IsHovered = false;
                     IsPressed = false;
                 }
-                SafeInvoke(OnVisibilityChanged, value);
+                SafeInvoke(OnVisibilityChanged, new StateChangedEventArgs<bool>(value));
                 OnVisibilityStateChanged(value);
             }
         }
@@ -165,10 +171,10 @@ public abstract class MenuComponent : Adjustable, IDisposable {
             if (_isFocused != value) {
                 _isFocused = value;
                 if (value) {
-                    SafeInvoke(OnFocusGained);
+                    SafeInvoke(OnFocusGained, new ComponentEventArgs());
                     OnFocusStateChanged(true);
                 } else {
-                    SafeInvoke(OnFocusLost);
+                    SafeInvoke(OnFocusLost, new ComponentEventArgs());
                     OnFocusStateChanged(false);
                 }
             }
@@ -176,7 +182,7 @@ public abstract class MenuComponent : Adjustable, IDisposable {
     }
 
     /// <summary>Gets the bounding rectangle for this component using Adjustable's position and size.</summary>
-    public Rectangle Bounds => new Rectangle(
+    public Rectangle Bounds => new(
         (int)CurrentPosition.X,
         (int)CurrentPosition.Y,
         CurrentSize.Width,
@@ -226,23 +232,12 @@ public abstract class MenuComponent : Adjustable, IDisposable {
 
             var parentBounds = Parent.AbsoluteBounds;
             return new Rectangle(
-                parentBounds.X + (int)CurrentPosition.X,
-                parentBounds.Y + (int)CurrentPosition.Y,
+                parentBounds.X + CurrentPosition.X,
+                parentBounds.Y + CurrentPosition.Y,
                 CurrentSize.Width,
                 CurrentSize.Height
             );
         }
-    }
-
-    #endregion
-
-    #region Constructor
-
-    /// <summary>
-    /// Initializes a new instance of the MenuComponent class.
-    /// </summary>
-    /// <param name="controller">The client controller instance.</param>
-    protected MenuComponent(ClientController controller) : base(controller) {
     }
 
     #endregion
@@ -317,51 +312,51 @@ public abstract class MenuComponent : Adjustable, IDisposable {
         HandleMouseButton(
             mouseState.LeftButton,
             previousMouseState.LeftButton,
-            ButtonType.Left,
+            ClickType.Left,
             deltaTime
         );
 
         if (mouseState.RightButton == ButtonState.Pressed &&
             previousMouseState.RightButton == ButtonState.Released) {
-            SafeInvoke(OnRightClicked);
+            SafeInvoke(OnRightClicked, new ComponentEventArgs());
         }
 
         if (mouseState.MiddleButton == ButtonState.Pressed &&
             previousMouseState.MiddleButton == ButtonState.Released) {
-            SafeInvoke(OnMiddleClicked);
+            SafeInvoke(OnMiddleClicked, new ComponentEventArgs());
         }
     }
 
     /// <summary>
     /// Handle a specific mouse button's state.
     /// </summary>
-    private void HandleMouseButton(ButtonState current, ButtonState previous, ButtonType buttonType, float deltaTime) {
-        if (buttonType == ButtonType.Left) {
+    private void HandleMouseButton(ButtonState current, ButtonState previous, ClickType buttonType, float deltaTime) {
+        if (buttonType == ClickType.Left) {
             // Press detection
             if (current == ButtonState.Pressed && previous == ButtonState.Released) {
                 IsPressed = true;
                 _holdTimer = 0f;
-                SafeInvoke(OnMousePressed);
+                SafeInvoke(OnMousePressed, new ComponentEventArgs());
             }
 
             // Hold detection
             if (current == ButtonState.Pressed && IsPressed) {
                 _holdTimer += deltaTime;
-                SafeInvoke(OnMouseHolding, _holdTimer);
+                SafeInvoke(OnMouseHolding, new HoldEventArgs(_holdTimer));
 
                 if (_holdTimer >= _holdThreshold && _holdTimer - deltaTime < _holdThreshold) {
-                    SafeInvoke(OnMouseHeld);
+                    SafeInvoke(OnMouseHeld, new ComponentEventArgs());
                 }
             }
 
             // Release detection
             if (current == ButtonState.Released && previous == ButtonState.Pressed) {
                 if (IsPressed) {
-                    SafeInvoke(OnMouseReleased);
+                    SafeInvoke(OnMouseReleased, new ComponentEventArgs());
 
                     // Only fire click if released while still hovered
                     if (IsHovered) {
-                        SafeInvoke(OnClicked);
+                        SafeInvoke(OnClicked, new ComponentEventArgs());
                         OnClick();
                     }
                 }
@@ -486,29 +481,14 @@ public abstract class MenuComponent : Adjustable, IDisposable {
     #region Utility Methods
 
     /// <summary>
-    /// Thread-safe event invocation without parameters.
+    /// Thread-safe event invocation for EventHandler.
     /// </summary>
-    protected void SafeInvoke(Action? action) {
-        if (action == null) return;
+    protected void SafeInvoke<TEventArgs>(EventHandler<TEventArgs>? handler, TEventArgs args) where TEventArgs : EventArgs {
+        if (handler == null) return;
 
         lock (_eventLock) {
             try {
-                action?.Invoke();
-            } catch (Exception ex) {
-                LogError($"Exception in event handler: {ex.Message}");
-            }
-        }
-    }
-
-    /// <summary>
-    /// Thread-safe event invocation with one parameter.
-    /// </summary>
-    protected void SafeInvoke<T>(Action<T>? action, T arg) {
-        if (action == null) return;
-
-        lock (_eventLock) {
-            try {
-                action?.Invoke(arg);
+                handler?.Invoke(this, args);
             } catch (Exception ex) {
                 LogError($"Exception in event handler: {ex.Message}");
             }
@@ -610,20 +590,51 @@ public abstract class MenuComponent : Adjustable, IDisposable {
     /// Throws if the component has been disposed.
     /// </summary>
     protected void ThrowIfDisposed() {
-        if (_disposed) {
-            throw new ObjectDisposedException(GetType().Name);
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
     }
 
     #endregion
 
     #region Helper Enums
-
-    private enum ButtonType {
+    public enum ClickType {
         Left,
         Right,
         Middle
     }
 
+    public enum ComponentType {
+        Button,
+        Slider,
+        Checkbox,
+        Label,
+        TextBox,
+        Dropdown,
+        Panel,
+        Other
+    }
+
     #endregion
 }
+
+#region Event Args Classes
+
+/// <summary>Base event args for component events.</summary>
+public class ComponentEventArgs : EventArgs {
+    public object? Data { get; set; }
+    public ComponentEventArgs() { }
+    public ComponentEventArgs(object? data) { Data = data; }
+}
+
+/// <summary>Event args for hold events.</summary>
+public class HoldEventArgs : EventArgs {
+    public float Duration { get; }
+    public HoldEventArgs(float duration) { Duration = duration; }
+}
+
+/// <summary>Generic event args for state changes.</summary>
+public class StateChangedEventArgs<T> : EventArgs {
+    public T Value { get; }
+    public StateChangedEventArgs(T value) { Value = value; }
+}
+
+#endregion

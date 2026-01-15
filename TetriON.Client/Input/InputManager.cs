@@ -1,32 +1,427 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
+using TetriON.Client.Input.Support;
 
 namespace TetriON.Client.Input;
 
-public class InputManager(ClientController controller) : IDisposable {
-    private ClientController Controller { get; } = controller;
+/// <summary>
+/// Main input manager that coordinates all input systems and provides unified input handling
+/// </summary>
+public class InputManager : IDisposable {
+    private readonly ClientController _controller;
+    private readonly KeyBindManager _keyBindManager;
+    private readonly Dictionary<InputAction, InputState> _actionStates = [];
+    private readonly List<IInputProvider> _inputProviders = [];
 
+    // Input systems
+    private readonly Support.KeyboardInput _keyboard;
+    private readonly MouseInput _mouse;
+    private readonly TouchInput _touch;
+    private readonly GamepadInput _gamepad;
+    private readonly Pointer _pointer;
+
+    // Configuration
+    public bool EnableMouse { get; set; } = true;
+    public bool EnableTouch { get; set; } = true;
+    public bool EnableKeyboard { get; set; } = true;
+    public bool EnableGamepad { get; set; } = true;
+
+    /// <summary>
+    /// Current active input device (automatically detected)
+    /// </summary>
+    public InputDevice ActiveDevice { get; private set; } = InputDevice.Keyboard;
+
+    // Events
+    public event EventHandler<InputActionEventArgs>? ActionTriggered;
+    public event EventHandler<InputDevice>? InputDeviceChanged;
+
+    /// <summary>
+    /// Gets the keyboard input system
+    /// </summary>
+    public Support.KeyboardInput Keyboard => _keyboard;
+
+    /// <summary>
+    /// Gets the mouse input system
+    /// </summary>
+    public MouseInput Mouse => _mouse;
+
+    /// <summary>
+    /// Gets the touch input system
+    /// </summary>
+    public TouchInput Touch => _touch;
+
+    /// <summary>
+    /// Gets the gamepad input system
+    /// </summary>
+    public GamepadInput Gamepad => _gamepad;
+
+    /// <summary>
+    /// Gets the unified pointer (controlled by mouse or touch)
+    /// </summary>
+    public Pointer Pointer => _pointer;
+
+    /// <summary>
+    /// Gets the key bind manager
+    /// </summary>
+    public KeyBindManager KeyBindManager => _keyBindManager;
+
+    public InputManager(ClientController controller) {
+        _controller = controller;
+        _keyBindManager = new KeyBindManager();
+        _pointer = new Pointer();
+
+        // Initialize input systems
+        _keyboard = new Support.KeyboardInput();
+        _mouse = new MouseInput();
+        _touch = new TouchInput();
+        _gamepad = new GamepadInput(PlayerIndex.One);
+
+        // Register input providers
+        _inputProviders.Add(_keyboard);
+        _inputProviders.Add(_mouse);
+        _inputProviders.Add(_touch);
+        _inputProviders.Add(_gamepad);
+
+        // Subscribe to input events
+        SubscribeToInputEvents();
+    }
+
+    /// <summary>
+    /// Updates all input systems
+    /// </summary>
     public void Update(float deltaTime) {
-        // Update input states here
+        // Update all enabled input providers
+        if (EnableKeyboard) _keyboard.Update(deltaTime);
+        if (EnableMouse) _mouse.Update(deltaTime);
+        if (EnableTouch) _touch.Update(deltaTime);
+        if (EnableGamepad) _gamepad.Update(deltaTime);
+
+        // Update pointer based on active input
+        UpdatePointer(deltaTime);
+
+        // Detect active input device
+        DetectActiveInputDevice();
+
+        // Update action states based on bindings
+        UpdateActionStates(deltaTime);
+
+        // Reset frame-specific flags
+        ResetFrameFlags();
     }
 
-    public enum InputDevice {
-        Keyboard,
-        Gamepad,
-        Touch
+    /// <summary>
+    /// Checks if an action is currently active (pressed/held)
+    /// </summary>
+    public bool IsActionActive(InputAction action) {
+        return _actionStates.TryGetValue(action, out var state) &&
+               (state == InputState.Pressed || state == InputState.Held);
     }
 
-    public enum MouseButton {
-        Left,
-        Right,
-        Middle
+    /// <summary>
+    /// Checks if an action was just pressed this frame
+    /// </summary>
+    public bool IsActionJustPressed(InputAction action) {
+        return _actionStates.TryGetValue(action, out var state) && state == InputState.Pressed;
     }
 
+    /// <summary>
+    /// Checks if an action was just released this frame
+    /// </summary>
+    public bool IsActionJustReleased(InputAction action) {
+        return _actionStates.TryGetValue(action, out var state) && state == InputState.JustReleased;
+    }
+
+    /// <summary>
+    /// Gets the current state of an action
+    /// </summary>
+    public InputState GetActionState(InputAction action) {
+        return _actionStates.TryGetValue(action, out var state) ? state : InputState.Released;
+    }
+
+    /// <summary>
+    /// Gets analog value for an action (0-1, useful for triggers/sticks)
+    /// </summary>
+    public float GetActionValue(InputAction action) {
+        // Check gamepad analog inputs
+        var bindings = _keyBindManager.GetBindings(action);
+        foreach (var binding in bindings) {
+            if (binding is GamepadButtonBinding gamepadBinding) {
+                var button = gamepadBinding.Button;
+
+                // Check if it's a trigger
+                if (button == Buttons.LeftTrigger) return _gamepad.LeftTrigger;
+                if (button == Buttons.RightTrigger) return _gamepad.RightTrigger;
+
+                // Regular button: return 1 if pressed, 0 otherwise
+                return _gamepad.IsButtonDown(button) ? 1f : 0f;
+            }
+        }
+
+        // For digital inputs, return 1 if active, 0 otherwise
+        return IsActionActive(action) ? 1f : 0f;
+    }
+
+    /// <summary>
+    /// Gets 2D axis value for movement (combines multiple actions)
+    /// </summary>
+    public Vector2 GetAxisValue(InputAction left, InputAction right, InputAction up, InputAction down) {
+        Vector2 axis = Vector2.Zero;
+
+        // Check keyboard/button inputs
+        if (IsActionActive(left)) axis.X -= 1f;
+        if (IsActionActive(right)) axis.X += 1f;
+        if (IsActionActive(up)) axis.Y += 1f;
+        if (IsActionActive(down)) axis.Y -= 1f;
+
+        // Check gamepad sticks
+        if (EnableGamepad && _gamepad.IsConnected) {
+            var leftStick = _gamepad.LeftStick;
+            if (leftStick.LengthSquared() > 0.01f) {
+                axis = leftStick;
+            }
+        }
+
+        // Normalize diagonal movement
+        if (axis.LengthSquared() > 1f) {
+            axis.Normalize();
+        }
+
+        return axis;
+    }
+
+    /// <summary>
+    /// Registers a new input action
+    /// </summary>
+    public InputAction RegisterAction(string name, string category = "Default") {
+        var action = _keyBindManager.RegisterAction(name, category);
+        _actionStates[action] = InputState.Released;
+        return action;
+    }
+
+    /// <summary>
+    /// Sets up default bindings for common actions
+    /// </summary>
+    public void SetupDefaultBindings() {
+        // Movement
+        var moveUp = RegisterAction("MoveUp", "Movement");
+        var moveDown = RegisterAction("MoveDown", "Movement");
+        var moveLeft = RegisterAction("MoveLeft", "Movement");
+        var moveRight = RegisterAction("MoveRight", "Movement");
+
+        _keyBindManager.BindKey(moveUp, Keys.W);
+        _keyBindManager.BindKey(moveUp, Keys.Up);
+        _keyBindManager.BindButton(moveUp, Buttons.DPadUp);
+
+        _keyBindManager.BindKey(moveDown, Keys.S);
+        _keyBindManager.BindKey(moveDown, Keys.Down);
+        _keyBindManager.BindButton(moveDown, Buttons.DPadDown);
+
+        _keyBindManager.BindKey(moveLeft, Keys.A);
+        _keyBindManager.BindKey(moveLeft, Keys.Left);
+        _keyBindManager.BindButton(moveLeft, Buttons.DPadLeft);
+
+        _keyBindManager.BindKey(moveRight, Keys.D);
+        _keyBindManager.BindKey(moveRight, Keys.Right);
+        _keyBindManager.BindButton(moveRight, Buttons.DPadRight);
+
+        // Actions
+        var confirm = RegisterAction("Confirm", "UI");
+        var cancel = RegisterAction("Cancel", "UI");
+
+        _keyBindManager.BindKey(confirm, Keys.Enter);
+        _keyBindManager.BindKey(confirm, Keys.Space);
+        _keyBindManager.BindButton(confirm, Buttons.A);
+        _keyBindManager.BindMouseButton(confirm, MouseButton.Left);
+        _keyBindManager.BindGesture(confirm, GestureType.Tap);
+
+        _keyBindManager.BindKey(cancel, Keys.Escape);
+        _keyBindManager.BindButton(cancel, Buttons.B);
+        _keyBindManager.BindMouseButton(cancel, MouseButton.Right);
+    }
 
     public void Dispose() {
-        // TODO: Cleanup resources (if any)
+        foreach (var provider in _inputProviders) {
+            provider.Dispose();
+        }
+        _inputProviders.Clear();
+        _actionStates.Clear();
     }
+
+    private void SubscribeToInputEvents() {
+        // Mouse events
+        _mouse.GestureDetected += OnMouseGesture;
+
+        // Touch events
+        _touch.GestureDetected += OnTouchGesture;
+
+        // Keyboard events (optional, for direct event handling)
+        _keyboard.KeyPressed += OnKeyPressed;
+
+        // Gamepad events (optional, for direct event handling)
+        _gamepad.ButtonPressed += OnGamepadButton;
+    }
+
+    private void UpdatePointer(float deltaTime) {
+        _pointer.Update(deltaTime);
+
+        // Update pointer from mouse if mouse is active and no touch
+        if (EnableMouse && (_touch.GetActiveTouchCount() == 0 || !EnableTouch)) {
+            var mousePos = _mouse.Position;
+
+            if (_mouse.IsButtonDown(MouseButton.Left)) {
+                if (!_pointer.IsActive || _pointer.Source != PointerSource.Mouse) {
+                    _pointer.Activate(mousePos, PointerSource.Mouse);
+                } else {
+                    _pointer.Move(mousePos);
+                }
+            } else {
+                if (_pointer.IsActive && _pointer.Source == PointerSource.Mouse) {
+                    _pointer.Deactivate();
+                }
+                _pointer.Move(mousePos);
+            }
+        }
+
+        // Update pointer from touch if touch is active
+        if (EnableTouch) {
+            var primaryTouch = _touch.GetPrimaryTouch();
+            if (primaryTouch != null && primaryTouch.IsActive) {
+                if (!_pointer.IsActive || _pointer.Source != PointerSource.Touch) {
+                    _pointer.Activate(primaryTouch.Position, PointerSource.Touch);
+                } else {
+                    _pointer.Move(primaryTouch.Position);
+                }
+            } else if (_pointer.IsActive && _pointer.Source == PointerSource.Touch) {
+                _pointer.Deactivate();
+            }
+        }
+    }
+
+    private void DetectActiveInputDevice() {
+        var previousDevice = ActiveDevice;
+
+        // Check for gamepad input
+        if (EnableGamepad && _gamepad.IsConnected) {
+            if (_gamepad.LeftStick.LengthSquared() > 0.01f ||
+                _gamepad.RightStick.LengthSquared() > 0.01f ||
+                _gamepad.LeftTrigger > 0.1f ||
+                _gamepad.RightTrigger > 0.1f) {
+                ActiveDevice = InputDevice.Gamepad;
+            }
+        }
+
+        // Check for touch input
+        if (EnableTouch && _touch.GetActiveTouchCount() > 0) {
+            ActiveDevice = InputDevice.Touch;
+        }
+
+        // Check for mouse input
+        if (EnableMouse && _mouse.Delta.LengthSquared() > 0.01f) {
+            ActiveDevice = InputDevice.Mouse;
+        }
+
+        // Check for keyboard input
+        if (EnableKeyboard && _keyboard.IsAnyKeyPressed()) {
+            ActiveDevice = InputDevice.Keyboard;
+        }
+
+        // Notify if device changed
+        if (ActiveDevice != previousDevice) {
+            InputDeviceChanged?.Invoke(this, ActiveDevice);
+        }
+    }
+
+    private void UpdateActionStates(float deltaTime) {
+        // Get all actions
+        var actions = _keyBindManager.GetAllActions().ToList();
+
+        foreach (var action in actions) {
+            bool isActive = CheckActionBindings(action);
+            var currentState = _actionStates.TryGetValue(action, out var state) ? state : InputState.Released;
+
+            InputState newState;
+            if (isActive) {
+                newState = currentState == InputState.Released || currentState == InputState.JustReleased
+                    ? InputState.Pressed
+                    : InputState.Held;
+            } else {
+                newState = currentState == InputState.Pressed || currentState == InputState.Held
+                    ? InputState.JustReleased
+                    : InputState.Released;
+            }
+
+            if (newState != currentState) {
+                _actionStates[action] = newState;
+
+                // Trigger action event
+                ActionTriggered?.Invoke(this, new InputActionEventArgs(action, newState));
+            } else {
+                _actionStates[action] = newState;
+            }
+        }
+    }
+
+    private bool CheckActionBindings(InputAction action) {
+        var bindings = _keyBindManager.GetBindings(action);
+
+        foreach (var binding in bindings) {
+            if (binding is KeyboardBinding keyBinding) {
+                if (EnableKeyboard && _keyboard.IsKeyDown(keyBinding.Key)) {
+                    // Check modifiers
+                    var currentModifiers = _keyboard.GetCurrentModifiers();
+                    if (keyBinding.Modifiers == KeyModifier.None || currentModifiers == keyBinding.Modifiers) {
+                        return true;
+                    }
+                }
+            } else if (binding is GamepadButtonBinding gamepadBinding) {
+                if (EnableGamepad && _gamepad.IsButtonDown(gamepadBinding.Button)) {
+                    return true;
+                }
+            } else if (binding is MouseButtonBinding mouseBinding) {
+                if (EnableMouse && _mouse.IsButtonDown(mouseBinding.Button)) {
+                    return true;
+                }
+            } else if (binding is TouchGestureBinding touchBinding) {
+                if (EnableTouch && _touch.IsGestureDetected(touchBinding.GestureType, touchBinding.FingerCount)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private void ResetFrameFlags() {
+        // Frame-specific flags are already reset in individual input systems
+        // This is just a placeholder for any additional cleanup
+    }
+
+    private void OnMouseGesture(object? sender, MouseGestureEventArgs e) {
+        // Forward mouse gestures to action system if needed
+    }
+
+    private void OnTouchGesture(object? sender, GestureEventArgs e) {
+        // Forward touch gestures to action system if needed
+    }
+
+    private void OnKeyPressed(object? sender, KeyEventArgs e) {
+        // Handle raw key presses if needed
+    }
+
+    private void OnGamepadButton(object? sender, GamepadEventArgs e) {
+        // Handle raw gamepad buttons if needed
+    }
+}
+
+/// <summary>
+/// Supported input devices
+/// </summary>
+public enum InputDevice {
+    Keyboard,
+    Mouse,
+    Gamepad,
+    Touch
 }
