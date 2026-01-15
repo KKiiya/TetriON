@@ -3,16 +3,15 @@ Custom Skin Instructions:
 
 1. Create a new folder in the 'skins' directory with your skin name
 2. Add PNG files for your custom textures:
-   - tiles.png (for tetromino blocks)
+   - tiles.png (for tetromino blocks, 29x29 with 1 pixel spacing)
    - background.png (optional background)
    - ui.png (optional UI elements)
 
 3. Add audio files for your custom sounds:
-   Game Actions: move.wav, rotate.wav, harddrop.wav, hold.wav, spin.wav
-   Line Clears: clearline.wav, clearquad.wav, clearspin.wav, allclear.wav
-   Combos: combo_1.wav through combo_16.wav
-   Menu: menuclick.wav, menutap.wav
-   And many more! See ValidSoundNames in SkinManager for full list.
+   - move.wav/.mp3/.ogg (piece movement sound)
+   - rotate.wav/.mp3/.ogg (piece rotation sound)
+   - clear.wav/.mp3/.ogg (line clear sound)
+   - drop.wav/.mp3/.ogg (hard drop sound)
 
 4. The game will automatically detect and load your custom skin
 5. Use LoadCustomTexture("filename") to load your PNG files
