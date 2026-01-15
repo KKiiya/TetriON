@@ -59,6 +59,7 @@ public class TetrisGame {
     private long _targetLines; // For modes with line targets
     private int _comboCount;
     private float _gravity; // Current gravity in Gs
+    private float _gravityAccumulator; // Accumulated gravity over time
     #endregion
 
 
@@ -231,11 +232,23 @@ public class TetrisGame {
         if (!_running) return;
 
         _lastUpdateTime += elapsedTime;
+        float deltaTime = (float)elapsedTime.TotalSeconds;
+
+        // Apply gravity if enabled
+        if (_settings.EnableGravity && _currentTetromino != null) {
+            _gravityAccumulator += _gravity * deltaTime;
+
+            // Move piece down for each full cell accumulated
+            while (_gravityAccumulator >= 1.0f) {
+                UpdateGravity();
+                _gravityAccumulator -= 1.0f;
+            }
+        }
 
         // Update lock delay timer if piece is on ground
         if (_currentTetromino != null && IsOnGround()) {
             _isPieceOnGround = true;
-            _lockDelayTimer += (float)elapsedTime.TotalSeconds;
+            _lockDelayTimer += deltaTime;
 
             // Check if lock delay has expired or max resets reached
             if (ShouldLockTetromino()) LockPiece();
@@ -255,6 +268,7 @@ public class TetrisGame {
         _canHold = true;
         ResetLockDelay();
         _lowestYReached = 0;
+        _gravityAccumulator = 0f; // Reset gravity accumulator for new piece
 
         // Check if piece can spawn (game over if it can't)
         if (_currentTetromino != null && !_currentTetromino.CanFitAt(_grid, _tetrominoPoint)) {

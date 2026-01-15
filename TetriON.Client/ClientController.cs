@@ -47,7 +47,8 @@ public class ClientController {
         StateManager.Initialize();
     }
 
-    public void Update(float deltaTime) {
+    public void Update(GameTime gameTime) {
+        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         InputManager.Update(deltaTime);
         AnimationPlayer.Update(deltaTime); // Critical!
         // Other updates...

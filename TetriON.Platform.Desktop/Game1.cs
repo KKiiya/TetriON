@@ -1,48 +1,52 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Input.Touch;
 using TetriON.Client;
 
 namespace TetriON.Platform.Desktop;
 
 public class Game1 : Game {
 
-    private readonly ClientController _clientController;
+    private ClientController _clientController;
     private GraphicsDeviceManager _graphics;
-    private SpriteBatch _spriteBatch;
 
     public Game1() {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
+        Window.AllowUserResizing = true;
+        Window.AllowAltF4 = true;
+        Window.ClientSizeChanged += (_, _) => {
+            _graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
+            _graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
+            _graphics.ApplyChanges();
+        };
         IsMouseVisible = false;
-        _clientController = new ClientController(this);
     }
 
     protected override void Initialize() {
         // TODO: Add your initialization logic here
-        _clientController.Initialize();
+        _graphics.IsFullScreen = false;
+        _graphics.PreferredBackBufferWidth = 1366;
+        _graphics.PreferredBackBufferHeight = 768;
+        _graphics.ApplyChanges();
+        _clientController = new ClientController(this);
         base.Initialize();
     }
 
     protected override void LoadContent() {
-        _spriteBatch = new SpriteBatch(GraphicsDevice);
-        // TODO: use this.Content to load your game content here
+        _clientController.Initialize();
+        base.LoadContent();
     }
 
     protected override void Update(GameTime gameTime) {
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-            Exit();
-
-        // TODO: Add your update logic here
-
-        _clientController.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed
+            || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
+        _clientController.Update(gameTime);
         base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime) {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
-
-        // TODO: Add your drawing code here
         _clientController.Draw();
         base.Draw(gameTime);
     }
