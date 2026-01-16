@@ -1,5 +1,6 @@
 using System.Drawing;
 using TetriON.Core.Game;
+using static TetriON.Core.Board.Cell;
 
 namespace TetriON.Core.Board;
 
@@ -76,13 +77,13 @@ public class Grid {
         return _bufferCells;
     }
 
-    public void OccupyCell(int x, int y, Color color) {
+    public void OccupyCell(int x, int y, Color color, CellType type = CellType.Normal, byte identifier = 0) {
         if (x < 0 || x >= _width || y < 0 || y >= _totalHeight) {
             throw new ArgumentOutOfRangeException("Cell coordinates are out of bounds.");
         }
 
-        if (y < _height) _cells[x, y].Occupy(color);
-        else _bufferCells[x, y - _height].Occupy(color);
+        if (y < _height) _cells[x, y].Occupy(color, type, identifier);
+        else _bufferCells[x, y - _height].Occupy(color, type, identifier);
     }
 
     public KickSystem GetWallKickSystem() {
@@ -120,8 +121,9 @@ public class Grid {
                 // Move all lines above down
                 for (int row = y; row > 0; row--) {
                     for (int x = 0; x < _width; x++) {
-                        if (_cells[x, row - 1].IsOccupied) {
-                            _cells[x, row].Occupy(_cells[x, row - 1].CellColor);
+                        Cell aboveCell = _cells[x, row - 1];
+                        if (aboveCell.IsOccupied) {
+                            _cells[x, row].Occupy(aboveCell.CellColor, aboveCell.Type, aboveCell.Identifier);
                         } else _cells[x, row].Vacate();
                     }
                 }

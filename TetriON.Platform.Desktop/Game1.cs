@@ -36,6 +36,7 @@ public class Game1 : Game {
 
     protected override void LoadContent() {
         _clientController.Initialize();
+        _clientController.LoadTestGame(); // Load the test game
         base.LoadContent();
     }
 
@@ -47,6 +48,7 @@ public class Game1 : Game {
     }
 
     protected override void Draw(GameTime gameTime) {
+        GraphicsDevice.Clear(Color.CornflowerBlue);
         _clientController.Draw();
         base.Draw(gameTime);
     }

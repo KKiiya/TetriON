@@ -378,7 +378,7 @@ public class TetrisGame {
 
         // Lock the piece in place on the grid
         var coords = _currentTetromino.GetPieceCoordinates(_tetrominoPoint);
-        foreach (var coord in coords) _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.GetColor());
+        foreach (var coord in coords) _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.GetColor(), Cell.CellType.Normal, _currentTetromino.GetId());
 
         int linesCleared = _grid.ClearLines();
         _lines += linesCleared;

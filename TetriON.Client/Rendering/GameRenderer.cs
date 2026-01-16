@@ -17,6 +17,7 @@ public abstract class GameRenderer(TetrisGame tetrisGame, ClientController contr
     private readonly TetrisGame _tetrisGame = tetrisGame;
     #endregion
 
+
     public TetrisGame TetrisGame => _tetrisGame;
 }
 

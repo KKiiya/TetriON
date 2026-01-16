@@ -18,9 +18,11 @@ public class Cell {
         CellColor = Color.Empty;
     }
 
-    public void Occupy(Color color) {
+    public void Occupy(Color color, CellType type = CellType.Normal, byte identifier = 0) {
         IsOccupied = true;
         CellColor = color;
+        Type = type;
+        Identifier = identifier;
     }
 
     public void Vacate() {

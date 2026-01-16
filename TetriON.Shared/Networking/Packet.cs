@@ -5,16 +5,10 @@ namespace TetriON.Shared.Networking;
 /// <summary>
 /// Base packet structure for network communication
 /// </summary>
-public abstract class Packet {
-    public string PacketId { get; set; }
-    public PacketType Type { get; set; }
-    public DateTime Timestamp { get; set; }
-
-    protected Packet(PacketType type) {
-        PacketId = Guid.NewGuid().ToString();
-        Type = type;
-        Timestamp = DateTime.UtcNow;
-    }
+public abstract class Packet(PacketType type) {
+    public string PacketId { get; set; } = Guid.NewGuid().ToString();
+    public PacketType Type { get; set; } = type;
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }
 
 public enum PacketType {
