@@ -93,6 +93,7 @@ public class InputManager : IDisposable {
     /// Updates all input systems
     /// </summary>
     public void Update(float deltaTime) {
+        if (!_controller.Game.IsActive) return;
         // Update all enabled input providers
         if (EnableKeyboard) _keyboard.Update(deltaTime);
         if (EnableMouse) _mouse.Update(deltaTime);
@@ -171,10 +172,10 @@ public class InputManager : IDisposable {
         Vector2 axis = Vector2.Zero;
 
         // Check keyboard/button inputs
-        if (IsActionActive(left)) axis.X -= 1f;
-        if (IsActionActive(right)) axis.X += 1f;
-        if (IsActionActive(up)) axis.Y += 1f;
-        if (IsActionActive(down)) axis.Y -= 1f;
+        if (left != null && IsActionActive(left)) axis.X -= 1f;
+        if (right != null && IsActionActive(right)) axis.X += 1f;
+        if (up != null && IsActionActive(up)) axis.Y += 1f;
+        if (down != null && IsActionActive(down)) axis.Y -= 1f;
 
         // Check gamepad sticks
         if (EnableGamepad && _gamepad.IsConnected) {
@@ -265,6 +266,7 @@ public class InputManager : IDisposable {
     }
 
     private void UpdatePointer(float deltaTime) {
+        if (!_controller.Game.IsActive) return;
         _pointer.Update(deltaTime);
 
         // Update pointer from mouse if mouse is active and no touch

@@ -159,8 +159,21 @@ public abstract class Tetromino {
                 var newX = coord.X + direction.X;
                 var newY = coord.Y + direction.Y;
 
+                // Check bounds first to prevent out of range exception
+                if (newX < 0 || newX >= grid.GetWidth()) {
+                    canMoveInThisDirection = false;
+                    break;
+                }
+
+                // Convert to grid coordinates with buffer height
+                var gridY = newY + grid.GetBufferHeight();
+                if (gridY < 0 || gridY >= grid.GetTotalHeight()) {
+                    canMoveInThisDirection = false;
+                    break;
+                }
+
                 // If any mino of the piece would collide, this direction is blocked
-                if (!grid.IsCellEmpty(newX, newY)) {
+                if (!grid.IsCellEmpty(newX, gridY)) {
                     canMoveInThisDirection = false;
                     break;
                 }

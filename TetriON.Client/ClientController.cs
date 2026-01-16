@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TetriON.Client.Animations;
 using TetriON.Client.Content.UI.Modal;
+using TetriON.Client.Examples;
 using TetriON.Client.Input;
 using TetriON.Client.Networking;
 using TetriON.Client.Rendering;
@@ -28,6 +29,7 @@ public class ClientController {
     public ModalManager ModalManager { get; }
     public AnimationPlayer AnimationPlayer { get; }
     public SpriteBatch SpriteBatch { get; }
+    public InputExample InputExample { get; }
 
 
 
@@ -49,6 +51,7 @@ public class ClientController {
         SkinManager = new SkinManager(this);
         ModalManager = new ModalManager(this);
         AnimationPlayer = new AnimationPlayer(this);
+        InputExample = new InputExample(this);
     }
 
     // Lifecycle methods
@@ -63,6 +66,7 @@ public class ClientController {
     public void Update(GameTime gameTime) {
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         InputManager.Update(deltaTime);
+        InputExample.Update(deltaTime);
         AnimationPlayer.Update(deltaTime); // Critical!
         _currentGame?.Update(gameTime.ElapsedGameTime);
         // Other updates...
@@ -117,6 +121,7 @@ public class ClientController {
 
         Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
         _currentGame.Start();
+        InputExample.LoadForGame(_currentGame);
         Logger.Log("ClientController: Test game started", Logger.LogLevel.Info);
     }
 }

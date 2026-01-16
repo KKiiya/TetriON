@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using TetriON.Client.Input;
 using TetriON.Client.Input.Support;
+using TetriON.Core.Game;
+using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.Examples;
 
@@ -11,13 +13,16 @@ namespace TetriON.Client.Examples;
 /// </summary>
 public class InputExample {
     private readonly InputManager _inputManager;
+    private TetrisGame? _game;
 
     // Define game actions
     private InputAction? _moveLeftAction;
     private InputAction? _moveRightAction;
     private InputAction? _moveDownAction;
-    private InputAction? _rotateAction;
+    private InputAction? _rotateLeftAction;
+    private InputAction? _rotateRightAction;
     private InputAction? _hardDropAction;
+    private InputAction? _holdAction;
     private InputAction? _pauseAction;
     private InputAction? _confirmAction;
     private InputAction? _cancelAction;
@@ -27,14 +32,20 @@ public class InputExample {
         SetupInputActions();
     }
 
+    public void LoadForGame(TetrisGame game) {
+        _game = game;
+    }
+
     private void SetupInputActions() {
         // Register gameplay actions
         _moveLeftAction = _inputManager.RegisterAction("MoveLeft", "Gameplay");
         _moveRightAction = _inputManager.RegisterAction("MoveRight", "Gameplay");
         _moveDownAction = _inputManager.RegisterAction("MoveDown", "Gameplay");
-        _rotateAction = _inputManager.RegisterAction("Rotate", "Gameplay");
+        _rotateLeftAction = _inputManager.RegisterAction("RotateLeft", "Gameplay");
+        _rotateRightAction = _inputManager.RegisterAction("RotateRight", "Gameplay");
         _hardDropAction = _inputManager.RegisterAction("HardDrop", "Gameplay");
         _pauseAction = _inputManager.RegisterAction("Pause", "Gameplay");
+        _holdAction = _inputManager.RegisterAction("Hold", "Gameplay");
 
         // Register UI actions
         _confirmAction = _inputManager.RegisterAction("Confirm", "UI");
@@ -62,14 +73,18 @@ public class InputExample {
         _inputManager.KeyBindManager.BindButton(_moveDownAction!, Buttons.DPadDown);
 
         // Rotation bindings
-        _inputManager.KeyBindManager.BindKey(_rotateAction!, Keys.Up);
-        _inputManager.KeyBindManager.BindKey(_rotateAction!, Keys.W);
-        _inputManager.KeyBindManager.BindKey(_rotateAction!, Keys.Space);
-        _inputManager.KeyBindManager.BindButton(_rotateAction!, Buttons.A);
-        _inputManager.KeyBindManager.BindButton(_rotateAction!, Buttons.B);
+        _inputManager.KeyBindManager.BindKey(_rotateLeftAction!, Keys.Up);
+        _inputManager.KeyBindManager.BindKey(_rotateLeftAction!, Keys.Z);
+        _inputManager.KeyBindManager.BindButton(_rotateLeftAction!, Buttons.A);
+        _inputManager.KeyBindManager.BindButton(_rotateLeftAction!, Buttons.B);
+
+        _inputManager.KeyBindManager.BindKey(_rotateRightAction!, Keys.X);
+        _inputManager.KeyBindManager.BindButton(_rotateRightAction!, Buttons.X);
+
+        _inputManager.KeyBindManager.BindKey(_holdAction!, Keys.C);
 
         // Hard drop
-        _inputManager.KeyBindManager.BindKey(_hardDropAction!, Keys.Space, KeyModifier.Shift);
+        _inputManager.KeyBindManager.BindKey(_hardDropAction!, Keys.Space);
         _inputManager.KeyBindManager.BindButton(_hardDropAction!, Buttons.Y);
         // Pause
         _inputManager.KeyBindManager.BindKey(_pauseAction!, Keys.Escape);
@@ -113,28 +128,38 @@ public class InputExample {
     private void HandleGameplayInput() {
         // Check if actions are active
         if (_inputManager.IsActionJustPressed(_moveLeftAction!)) {
-            Console.WriteLine("Move Left!");
-            // MovePieceLeft();
+            _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.LEFT);
+            Logger.Log("Move Left detected", Logger.LogLevel.Info);
         }
 
         if (_inputManager.IsActionJustPressed(_moveRightAction!)) {
-            Console.WriteLine("Move Right!");
-            // MovePieceRight();
+            _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.RIGHT);
+            Logger.Log("Move Right detected", Logger.LogLevel.Info);
         }
 
         if (_inputManager.IsActionActive(_moveDownAction!)) {
-            Console.WriteLine("Soft Drop (held)");
-            // SoftDrop();
+            _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.DOWN);
+            Logger.Log("Move Down active", Logger.LogLevel.Info);
         }
 
-        if (_inputManager.IsActionJustPressed(_rotateAction!)) {
-            Console.WriteLine("Rotate!");
-            // RotatePiece();
+        if (_inputManager.IsActionJustPressed(_rotateLeftAction!)) {
+            _game?.RotateTetromino(Core.Pieces.Tetromino.RotationDirection.CCW);
+            Logger.Log("Rotate Left detected", Logger.LogLevel.Info);
+        }
+
+        if (_inputManager.IsActionJustPressed(_rotateRightAction!)) {
+            _game?.RotateTetromino(Core.Pieces.Tetromino.RotationDirection.CW);
+            Logger.Log("Rotate Right detected", Logger.LogLevel.Info);
         }
 
         if (_inputManager.IsActionJustPressed(_hardDropAction!)) {
-            Console.WriteLine("Hard Drop!");
-            // HardDrop();
+            _game?.HardDrop();
+            Logger.Log("Hard Drop detected", Logger.LogLevel.Info);
+        }
+
+        if (_inputManager.IsActionJustPressed(_holdAction!)) {
+            _game?.HoldTetromino();
+            Logger.Log("Hold detected", Logger.LogLevel.Info);
         }
 
         if (_inputManager.IsActionJustPressed(_pauseAction!)) {
@@ -151,7 +176,7 @@ public class InputExample {
         );
 
         if (movement.LengthSquared() > 0.01f) {
-            Console.WriteLine($"Movement vector: {movement}");
+            //Console.WriteLine($"Movement vector: {movement}");
         }
 
         // Example: Get gamepad analog input directly
@@ -208,7 +233,7 @@ public class InputExample {
     }
 
     private void OnActionTriggered(object? sender, InputActionEventArgs e) {
-        Console.WriteLine($"Action triggered: {e.Action.Name} - {e.State}");
+        //Console.WriteLine($"Action triggered: {e.Action.Name} - {e.State}");
 
         // You can handle all actions in one place if preferred
         if (e.State == InputState.Pressed) {

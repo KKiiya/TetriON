@@ -33,15 +33,18 @@ public class BoardCellRenderer(TetrisGame tetrisGame, ClientController controlle
         var board = TetrisGame.GetGrid();
         var scaledTileWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledTileHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
+        var bufferHeight = board.GetBufferHeight();
 
         int occupiedCount = 0;
-        for (int y = 0; y < _boardHeight; y++) {
+        // Render only visible board cells (Y >= bufferHeight)
+        for (int y = bufferHeight; y < bufferHeight + _boardHeight; y++) {
             for (int x = 0; x < _boardWidth; x++) {
                 Cell cell = board.GetCell(x, y);
                 if (!cell.IsOccupied) continue;
 
                 occupiedCount++;
-                DrawCell(x, y, cell.Identifier, scaledTileWidth, scaledTileHeight);
+                // Render at screen position, subtracting bufferHeight to align with visible board
+                DrawCell(x, y - bufferHeight, cell.Identifier, scaledTileWidth, scaledTileHeight);
             }
         }
 

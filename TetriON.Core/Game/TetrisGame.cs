@@ -312,6 +312,7 @@ public class TetrisGame {
     }
 
     public void HardDrop() {
+        Logger.Log("TetrisGame.HardDrop: Performing hard drop", Logger.LogLevel.Info);
         if (_currentTetromino == null) return;
 
         int newY = _tetrominoPoint.Y;
@@ -328,9 +329,17 @@ public class TetrisGame {
     }
 
     public void RotateTetromino(RotationDirection direction) {
+        Logger.Log($"TetrisGame.RotateTetromino: Rotating piece {_currentTetromino?.GetShape()} {direction}", Logger.LogLevel.Info);
         if (_currentTetromino == null) return;
 
         (var point, bool spin) = _currentTetromino.Rotate(_grid, _tetrominoPoint, direction);
+
+        // Update position if rotation was successful
+        if (point.HasValue) {
+            _tetrominoPoint = point.Value;
+            OnMovementDetected();
+        }
+
         _wasLastSpin = spin;
         if (spin) OnRotationDetected();
 
@@ -341,6 +350,7 @@ public class TetrisGame {
     }
 
     public void MoveTetromino(MoveDirection direction) {
+        Logger.Log($"TetrisGame.MoveTetromino: Moving piece {_currentTetromino?.GetShape()} {direction}", Logger.LogLevel.Info);
         if (_currentTetromino == null) return;
 
         Point newPoint = direction switch {
@@ -352,14 +362,8 @@ public class TetrisGame {
 
         if (_currentTetromino.CanFitAt(_grid, newPoint)) {
             _tetrominoPoint = newPoint;
-
-            // Track movement and reset lock delay if enabled
             OnMovementDetected();
-
-            // Update lowest Y reached for movement detection
             if (_tetrominoPoint.Y > _lowestYReached) _lowestYReached = _tetrominoPoint.Y;
-
-            // Update ghost position after movement
             UpdateGhostPosition();
         }
 
