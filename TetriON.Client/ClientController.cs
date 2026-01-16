@@ -5,6 +5,7 @@ using TetriON.Client.Content.UI.Modal;
 using TetriON.Client.Input;
 using TetriON.Client.Networking;
 using TetriON.Client.Rendering;
+using TetriON.Client.Rendering.Data;
 using TetriON.Client.Rendering.Ingame;
 using TetriON.Client.Services;
 using TetriON.Client.Skin;
@@ -33,6 +34,9 @@ public class ClientController {
     private List<Renderer> _renderers = [];
     private List<Action> _postDrawActions = [];
 
+    private TetrisGame? _currentGame;
+    private GameDisposition? _gameDisposition;
+
     public ClientController(Game game) {
         Game = game;
 
@@ -57,17 +61,19 @@ public class ClientController {
     }
 
     public void Update(GameTime gameTime) {
+        Logger.Log("ClientController: Updating...", Logger.LogLevel.Info);
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         InputManager.Update(deltaTime);
         AnimationPlayer.Update(deltaTime); // Critical!
+        _currentGame?.Update(gameTime.ElapsedGameTime);
         // Other updates...
     }
 
     public void Draw() {
         SpriteBatch.Begin();
-        Logger.Log($"ClientController: Drawing {_renderers.Count} renderers", Logger.LogLevel.Info);
+        //Logger.Log($"ClientController: Drawing {_renderers.Count} renderers", Logger.LogLevel.Info);
         foreach (var renderer in _renderers) {
-            Logger.Log($"ClientController: Drawing {renderer.GetType().Name}", Logger.LogLevel.Info);
+            //Logger.Log($"ClientController: Drawing {renderer.GetType().Name}", Logger.LogLevel.Info);
             renderer.Draw();
         }
         SpriteBatch.End();
@@ -94,28 +100,24 @@ public class ClientController {
     public void LoadTestGame() {
         Logger.Log("ClientController: Loading test game...", Logger.LogLevel.Info);
         GameSettings settings = new();
-        TetrisGame testGame = new(settings);
+        _currentGame = new TetrisGame(settings);
+        _gameDisposition = new GameDisposition(_currentGame, 1.0f);
 
-        var boardRenderer = new BoardRenderer(testGame, this);
-        var pieceRenderer = new PieceRenderer(testGame, this);
-        var ghostRenderer = new GhostRenderer(testGame, this);
+        var boardRenderer = new BoardRenderer(_currentGame, this, _gameDisposition);
+        var pieceRenderer = new PieceRenderer(_currentGame, this, _gameDisposition);
+        var ghostRenderer = new GhostRenderer(_currentGame, this, _gameDisposition);
+        var nextPieceRenderer = new NextPieceRenderer(_currentGame, this, _gameDisposition);
+        var heldPieceRenderer = new HeldPieceRenderer(_currentGame, this, _gameDisposition);
 
+        // Draw order matters: board first, then pieces on top
         _renderers.Add(boardRenderer);
-        _renderers.Add(new NextPieceRenderer(testGame, this));
-        _renderers.Add(new HeldPieceRenderer(testGame, this));
-        _renderers.Add(pieceRenderer);
-        _renderers.Add(ghostRenderer);
+        _renderers.Add(ghostRenderer);  // Ghost piece behind current piece
+        _renderers.Add(pieceRenderer);  // Current piece on top
+        _renderers.Add(nextPieceRenderer);
+        _renderers.Add(heldPieceRenderer);
 
         Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
-        testGame.Start();
+        _currentGame.Start();
         Logger.Log("ClientController: Test game started", Logger.LogLevel.Info);
-
-        // After first draw, update piece renderers with board location
-        _postDrawActions.Add(() => {
-            var location = boardRenderer.GetBoardLocation();
-            pieceRenderer.SetBoardLocation(location);
-            ghostRenderer.SetBoardLocation(location);
-            Logger.Log($"ClientController: Set piece renderers board location to ({location.X}, {location.Y})", Logger.LogLevel.Info);
-        });
     }
 }

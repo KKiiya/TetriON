@@ -218,13 +218,15 @@ public class TetrisGame {
     #region Game Logic Methods
     // Additional game logic methods would go here
     public void Start() {
+        System.Diagnostics.Debug.WriteLine("=== TetrisGame.Start() called ===");
         _running = true;
         _lastUpdateTime = TimeSpan.Zero;
         _gravity = Gravity.GetGravity((int)_level);
         _bagGenerator.Reset();
+        System.Diagnostics.Debug.WriteLine($"TetrisGame.Start: About to spawn first piece, _running={_running}");
+        FetchNextTetromino();  // This already fills _nextTetrominos
         SpawnNextPiece();
-        List<Tetromino> nextPieces = _bagGenerator.PeekNext(_nextTetrominos.Length);
-        for (int i = 0; i < _nextTetrominos.Length; i++) _nextTetrominos[i] = nextPieces[i];
+        System.Diagnostics.Debug.WriteLine($"TetrisGame.Start: Completed. CurrentPiece={_currentTetromino?.GetShape()}, Position=({_tetrominoPoint.X},{_tetrominoPoint.Y})");
         OnGameStart?.Invoke();
     }
 
@@ -253,18 +255,35 @@ public class TetrisGame {
             // Check if lock delay has expired or max resets reached
             if (ShouldLockTetromino()) LockPiece();
         } else _isPieceOnGround = false;
+
+        // Update ghost piece position
+        UpdateGhostPosition();
+    }
+
+    private void UpdateGhostPosition() {
+        if (_currentTetromino == null) return;
+
+        Point ghostPoint = new(_tetrominoPoint.X, _tetrominoPoint.Y);
+        while (_currentTetromino.CanFitAt(_grid, new Point(ghostPoint.X, ghostPoint.Y + 1))) {
+            ghostPoint.Y++;
+        }
+        _ghostTetrominoPoint = ghostPoint;
     }
 
 
 
     public void FetchNextTetromino() {
+        System.Diagnostics.Debug.WriteLine("TetrisGame.FetchNextTetromino: Fetching next piece from bag generator");
         _currentTetromino = _bagGenerator.GetNextPiece();
+        System.Diagnostics.Debug.WriteLine($"TetrisGame.FetchNextTetromino: Got piece {_currentTetromino?.GetShape()} (ID: {_currentTetromino?.GetId()})");
         List<Tetromino> nextPieces = _bagGenerator.PeekNext(_nextTetrominos.Length);
         for (int i = 0; i < _nextTetrominos.Length; i++) _nextTetrominos[i] = nextPieces[i];
     }
 
     public void SpawnNextPiece() {
+        System.Diagnostics.Debug.WriteLine($"TetrisGame.SpawnNextPiece: Starting spawn. CurrentPiece={_currentTetromino?.GetShape()}");
         ResetPosition();
+        System.Diagnostics.Debug.WriteLine($"TetrisGame.SpawnNextPiece: Position reset to ({_tetrominoPoint.X},{_tetrominoPoint.Y})");
         _canHold = true;
         ResetLockDelay();
         _lowestYReached = 0;
@@ -272,11 +291,16 @@ public class TetrisGame {
 
         // Check if piece can spawn (game over if it can't)
         if (_currentTetromino != null && !_currentTetromino.CanFitAt(_grid, _tetrominoPoint)) {
+            System.Diagnostics.Debug.WriteLine("TetrisGame.SpawnNextPiece: GAME OVER - piece cannot fit at spawn position");
             _running = false;
             OnGameOver?.Invoke();
             return;
         }
 
+        // Calculate initial ghost position
+        UpdateGhostPosition();
+
+        System.Diagnostics.Debug.WriteLine($"TetrisGame.SpawnNextPiece: Piece spawned successfully. Piece={_currentTetromino?.GetShape()}, Pos=({_tetrominoPoint.X},{_tetrominoPoint.Y})");
         OnPieceSpawn?.Invoke();
     }
 
@@ -315,6 +339,10 @@ public class TetrisGame {
         (var point, bool spin) = _currentTetromino.Rotate(_grid, _tetrominoPoint, direction);
         _wasLastSpin = spin;
         if (spin) OnRotationDetected();
+
+        // Update ghost position after rotation
+        UpdateGhostPosition();
+
         OnPieceRotate?.Invoke(direction);
     }
 
@@ -336,6 +364,9 @@ public class TetrisGame {
 
             // Update lowest Y reached for movement detection
             if (_tetrominoPoint.Y > _lowestYReached) _lowestYReached = _tetrominoPoint.Y;
+
+            // Update ghost position after movement
+            UpdateGhostPosition();
         }
 
         OnPieceMove?.Invoke(direction);
@@ -457,6 +488,7 @@ public class TetrisGame {
         var startX = (_settings.GridWidth / 2) - 2;
         if (_currentTetromino?.GetType() == typeof(O)) startX += 1; // Center O piece
         _tetrominoPoint = new Point(startX, 0);
+        System.Diagnostics.Debug.WriteLine($"TetrisGame.ResetPosition: Set position to ({startX}, 0) for piece {_currentTetromino?.GetShape()}");
     }
 
     public void Finish() {

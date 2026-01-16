@@ -33,7 +33,7 @@ public class BoardGridRenderer(TetrisGame tetrisGame, ClientController controlle
         var scaledTileWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledTileHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
 
-        Logger.Log($"BoardGridRenderer: Drawing grid at ({_boardLocation.X},{_boardLocation.Y}) size {_boardWidth}x{_boardHeight}, tile size {scaledTileWidth}x{scaledTileHeight}", Logger.LogLevel.Info);
+        // Logger.Log($"BoardGridRenderer: Drawing grid at ({_boardLocation.X},{_boardLocation.Y}) size {_boardWidth}x{_boardHeight}, tile size {scaledTileWidth}x{scaledTileHeight}", Logger.LogLevel.Info);
 
         DrawBorder(scaledTileWidth, scaledTileHeight);
         DrawBackground(scaledTileWidth, scaledTileHeight);

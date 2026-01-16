@@ -5,40 +5,81 @@ using TetriON.Core.Game;
 
 namespace TetriON.Client.Rendering.Ingame;
 
-public class NextPieceRenderer(TetrisGame tetrisGame, ClientController controller) : GameRenderer(tetrisGame, controller) {
+public class NextPieceRenderer(TetrisGame tetrisGame, ClientController controller, GameDisposition gameDisposition) : GameRenderer(tetrisGame, controller) {
 
-    private Point _nextPieceLocation = new(400, 20);
-    private TextureWrapper TileSheet => SkinManager.GetTextureAsset("tilesheet").texture;
+    private readonly GameDisposition _gameDisposition = gameDisposition;
+    private TextureWrapper TileSheet => SkinManager.GetTextureAsset("tiles").texture;
 
     public override void Draw() {
-        var nextPiece = TetrisGame.GetNextTetrominos();
-        if (nextPiece == null) return;
+        var nextPieces = TetrisGame.GetNextTetrominos();
+        if (nextPieces == null) return;
 
-        var scaledWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
-        var scaledHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
+        var currentResolution = new Point(Game.Window.ClientBounds.Width, Game.Window.ClientBounds.Height);
+        _gameDisposition.GetBoardLocation(currentResolution); // Ensure positions are calculated
+        var nextAreaStart = _gameDisposition.GetNextPieceLocation();
 
-        foreach (var tetromino in nextPiece) {
-            var matrix = tetromino.GetMatrix();
-            var id = tetromino.GetId();
+        // Size multipliers for different next pieces
+        var primaryNextSize = SizeMultiplier * 1f;  // Normal size for first next piece
+        var secondaryNextSize = SizeMultiplier * 0.8f; // Smaller size for 2nd-4th next pieces
+
+        // Calculate primary piece container for consistent centering
+        var primaryContainerSize = (int)(4 * GridSizing.BaseTileWidth * primaryNextSize);
+
+        // Draw up to 4 next pieces (first one larger, rest smaller)
+        var maxNextToShow = System.Math.Min(nextPieces.Length, 4);
+
+        for (int i = 0; i < maxNextToShow; i++) {
+            if (nextPieces[i] == null) continue;
+
+            var sizeMultiplier = (i == 0) ? primaryNextSize : secondaryNextSize;
+            var pieceScaledTileSize = (int)(GridSizing.BaseTileWidth * sizeMultiplier);
+
+            // Calculate vertical spacing between pieces
+            int yOffset;
+            if (i == 0) {
+                // Primary piece: centered in its own area with more space
+                yOffset = 0;
+            } else {
+                // Secondary pieces: start after primary piece with larger gap
+                var primaryHeight = primaryContainerSize;
+                var secondaryStartY = primaryHeight + 40; // 40px gap after primary piece
+                yOffset = secondaryStartY + ((i - 1) * 70); // 70px spacing between secondary pieces
+            }
+
+            // Get piece matrix and calculate centering
+            var matrix = nextPieces[i].GetMatrix();
+            var id = nextPieces[i].GetId();
+            var pieceWidth = matrix[0].Length * pieceScaledTileSize;
+            var pieceHeight = matrix.Length * pieceScaledTileSize;
+
+            // Center the piece - all pieces centered relative to primary container width
+            var containerSize = 4 * pieceScaledTileSize;
+            var centerOffsetX = (primaryContainerSize - pieceWidth) / 2;
+            var centerOffsetY = (containerSize - pieceHeight) / 2;
+
+            var drawPosition = new Point(
+                nextAreaStart.X + centerOffsetX,
+                nextAreaStart.Y + yOffset + centerOffsetY
+            );
+
+            // Get tile texture rectangle
             var position = new Point((id - GridSizing.TileSpacing) * 31, 0);
             var rectangle = new Rectangle(position.X, position.Y, GridSizing.BaseTileWidth, GridSizing.BaseTileHeight);
 
+            // Draw the piece
             for (int y = 0; y < matrix.Length; y++) {
                 for (int x = 0; x < matrix[y].Length; x++) {
                     if (!matrix[y][x]) continue;
                     var destRect = new Rectangle(
-                        _nextPieceLocation.X + x * scaledWidth,
-                        _nextPieceLocation.Y + y * scaledHeight,
-                        scaledWidth,
-                        scaledHeight
+                        drawPosition.X + x * pieceScaledTileSize,
+                        drawPosition.Y + y * pieceScaledTileSize,
+                        pieceScaledTileSize,
+                        pieceScaledTileSize
                     );
 
                     SpriteBatch.Draw(TileSheet.GetTexture(), destRect, rectangle, Color.White);
                 }
             }
-
-            // Move down for the next piece
-            _nextPieceLocation.Y += (matrix.Length + 1) * scaledHeight;
         }
     }
 

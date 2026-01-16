@@ -45,9 +45,9 @@ public class BoardCellRenderer(TetrisGame tetrisGame, ClientController controlle
             }
         }
 
-        if (occupiedCount > 0) {
-            Logger.Log($"BoardCellRenderer: Drew {occupiedCount} occupied cells", Logger.LogLevel.Debug);
-        }
+        // if (occupiedCount > 0) {
+        //     Logger.Log($"BoardCellRenderer: Drew {occupiedCount} occupied cells", Logger.LogLevel.Debug);
+        // }
     }
 
     private void DrawCell(int x, int y, byte tileId, int scaledTileWidth, int scaledTileHeight) {

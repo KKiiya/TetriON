@@ -1,13 +1,16 @@
 using Microsoft.Xna.Framework;
+using TetriON.Client.Content.Media;
 using TetriON.Client.Rendering.Data;
 using TetriON.Core.Game;
 using TetriON.Core.Pieces;
 
 namespace TetriON.Client.Rendering.Ingame;
 
-public class GhostRenderer(TetrisGame tetrisGame, ClientController controller) : PieceRenderer(tetrisGame, controller) {
+public class GhostRenderer(TetrisGame tetrisGame, ClientController controller, GameDisposition gameDisposition) : GameRenderer(tetrisGame, controller) {
 
+    protected TextureWrapper TileSheet => SkinManager.GetTextureAsset("ghost_tiles").texture;
     private readonly float GhostAlpha = 0.3f;
+    private readonly GameDisposition _gameDisposition = gameDisposition;
 
 
     public override void Draw() {
@@ -23,8 +26,9 @@ public class GhostRenderer(TetrisGame tetrisGame, ClientController controller) :
         var scaledWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
 
-        // Get board location from parent PieceRenderer
-        var boardLocation = GetBoardLocation();
+        // Get board location from GameDisposition
+        var currentResolution = new Point(Game.Window.ClientBounds.Width, Game.Window.ClientBounds.Height);
+        var boardLocation = _gameDisposition.GetBoardLocation(currentResolution);
 
         for (int y = 0; y < matrix.Length; y++) {
             for (int x = 0; x < matrix[y].Length; x++) {
@@ -39,12 +43,5 @@ public class GhostRenderer(TetrisGame tetrisGame, ClientController controller) :
                 SpriteBatch.Draw(TileSheet.GetTexture(), destRect, rectangle, Color.White * GhostAlpha);
             }
         }
-    }
-
-    private Point GetBoardLocation() {
-        // Access protected field through reflection or make it protected in base class
-        var fieldInfo = typeof(PieceRenderer).GetField("_boardLocation",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        return fieldInfo != null ? (Point)fieldInfo.GetValue(this) : Point.Zero;
     }
 }

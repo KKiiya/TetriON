@@ -355,19 +355,19 @@ public class SkinManager : IDisposable {
     /// <summary>
     /// Get a cached texture asset as TextureWrapper
     /// </summary>
-    public (bool success, TextureWrapper texture) GetTextureAsset(string textureName) {
+    public (bool success, TextureWrapper texture) GetTextureAsset(string textureName, bool debug = false) {
         if (!ValidTextureNames.Contains(textureName)) {
-            Logger.Log($"SkinManager: ✗ Attempted to get invalid texture '{textureName}', returning missing_texture. Valid names: [{string.Join(", ", ValidTextureNames)}]", Logger.LogLevel.Error);
+            if (debug) Logger.Log($"SkinManager: ✗ Attempted to get invalid texture '{textureName}', returning missing_texture. Valid names: [{string.Join(", ", ValidTextureNames)}]", Logger.LogLevel.Error);
             var missingResultA = GetTextureAsset("missing_texture");
             return (false, missingResultA.Item2);
         }
 
         if (_textureAssets.TryGetValue(textureName, out var textureWrapper)) {
-            Logger.Log($"SkinManager: ✓ Retrieved texture asset '{textureName}' for skin '{_currentSkin}'", Logger.LogLevel.Info);
+            if (debug) Logger.Log($"SkinManager: ✓ Retrieved texture asset '{textureName}' for skin '{_currentSkin}'", Logger.LogLevel.Info);
             return (true, textureWrapper);
         }
 
-        Logger.Log($"SkinManager: ✗ Texture '{textureName}' not found in loaded assets. Available: [{string.Join(", ", _textureAssets.Keys)}], returning missing_texture", Logger.LogLevel.Error);
+        if (debug) Logger.Log($"SkinManager: ✗ Texture '{textureName}' not found in loaded assets. Available: [{string.Join(", ", _textureAssets.Keys)}], returning missing_texture", Logger.LogLevel.Error);
         var missingResultB = GetTextureAsset("missing_texture");
         return (false, missingResultB.Item2);
     }
@@ -375,17 +375,17 @@ public class SkinManager : IDisposable {
     /// <summary>
     /// Get a cached audio asset as SoundWrapper
     /// </summary>
-    public SoundWrapper GetAudioAsset(string soundName) {
+    public SoundWrapper GetAudioAsset(string soundName, bool debug = false) {
         if (!ValidSoundNames.Contains(soundName)) {
-            Logger.Log($"SkinManager: ✗ Attempted to get invalid sound '{soundName}'. Valid names: [{string.Join(", ", ValidSoundNames)}]", Logger.LogLevel.Error);
+            if (debug) Logger.Log($"SkinManager: ✗ Attempted to get invalid sound '{soundName}'. Valid names: [{string.Join(", ", ValidSoundNames)}]", Logger.LogLevel.Error);
         }
 
         if (_audioAssets.TryGetValue(soundName, out var soundWrapper)) {
-            Logger.Log($"SkinManager: ✓ Retrieved audio asset '{soundName}' for skin '{_currentSkin}'", Logger.LogLevel.Info);
+            if (debug) Logger.Log($"SkinManager: ✓ Retrieved audio asset '{soundName}' for skin '{_currentSkin}'", Logger.LogLevel.Info);
             return soundWrapper;
         }
 
-        Logger.Log($"SkinManager: ✗ Sound '{soundName}' not found in loaded assets. Available: [{string.Join(", ", _audioAssets.Keys)}]", Logger.LogLevel.Error);
+        if (debug) Logger.Log($"SkinManager: ✗ Sound '{soundName}' not found in loaded assets. Available: [{string.Join(", ", _audioAssets.Keys)}]", Logger.LogLevel.Error);
         throw new KeyNotFoundException($"Sound '{soundName}' not found in loaded assets. Call LoadAudioAssets() first.");
     }
 

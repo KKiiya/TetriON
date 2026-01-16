@@ -5,9 +5,9 @@ using TetriON.Core.Game;
 
 namespace TetriON.Client.Rendering.Ingame;
 
-public class HeldPieceRenderer(TetrisGame tetrisGame, ClientController controller) : GameRenderer(tetrisGame, controller) {
+public class HeldPieceRenderer(TetrisGame tetrisGame, ClientController controller, GameDisposition gameDisposition) : GameRenderer(tetrisGame, controller) {
 
-    private readonly Point _heldPieceLocation = new(20, 20);
+    private readonly GameDisposition _gameDisposition = gameDisposition;
     private TextureWrapper TileSheet => SkinManager.GetTextureAsset("tilesheet").texture;
 
     public override void Draw() {
@@ -21,12 +21,16 @@ public class HeldPieceRenderer(TetrisGame tetrisGame, ClientController controlle
         var scaledWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
 
+        var currentResolution = new Point(Game.Window.ClientBounds.Width, Game.Window.ClientBounds.Height);
+        _gameDisposition.GetBoardLocation(currentResolution); // Ensure positions are calculated
+        var heldPieceLocation = _gameDisposition.GetHeldPieceLocation();
+
         for (int y = 0; y < matrix.Length; y++) {
             for (int x = 0; x < matrix[y].Length; x++) {
                 if (!matrix[y][x]) continue;
                 var destRect = new Rectangle(
-                    _heldPieceLocation.X + x * scaledWidth,
-                    _heldPieceLocation.Y + y * scaledHeight,
+                    heldPieceLocation.X + x * scaledWidth,
+                    heldPieceLocation.Y + y * scaledHeight,
                     scaledWidth,
                     scaledHeight
                 );
