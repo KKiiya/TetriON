@@ -61,7 +61,6 @@ public class ClientController {
     }
 
     public void Update(GameTime gameTime) {
-        Logger.Log("ClientController: Updating...", Logger.LogLevel.Info);
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         InputManager.Update(deltaTime);
         AnimationPlayer.Update(deltaTime); // Critical!

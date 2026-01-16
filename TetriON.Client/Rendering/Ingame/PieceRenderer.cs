@@ -16,7 +16,7 @@ public class PieceRenderer(TetrisGame tetrisGame, ClientController controller, G
     public override void Draw() {
         Tetromino? currentPiece = TetrisGame.GetCurrentTetromino();
         if (currentPiece == null) {
-            Logger.Log("PieceRenderer: No current piece to draw", Logger.LogLevel.Info);
+            //Logger.Log("PieceRenderer: No current piece to draw", Logger.LogLevel.Info);
             return;
         }
 
@@ -27,7 +27,7 @@ public class PieceRenderer(TetrisGame tetrisGame, ClientController controller, G
         var currentResolution = new Point(Game.Window.ClientBounds.Width, Game.Window.ClientBounds.Height);
         var boardLocation = _gameDisposition.GetBoardLocation(currentResolution);
 
-        Logger.Log($"PieceRenderer: Drawing piece ID {id} at grid position ({location.X}, {location.Y}), board offset ({boardLocation.X}, {boardLocation.Y})", Logger.LogLevel.Info);
+        //Logger.Log($"PieceRenderer: Drawing piece ID {id} at grid position ({location.X}, {location.Y}), board offset ({boardLocation.X}, {boardLocation.Y})", Logger.LogLevel.Info);
 
         var position = new Point((id - GridSizing.TileSpacing) * 31, 0);
         var rectangle = new Rectangle(position.X, position.Y, GridSizing.BaseTileWidth, GridSizing.BaseTileHeight);

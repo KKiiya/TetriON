@@ -44,15 +44,20 @@ public class Grid {
     #endregion
 
     public Cell GetCell(int x, int y) {
-        if (x < 0 || x >= _width || y < 0 || y >= _height) {
+        if (x < 0 || x >= _width || y < 0 || y >= _totalHeight) {
             throw new ArgumentOutOfRangeException("Cell coordinates are out of bounds.");
         }
-        return _cells[x, y];
+
+        if (y < _height) return _cells[x, y];
+        else return _bufferCells[x, y - _height];
     }
 
     public void Clear() {
         for (int x = 0; x < _width; x++) {
-            for (int y = 0; y < _height; y++) _cells[x, y].Vacate();
+            for (int y = 0; y < _totalHeight; y++) {
+                if (y < _height) _cells[x, y].Vacate();
+                else _bufferCells[x, y - _height].Vacate();
+            }
         }
     }
 
@@ -67,6 +72,10 @@ public class Grid {
 
     public int GetTotalHeight() {
         return _totalHeight;
+    }
+
+    public int GetBufferHeight() {
+        return _bufferHeight;
     }
 
     public Cell[,] GetCells() {
@@ -211,7 +220,7 @@ public class Grid {
                 var gridY = y + _bufferHeight;
                 if (gridY < 0 || gridY >= _totalHeight) return false;
 
-                if (!IsCellEmpty(x, y)) return false;
+                if (!IsCellEmpty(x, gridY)) return false;
             }
         }
 

@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
 using TetriON.Core.Board;
 using TetriON.Core.Game.BagGenerators;
 using TetriON.Core.Pieces;
 using TetriON.Core.Pieces.PieceTypes;
 using TetriON.Core.Rules;
+using TetriON.Shared.Utilities;
 using static TetriON.Core.Pieces.Tetromino;
 
 namespace TetriON.Core.Game;
@@ -218,20 +215,18 @@ public class TetrisGame {
     #region Game Logic Methods
     // Additional game logic methods would go here
     public void Start() {
-        System.Diagnostics.Debug.WriteLine("=== TetrisGame.Start() called ===");
         _running = true;
         _lastUpdateTime = TimeSpan.Zero;
         _gravity = Gravity.GetGravity((int)_level);
         _bagGenerator.Reset();
-        System.Diagnostics.Debug.WriteLine($"TetrisGame.Start: About to spawn first piece, _running={_running}");
         FetchNextTetromino();  // This already fills _nextTetrominos
         SpawnNextPiece();
-        System.Diagnostics.Debug.WriteLine($"TetrisGame.Start: Completed. CurrentPiece={_currentTetromino?.GetShape()}, Position=({_tetrominoPoint.X},{_tetrominoPoint.Y})");
         OnGameStart?.Invoke();
     }
 
     public void Update(TimeSpan elapsedTime) {
         if (!_running) return;
+        //Logger.Log("TetrisGame: Updating...", Logger.LogLevel.Info);
 
         _lastUpdateTime += elapsedTime;
         float deltaTime = (float)elapsedTime.TotalSeconds;
@@ -273,17 +268,17 @@ public class TetrisGame {
 
 
     public void FetchNextTetromino() {
-        System.Diagnostics.Debug.WriteLine("TetrisGame.FetchNextTetromino: Fetching next piece from bag generator");
+        //Logger.Log("TetrisGame.FetchNextTetromino: Fetching next piece from bag generator", Logger.LogLevel.Info);
         _currentTetromino = _bagGenerator.GetNextPiece();
-        System.Diagnostics.Debug.WriteLine($"TetrisGame.FetchNextTetromino: Got piece {_currentTetromino?.GetShape()} (ID: {_currentTetromino?.GetId()})");
+        //Logger.Log($"TetrisGame.FetchNextTetromino: Got piece {_currentTetromino?.GetShape()} (ID: {_currentTetromino?.GetId()})", Logger.LogLevel.Info);
         List<Tetromino> nextPieces = _bagGenerator.PeekNext(_nextTetrominos.Length);
         for (int i = 0; i < _nextTetrominos.Length; i++) _nextTetrominos[i] = nextPieces[i];
     }
 
     public void SpawnNextPiece() {
-        System.Diagnostics.Debug.WriteLine($"TetrisGame.SpawnNextPiece: Starting spawn. CurrentPiece={_currentTetromino?.GetShape()}");
+        //Logger.Log($"TetrisGame.SpawnNextPiece: Starting spawn. CurrentPiece={_currentTetromino?.GetShape()}", Logger.LogLevel.Info);
         ResetPosition();
-        System.Diagnostics.Debug.WriteLine($"TetrisGame.SpawnNextPiece: Position reset to ({_tetrominoPoint.X},{_tetrominoPoint.Y})");
+        //Logger.Log($"TetrisGame.SpawnNextPiece: Position reset to ({_tetrominoPoint.X},{_tetrominoPoint.Y})", Logger.LogLevel.Info);
         _canHold = true;
         ResetLockDelay();
         _lowestYReached = 0;
@@ -291,7 +286,6 @@ public class TetrisGame {
 
         // Check if piece can spawn (game over if it can't)
         if (_currentTetromino != null && !_currentTetromino.CanFitAt(_grid, _tetrominoPoint)) {
-            System.Diagnostics.Debug.WriteLine("TetrisGame.SpawnNextPiece: GAME OVER - piece cannot fit at spawn position");
             _running = false;
             OnGameOver?.Invoke();
             return;
