@@ -12,7 +12,6 @@ public class BoardRenderer(TetrisGame tetrisGame, ClientController controller, G
 
     private readonly BoardGridRenderer _gridRenderer = new(tetrisGame, controller);
     private readonly BoardCellRenderer _cellRenderer = new(tetrisGame, controller);
-    private readonly BufferZoneRenderer _bufferZoneRenderer = new(tetrisGame, controller);
     private readonly GameDisposition _gameDisposition = gameDisposition;
 
     private bool _isInitialized;
@@ -24,27 +23,15 @@ public class BoardRenderer(TetrisGame tetrisGame, ClientController controller, G
         }
 
         UpdateBoardLocation();
-        var boardLocation = _gameDisposition.GetCachedBoardLocation();
         // Logger.Log($"BoardRenderer: Drawing at location ({boardLocation.X}, {boardLocation.Y})", Logger.LogLevel.Info);
 
         // Draw in order: grid background -> buffer zone -> filled cells
         _gridRenderer.Draw();
-        _bufferZoneRenderer.Draw();
         _cellRenderer.Draw();
     }
 
     private void Initialize() {
-        var board = TetrisGame.GetGrid();
-        var width = board.GetWidth();
-        var height = board.GetHeight();
-        var bufferHeight = 4; // Standard buffer zone height
-
         // Logger.Log($"BoardRenderer: Initializing with dimensions {width}x{height}, buffer: {bufferHeight}", Logger.LogLevel.Info);
-
-        _gridRenderer.Initialize(width, height, bufferHeight);
-        _cellRenderer.Initialize(width, height, bufferHeight);
-        _bufferZoneRenderer.Initialize(width, bufferHeight);
-
         _isInitialized = true;
         // Logger.Log("BoardRenderer: Initialization complete", Logger.LogLevel.Info);
     }
@@ -58,6 +45,5 @@ public class BoardRenderer(TetrisGame tetrisGame, ClientController controller, G
         // Update all sub-renderers with the location
         _gridRenderer.SetBoardLocation(boardLocation);
         _cellRenderer.SetBoardLocation(boardLocation);
-        _bufferZoneRenderer.SetBoardLocation(boardLocation);
     }
 }

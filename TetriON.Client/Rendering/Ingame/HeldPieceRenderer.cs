@@ -8,13 +8,13 @@ namespace TetriON.Client.Rendering.Ingame;
 public class HeldPieceRenderer(TetrisGame tetrisGame, ClientController controller, GameDisposition gameDisposition) : GameRenderer(tetrisGame, controller) {
 
     private readonly GameDisposition _gameDisposition = gameDisposition;
-    private TextureWrapper TileSheet => SkinManager.GetTextureAsset("tilesheet").texture;
+    private TextureWrapper TileSheet => SkinManager.GetTextureAsset("tiles").texture;
 
     public override void Draw() {
         var heldPiece = TetrisGame.GetHeldTetromino();
         if (heldPiece == null) return;
 
-        var matrix = heldPiece.GetMatrix();
+        var matrix = heldPiece.GetRotations()[0];
         var id = heldPiece.GetId();
         var position = new Point((id - GridSizing.TileSpacing) * 31, 0);
         var rectangle = new Rectangle(position.X, position.Y, GridSizing.BaseTileWidth, GridSizing.BaseTileHeight);

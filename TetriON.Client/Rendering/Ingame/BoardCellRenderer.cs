@@ -15,15 +15,6 @@ public class BoardCellRenderer(TetrisGame tetrisGame, ClientController controlle
     private TextureWrapper TileSheet => SkinManager.GetTextureAsset("tiles").texture;
 
     private Point _boardLocation;
-    private int _boardWidth;
-    private int _boardHeight;
-    private int _bufferZoneHeight;
-
-    public void Initialize(int width, int height, int bufferZoneHeight) {
-        _boardWidth = width;
-        _boardHeight = height;
-        _bufferZoneHeight = bufferZoneHeight;
-    }
 
     public void SetBoardLocation(Point location) {
         _boardLocation = location;
@@ -33,18 +24,18 @@ public class BoardCellRenderer(TetrisGame tetrisGame, ClientController controlle
         var board = TetrisGame.GetGrid();
         var scaledTileWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledTileHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
-        var bufferHeight = board.GetBufferHeight();
 
         int occupiedCount = 0;
-        // Render only visible board cells (Y >= bufferHeight)
-        for (int y = bufferHeight; y < bufferHeight + _boardHeight; y++) {
-            for (int x = 0; x < _boardWidth; x++) {
-                Cell cell = board.GetCell(x, y);
-                if (!cell.IsOccupied) continue;
-
-                occupiedCount++;
-                // Render at screen position, subtracting bufferHeight to align with visible board
-                DrawCell(x, y - bufferHeight, cell.Identifier, scaledTileWidth, scaledTileHeight);
+        // Render buffer zone cells (if any are occupied) and visible board cells
+        // Y coordinate: -bufferHeight to (height - 1)
+        for (int x = 0; x < board.GetWidth(); x++) {
+            for (int y = -board.GetBufferHeight(); y < board.GetHeight(); y++) {
+                var gridY = y + board.GetBufferHeight();
+                var cell = board.GetCell(x, gridY);
+                if (cell.IsOccupied) {
+                    DrawCell(x, y, cell.Identifier, scaledTileWidth, scaledTileHeight);
+                    occupiedCount++;
+                }
             }
         }
 

@@ -34,15 +34,13 @@ public class PieceRenderer(TetrisGame tetrisGame, ClientController controller, G
         var scaledWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
 
-        // Account for buffer zone: pieces spawn at Y=0 in the buffer zone (4 cells above visible board)
-        var bufferZoneHeight = TetrisGame.GetGrid().GetBufferHeight();
-
+        // Coordinate system: Y=0 is top of visible board, negative Y is in buffer zone
         for (int y = 0; y < matrix.Length; y++) {
             for (int x = 0; x < matrix[y].Length; x++) {
                 if (!matrix[y][x]) continue;
                 var destRect = new Rectangle(
                     boardLocation.X + (location.X + x) * scaledWidth,
-                    boardLocation.Y + (location.Y - bufferZoneHeight + y) * scaledHeight,
+                    boardLocation.Y + (location.Y + y) * scaledHeight,
                     scaledWidth,
                     scaledHeight
                 );

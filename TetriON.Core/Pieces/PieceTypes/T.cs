@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using TetriON.Core.Board;
+using TetriON.Shared.Utilities;
 
 namespace TetriON.Core.Pieces.PieceTypes;
 
@@ -49,8 +50,7 @@ public class T : Tetromino {
         var oldRotation = GetRotationState();
         var newRotation = (oldRotation + (int)direction + 4) % 4;
         var newMatrix = _rotations[newRotation];
-        var settings = grid.GetGame().GetSettings() ?? throw new InvalidOperationException("Game settings are not available for rotation.");
-        if (!settings.EnableTSpins || !settings.EnableAllSpins) return (null, false);
+        var settings = grid.GetGame().GetSettings();
 
         // First, try to rotate in place (no wall kick)
         if (grid.CanPlaceTetromino(currentPoint, newMatrix)) {
@@ -61,8 +61,7 @@ public class T : Tetromino {
             SetLastKickOffset(new Point(0, 0));
 
             var pivot = GetRotationCenter(currentPoint);
-            var isTSpin = CheckTSpin(grid, pivot, oldRotation, newRotation, new Point(0, 0)) &&
-                         (settings.EnableTSpins || settings.EnableAllSpins);
+            var isTSpin = CheckTSpin(grid, pivot) && (settings.EnableTSpins || settings.EnableAllSpins);
 
             //TetriON.DebugLog($"T-piece: In-place rotation to ({currentPoint.X}, {currentPoint.Y}), pivot: ({pivot.X}, {pivot.Y}), T-spin: {isTSpin}");
             return (currentPoint, isTSpin);
@@ -70,10 +69,9 @@ public class T : Tetromino {
 
         // If in-place rotation failed, try wall kicks
         if (!settings.EnableWallKicks) {
-            //TetriON.DebugLog($"T-piece: Rotation failed - wall kicks disabled");
+            Logger.Log($"T-piece: Rotation failed - wall kicks disabled", Logger.LogLevel.Info);
             return (null, false);
         }
-
         var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, newRotation, false);
         if (newPosition.HasValue) {
             var kickOffset = new Point(newPosition.Value.X - currentPoint.X, newPosition.Value.Y - currentPoint.Y);
@@ -85,8 +83,7 @@ public class T : Tetromino {
 
             // Check for T-Spin (only happens with wall kicks)
             var pivot = GetRotationCenter(newPosition.Value);
-            var isTSpin = CheckTSpin(grid, pivot, oldRotation, newRotation, kickOffset) &&
-                         (settings.EnableTSpins || settings.EnableAllSpins);
+            var isTSpin = CheckTSpin(grid, pivot) && (settings.EnableTSpins || settings.EnableAllSpins);
 
             //TetriON.DebugLog($"T-piece: Wall kick successful to ({newPosition.Value.X}, {newPosition.Value.Y}), pivot: ({pivot.X}, {pivot.Y}), T-spin: {isTSpin}");
             return (newPosition.Value, isTSpin);
@@ -97,8 +94,7 @@ public class T : Tetromino {
     }
 
 
-
-    private static bool CheckTSpin(Grid grid, Point pivot, int fromRotation, int toRotation, Point kickOffset) {
+    private static bool CheckTSpin(Grid grid, Point pivot) {
         //TetriON.DebugLog($"CheckTSpin: pivot=({pivot.X},{pivot.Y}), from={fromRotation}, to={toRotation}, kick=({kickOffset.X},{kickOffset.Y})");
 
         // Standard T-spin corner positions relative to pivot (current rotation only)

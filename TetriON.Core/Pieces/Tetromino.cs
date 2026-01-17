@@ -127,9 +127,9 @@ public abstract class Tetromino {
         var coords = GetPieceCoordinates(position);
         foreach (var coord in coords) {
             if (coord.X < 0 || coord.X >= grid.GetWidth()) return false;
-            var gridY = coord.Y + grid.GetBufferHeight();
-            if (gridY < 0 || gridY >= grid.GetTotalHeight()) return false;
-            if (!grid.IsCellEmpty(coord.X, gridY)) return false;
+            // Check bounds: allow buffer zone (negative Y) but not beyond
+            if (coord.Y < -grid.GetBufferHeight() || coord.Y >= grid.GetHeight()) return false;
+            if (!grid.IsCellEmpty(coord.X, coord.Y)) return false;
         }
         return true;
     }
