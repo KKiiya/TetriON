@@ -35,7 +35,7 @@ public class SkinManager : IDisposable {
 
         // === BACKGROUND AND UI ===
         "menu_background", "menu_pattern", "menu_decorations",
-        "logo_main", "version_text", "splash",
+        "logo_main", "version_text", "splash", "cursor",
 
         // === MAIN MENU BUTTONS ===
         "singleplayer_b", "singleplayer_b_click", "singleplayer_b_hover", "singleplayer_b_disabled",

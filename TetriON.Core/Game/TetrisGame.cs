@@ -233,7 +233,9 @@ public class TetrisGame {
 
         // Apply gravity if enabled
         if (_settings.EnableGravity && _currentTetromino != null) {
-            _gravityAccumulator += _gravity * deltaTime;
+            // Gravity is stored in G units (cells per frame at 60 FPS)
+            // Convert to cells per second by multiplying by 60
+            _gravityAccumulator += _gravity * 60f * deltaTime;
 
             // Move piece down for each full cell accumulated
             while (_gravityAccumulator >= 1.0f) {

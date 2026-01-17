@@ -129,37 +129,37 @@ public class InputExample {
         // Check if actions are active
         if (_inputManager.IsActionJustPressed(_moveLeftAction!)) {
             _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.LEFT);
-            Logger.Log("Move Left detected", Logger.LogLevel.Info);
+            //Logger.Log("Move Left detected", Logger.LogLevel.Info);
         }
 
         if (_inputManager.IsActionJustPressed(_moveRightAction!)) {
             _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.RIGHT);
-            Logger.Log("Move Right detected", Logger.LogLevel.Info);
+            //Logger.Log("Move Right detected", Logger.LogLevel.Info);
         }
 
         if (_inputManager.IsActionActive(_moveDownAction!)) {
             _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.DOWN);
-            Logger.Log("Move Down active", Logger.LogLevel.Info);
+            //Logger.Log("Move Down active", Logger.LogLevel.Info);
         }
 
         if (_inputManager.IsActionJustPressed(_rotateLeftAction!)) {
             _game?.RotateTetromino(Core.Pieces.Tetromino.RotationDirection.CCW);
-            Logger.Log("Rotate Left detected", Logger.LogLevel.Info);
+            //Logger.Log("Rotate Left detected", Logger.LogLevel.Info);
         }
 
         if (_inputManager.IsActionJustPressed(_rotateRightAction!)) {
             _game?.RotateTetromino(Core.Pieces.Tetromino.RotationDirection.CW);
-            Logger.Log("Rotate Right detected", Logger.LogLevel.Info);
+            //Logger.Log("Rotate Right detected", Logger.LogLevel.Info);
         }
 
         if (_inputManager.IsActionJustPressed(_hardDropAction!)) {
             _game?.HardDrop();
-            Logger.Log("Hard Drop detected", Logger.LogLevel.Info);
+            //Logger.Log("Hard Drop detected", Logger.LogLevel.Info);
         }
 
         if (_inputManager.IsActionJustPressed(_holdAction!)) {
             _game?.HoldTetromino();
-            Logger.Log("Hold detected", Logger.LogLevel.Info);
+            //Logger.Log("Hold detected", Logger.LogLevel.Info);
         }
 
         if (_inputManager.IsActionJustPressed(_pauseAction!)) {

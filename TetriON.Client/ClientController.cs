@@ -8,6 +8,7 @@ using TetriON.Client.Networking;
 using TetriON.Client.Rendering;
 using TetriON.Client.Rendering.Data;
 using TetriON.Client.Rendering.Ingame;
+using TetriON.Client.Rendering.UI;
 using TetriON.Client.Services;
 using TetriON.Client.Skin;
 using TetriON.Client.State;
@@ -98,6 +99,12 @@ public class ClientController {
         ServiceManager.Dispose();
         StateManager.Dispose();
         AnimationPlayer.Dispose();
+    }
+
+    public void LoadRenderers() {
+        Logger.Log("ClientController: Loading renderers...", Logger.LogLevel.Info);
+        _renderers.Add(new CursorRenderer(this));
+        Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
     }
 
     public void LoadTestGame() {
