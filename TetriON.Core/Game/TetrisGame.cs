@@ -314,7 +314,7 @@ public class TetrisGame {
     }
 
     public void HardDrop() {
-        Logger.Log("TetrisGame.HardDrop: Performing hard drop", Logger.LogLevel.Info);
+        //Logger.Log("TetrisGame.HardDrop: Performing hard drop", Logger.LogLevel.Info);
         if (_currentTetromino == null) return;
 
         int newY = _tetrominoPoint.Y;
@@ -331,7 +331,7 @@ public class TetrisGame {
     }
 
     public void RotateTetromino(RotationDirection direction) {
-        Logger.Log($"TetrisGame.RotateTetromino: Rotating piece {_currentTetromino?.GetShape()} {direction}", Logger.LogLevel.Info);
+        //Logger.Log($"TetrisGame.RotateTetromino: Rotating piece {_currentTetromino?.GetShape()} {direction}", Logger.LogLevel.Info);
         if (_currentTetromino == null) return;
 
         (var point, bool spin) = _currentTetromino.Rotate(_grid, _tetrominoPoint, direction);
