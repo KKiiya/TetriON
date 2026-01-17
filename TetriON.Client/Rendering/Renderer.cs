@@ -17,4 +17,6 @@ public abstract class Renderer(ClientController controller) {
     protected Game Game => _controller.Game;
 
     public abstract void Draw();
+
+    public virtual void Update(float deltaTime) { }
 }

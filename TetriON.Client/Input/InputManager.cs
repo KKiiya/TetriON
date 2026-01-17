@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using TetriON.Client.Input.Support;
@@ -14,6 +11,9 @@ public class InputManager : IDisposable {
     private readonly ClientController _controller;
     private readonly KeyBindManager _keyBindManager;
     private readonly Dictionary<InputAction, InputState> _actionStates = [];
+    private readonly Dictionary<InputAction, float> _actionHoldTimes = [];
+    private readonly Dictionary<InputAction, float> _actionRepeatTimers = [];
+    private readonly Dictionary<InputAction, InputAction?> _actionLastDirection = [];
     private readonly List<IInputProvider> _inputProviders = [];
 
     // Input systems
@@ -28,6 +28,12 @@ public class InputManager : IDisposable {
     public bool EnableTouch { get; set; } = true;
     public bool EnableKeyboard { get; set; } = true;
     public bool EnableGamepad { get; set; } = true;
+
+    // Timing configuration (in seconds)
+    private float _das = 0.133f; // Delayed Auto Shift - initial delay before repeat starts
+    private float _arr = 0.0f;   // Auto Repeat Rate - time between repeats (0 = instant)
+    private float _dcd = 0.0f;   // DAS Cut Delay - delay when changing direction during DAS
+    private int _sdf = 20;       // Soft Drop Factor - multiplier for soft drop speed
 
     /// <summary>
     /// Current active input device (automatically detected)
@@ -67,6 +73,196 @@ public class InputManager : IDisposable {
     /// Gets the key bind manager
     /// </summary>
     public KeyBindManager KeyBindManager => _keyBindManager;
+
+    // Timing configuration getters/setters
+
+    /// <summary>
+    /// Gets or sets the DAS (Delayed Auto Shift) time in seconds.
+    /// This is the initial delay before auto-repeat starts.
+    /// Typical values: 0.1 - 0.2 seconds
+    /// </summary>
+    public float DAS {
+        get => _das;
+        set => _das = Math.Max(0f, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the ARR (Auto Repeat Rate) time in seconds.
+    /// This is the time between repeats after DAS expires.
+    /// 0 = instant repeat. Typical values: 0.0 - 0.05 seconds
+    /// </summary>
+    public float ARR {
+        get => _arr;
+        set => _arr = Math.Max(0f, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the DCD (DAS Cut Delay) time in seconds.
+    /// This is the delay when changing direction during DAS.
+    /// 0 = no delay. Typical values: 0.0 - 0.05 seconds
+    /// </summary>
+    public float DCD {
+        get => _dcd;
+        set => _dcd = Math.Max(0f, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the SDF (Soft Drop Factor) multiplier.
+    /// This multiplies the soft drop speed (higher = faster).
+    /// Typical values: 5 - 40
+    /// </summary>
+    public int SDF {
+        get => _sdf;
+        set => _sdf = Math.Max(1, value);
+    }
+
+    // Setter methods for convenience
+
+    /// <summary>
+    /// Sets the DAS (Delayed Auto Shift) time in seconds
+    /// </summary>
+    public void SetDAS(float das) => DAS = das;
+
+    /// <summary>
+    /// Sets the ARR (Auto Repeat Rate) time in seconds
+    /// </summary>
+    public void SetARR(float arr) => ARR = arr;
+
+    /// <summary>
+    /// Sets the DCD (DAS Cut Delay) time in seconds
+    /// </summary>
+    public void SetDCD(float dcd) => DCD = dcd;
+
+    /// <summary>
+    /// Sets the SDF (Soft Drop Factor) multiplier
+    /// </summary>
+    public void SetSDF(int sdf) => SDF = sdf;
+
+    // Getter methods for convenience
+
+    /// <summary>
+    /// Gets the DAS (Delayed Auto Shift) time in seconds
+    /// </summary>
+    public float GetDAS() => DAS;
+
+    /// <summary>
+    /// Gets the ARR (Auto Repeat Rate) time in seconds
+    /// </summary>
+    public float GetARR() => ARR;
+
+    /// <summary>
+    /// Gets the DCD (DAS Cut Delay) time in seconds
+    /// </summary>
+    public float GetDCD() => DCD;
+
+    /// <summary>
+    /// Gets the SDF (Soft Drop Factor) multiplier
+    /// </summary>
+    public int GetSDF() => SDF;
+
+    /// <summary>
+    /// Checks if an action should trigger based on DAS/ARR timing.
+    /// This is useful for movement actions that need auto-repeat behavior.
+    /// Returns true on initial press, after DAS delay, and then repeatedly at ARR intervals.
+    /// </summary>
+    /// <param name="action">The action to check</param>
+    /// <returns>True if the action should trigger this frame</returns>
+    public bool IsActionTriggeredWithDAS(InputAction action) {
+        if (!_actionStates.TryGetValue(action, out var state)) return false;
+
+        // Just pressed - always trigger
+        if (state == InputState.Pressed) {
+            _actionHoldTimes[action] = 0f;
+            _actionRepeatTimers[action] = 0f;
+            return true;
+        }
+
+        // Not held - no trigger
+        if (state != InputState.Held) return false;
+
+        // Get hold time
+        float holdTime = _actionHoldTimes.TryGetValue(action, out var time) ? time : 0f;
+
+        // Check if DAS delay has passed
+        if (holdTime < _das) return false;
+
+        // DAS has passed, check ARR
+        float repeatTimer = _actionRepeatTimers.TryGetValue(action, out var timer) ? timer : 0f;
+
+        // If ARR is 0, trigger every frame after DAS
+        if (_arr <= 0f) {
+            _actionRepeatTimers[action] = 0f; // Reset for next frame
+            return true;
+        }
+
+        // Check if ARR interval has passed
+        if (repeatTimer >= _arr) {
+            _actionRepeatTimers[action] = 0f; // Reset timer after triggering
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if an action should trigger with DAS/ARR and DCD (direction change delay).
+    /// Use this for directional movement to handle the delay when changing directions.
+    /// </summary>
+    /// <param name="action">The action to check</param>
+    /// <param name="oppositeAction">The opposite direction action (e.g., left vs right)</param>
+    /// <returns>True if the action should trigger this frame</returns>
+    public bool IsActionTriggeredWithDASAndDCD(InputAction action, InputAction? oppositeAction = null) {
+        if (!_actionStates.TryGetValue(action, out var state)) return false;
+
+        // Just pressed
+        if (state == InputState.Pressed) {
+            _actionHoldTimes[action] = 0f;
+            _actionRepeatTimers[action] = 0f;
+
+            // Check if we're switching from opposite direction
+            if (oppositeAction != null && _actionLastDirection.TryGetValue(action, out var lastDir) && lastDir == oppositeAction) {
+                // Apply DCD delay
+                if (_dcd > 0f && _actionHoldTimes.TryGetValue(oppositeAction, out var oppositeHoldTime) && oppositeHoldTime >= _das) {
+                    _actionHoldTimes[action] = -_dcd; // Start with negative time for DCD
+                    _actionRepeatTimers[action] = 0f;
+                    _actionLastDirection[action] = action;
+                    return false; // Don't trigger immediately due to DCD
+                }
+            }
+
+            _actionLastDirection[action] = action;
+            return true;
+        }
+
+        // Not held - no trigger
+        if (state != InputState.Held) return false;
+
+        // Get hold time
+        float holdTime = _actionHoldTimes.TryGetValue(action, out var time) ? time : 0f;
+
+        // Check if still in DCD delay
+        if (holdTime < 0f) return false;
+
+        // Check if DAS delay has passed
+        if (holdTime < _das) return false;
+
+        // DAS has passed, check ARR
+        float repeatTimer = _actionRepeatTimers.TryGetValue(action, out var timer) ? timer : 0f;
+
+        // If ARR is 0, trigger every frame after DAS
+        if (_arr <= 0f) {
+            _actionRepeatTimers[action] = 0f; // Reset for next frame
+            return true;
+        }
+
+        // Check if ARR interval has passed
+        if (repeatTimer >= _arr) {
+            _actionRepeatTimers[action] = 0f; // Reset timer after triggering
+            return true;
+        }
+
+        return false;
+    }
 
     public InputManager(ClientController controller) {
         _controller = controller;
@@ -108,6 +304,9 @@ public class InputManager : IDisposable {
 
         // Update action states based on bindings
         UpdateActionStates(deltaTime);
+
+        // Update hold times and repeat timers for DAS/ARR
+        UpdateTimingTrackers(deltaTime);
 
         // Reset frame-specific flags
         ResetFrameFlags();
@@ -186,10 +385,7 @@ public class InputManager : IDisposable {
         }
 
         // Normalize diagonal movement
-        if (axis.LengthSquared() > 1f) {
-            axis.Normalize();
-        }
-
+        if (axis.LengthSquared() > 1f) axis.Normalize();
         return axis;
     }
 
@@ -244,11 +440,37 @@ public class InputManager : IDisposable {
     }
 
     public void Dispose() {
-        foreach (var provider in _inputProviders) {
-            provider.Dispose();
-        }
+        foreach (var provider in _inputProviders) provider.Dispose();
         _inputProviders.Clear();
         _actionStates.Clear();
+        _actionHoldTimes.Clear();
+        _actionRepeatTimers.Clear();
+        _actionLastDirection.Clear();
+        GC.SuppressFinalize(this);
+    }
+
+    private void UpdateTimingTrackers(float deltaTime) {
+        var actions = _actionStates.Keys.ToList();
+
+        foreach (var action in actions) {
+            var state = _actionStates[action];
+
+            if (state == InputState.Pressed || state == InputState.Held) {
+                // Update hold time
+                float holdTime = _actionHoldTimes.TryGetValue(action, out var time) ? time : 0f;
+                holdTime += deltaTime;
+                _actionHoldTimes[action] = holdTime;
+
+                // Update repeat timer for ARR
+                float repeatTimer = _actionRepeatTimers.TryGetValue(action, out var timer) ? timer : 0f;
+                repeatTimer += deltaTime;
+                _actionRepeatTimers[action] = repeatTimer;
+            } else {
+                // Reset timers when not held
+                _actionHoldTimes[action] = 0f;
+                _actionRepeatTimers[action] = 0f;
+            }
+        }
     }
 
     private void SubscribeToInputEvents() {
@@ -274,15 +496,10 @@ public class InputManager : IDisposable {
             var mousePos = _mouse.Position;
 
             if (_mouse.IsButtonDown(MouseButton.Left)) {
-                if (!_pointer.IsActive || _pointer.Source != PointerSource.Mouse) {
-                    _pointer.Activate(mousePos, PointerSource.Mouse);
-                } else {
-                    _pointer.Move(mousePos);
-                }
+                if (!_pointer.IsActive || _pointer.Source != PointerSource.Mouse) _pointer.Activate(mousePos, PointerSource.Mouse);
+                else _pointer.Move(mousePos);
             } else {
-                if (_pointer.IsActive && _pointer.Source == PointerSource.Mouse) {
-                    _pointer.Deactivate();
-                }
+                if (_pointer.IsActive && _pointer.Source == PointerSource.Mouse) _pointer.Deactivate();
                 _pointer.Move(mousePos);
             }
         }
@@ -291,14 +508,9 @@ public class InputManager : IDisposable {
         if (EnableTouch) {
             var primaryTouch = _touch.GetPrimaryTouch();
             if (primaryTouch != null && primaryTouch.IsActive) {
-                if (!_pointer.IsActive || _pointer.Source != PointerSource.Touch) {
-                    _pointer.Activate(primaryTouch.Position, PointerSource.Touch);
-                } else {
-                    _pointer.Move(primaryTouch.Position);
-                }
-            } else if (_pointer.IsActive && _pointer.Source == PointerSource.Touch) {
-                _pointer.Deactivate();
-            }
+                if (!_pointer.IsActive || _pointer.Source != PointerSource.Touch) _pointer.Activate(primaryTouch.Position, PointerSource.Touch);
+                else _pointer.Move(primaryTouch.Position);
+            } else if (_pointer.IsActive && _pointer.Source == PointerSource.Touch) _pointer.Deactivate();
         }
     }
 
@@ -360,9 +572,7 @@ public class InputManager : IDisposable {
 
                 // Trigger action event
                 ActionTriggered?.Invoke(this, new InputActionEventArgs(action, newState));
-            } else {
-                _actionStates[action] = newState;
-            }
+            } else _actionStates[action] = newState;
         }
     }
 

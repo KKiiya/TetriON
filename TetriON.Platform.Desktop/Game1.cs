@@ -29,6 +29,8 @@ public class Game1 : Game {
         _graphics.IsFullScreen = false;
         _graphics.PreferredBackBufferWidth = 1366;
         _graphics.PreferredBackBufferHeight = 768;
+        _graphics.SynchronizeWithVerticalRetrace = false; // Disable VSync
+
         _graphics.ApplyChanges();
         _clientController = new ClientController(this);
         base.Initialize();
@@ -36,7 +38,6 @@ public class Game1 : Game {
 
     protected override void LoadContent() {
         _clientController.Initialize();
-        _clientController.LoadTestGame(); // Load the test game
         base.LoadContent();
     }
 

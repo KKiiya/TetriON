@@ -7,6 +7,7 @@ using TetriON.Client.Input;
 using TetriON.Client.Networking;
 using TetriON.Client.Rendering;
 using TetriON.Client.Rendering.Data;
+using TetriON.Client.Rendering.Debug;
 using TetriON.Client.Rendering.Ingame;
 using TetriON.Client.Rendering.UI;
 using TetriON.Client.Services;
@@ -18,6 +19,10 @@ using TetriON.Shared.Utilities;
 namespace TetriON.Client;
 
 public class ClientController {
+
+    public static readonly float TargetFrameRate = 144f; // Target FPS
+
+
     // Dependencies
     public Game Game { get; }
 
@@ -30,7 +35,7 @@ public class ClientController {
     public ModalManager ModalManager { get; }
     public AnimationPlayer AnimationPlayer { get; }
     public SpriteBatch SpriteBatch { get; }
-    public InputExample InputExample { get; }
+    public GameInput GameInput { get; }
 
 
 
@@ -39,6 +44,7 @@ public class ClientController {
 
     private TetrisGame? _currentGame;
     private GameDisposition? _gameDisposition;
+
 
     public ClientController(Game game) {
         Game = game;
@@ -52,25 +58,34 @@ public class ClientController {
         SkinManager = new SkinManager(this);
         ModalManager = new ModalManager(this);
         AnimationPlayer = new AnimationPlayer(this);
-        InputExample = new InputExample(this);
+        GameInput = new GameInput(this);
     }
 
     // Lifecycle methods
     public void Initialize() {
         //InputManager.Initialize();
+        Game.IsFixedTimeStep = true;
+        Game.TargetElapsedTime = TimeSpan.FromSeconds(1.0 / TargetFrameRate);
+
         SkinManager.LoadAllAssets();
         ServiceManager.Initialize();
         NetworkManager.Initialize();
         StateManager.Initialize();
+
+        LoadTestGame();
+        LoadRenderers();
     }
 
     public void Update(GameTime gameTime) {
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         InputManager.Update(deltaTime);
-        InputExample.Update(deltaTime);
+        GameInput.Update(deltaTime);
         AnimationPlayer.Update(deltaTime); // Critical!
         _currentGame?.Update(gameTime.ElapsedGameTime);
         // Other updates...
+        foreach (var renderer in _renderers) {
+            renderer.Update(deltaTime);
+        }
     }
 
     public void Draw() {
@@ -103,6 +118,7 @@ public class ClientController {
 
     public void LoadRenderers() {
         Logger.Log("ClientController: Loading renderers...", Logger.LogLevel.Info);
+        _renderers.Add(new FPSRenderer(this));
         _renderers.Add(new CursorRenderer(this));
         Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
     }
@@ -118,6 +134,7 @@ public class ClientController {
         var ghostRenderer = new GhostRenderer(_currentGame, this, _gameDisposition);
         var nextPieceRenderer = new NextPieceRenderer(_currentGame, this, _gameDisposition);
         var heldPieceRenderer = new HeldPieceRenderer(_currentGame, this, _gameDisposition);
+        var statsRenderer = new StatsRenderer(_currentGame!, this);
 
         // Draw order matters: board first, then pieces on top
         _renderers.Add(boardRenderer);
@@ -125,10 +142,11 @@ public class ClientController {
         _renderers.Add(pieceRenderer);  // Current piece on top
         _renderers.Add(nextPieceRenderer);
         _renderers.Add(heldPieceRenderer);
+        _renderers.Add(statsRenderer);
 
         Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
         _currentGame.Start();
-        InputExample.LoadForGame(_currentGame);
+        GameInput.LoadForGame(_currentGame);
         Logger.Log("ClientController: Test game started", Logger.LogLevel.Info);
     }
 }

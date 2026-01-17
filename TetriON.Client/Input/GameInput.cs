@@ -11,7 +11,7 @@ namespace TetriON.Client.Examples;
 /// <summary>
 /// Example demonstrating how to use the TetriON input system
 /// </summary>
-public class InputExample {
+public class GameInput {
     private readonly InputManager _inputManager;
     private TetrisGame? _game;
 
@@ -21,14 +21,19 @@ public class InputExample {
     private InputAction? _moveDownAction;
     private InputAction? _rotateLeftAction;
     private InputAction? _rotateRightAction;
+    private InputAction? _rotateFlipAction;
     private InputAction? _hardDropAction;
     private InputAction? _holdAction;
     private InputAction? _pauseAction;
     private InputAction? _confirmAction;
     private InputAction? _cancelAction;
 
-    public InputExample(ClientController controller) {
+    public GameInput(ClientController controller) {
         _inputManager = new InputManager(controller);
+        _inputManager.SetARR(0.025f);
+        _inputManager.SetDAS(0.117f);
+        _inputManager.SetDCD(0.033f);
+        _inputManager.SetSDF(18);
         SetupInputActions();
     }
 
@@ -43,6 +48,7 @@ public class InputExample {
         _moveDownAction = _inputManager.RegisterAction("MoveDown", "Gameplay");
         _rotateLeftAction = _inputManager.RegisterAction("RotateLeft", "Gameplay");
         _rotateRightAction = _inputManager.RegisterAction("RotateRight", "Gameplay");
+        _rotateFlipAction = _inputManager.RegisterAction("RotateFlip", "Gameplay");
         _hardDropAction = _inputManager.RegisterAction("HardDrop", "Gameplay");
         _pauseAction = _inputManager.RegisterAction("Pause", "Gameplay");
         _holdAction = _inputManager.RegisterAction("Hold", "Gameplay");
@@ -81,6 +87,9 @@ public class InputExample {
         _inputManager.KeyBindManager.BindKey(_rotateRightAction!, Keys.X);
         _inputManager.KeyBindManager.BindButton(_rotateRightAction!, Buttons.X);
 
+        _inputManager.KeyBindManager.BindKey(_rotateFlipAction!, Keys.V);
+
+
         _inputManager.KeyBindManager.BindKey(_holdAction!, Keys.C);
 
         // Hard drop
@@ -116,7 +125,6 @@ public class InputExample {
     }
 
     public void Update(float deltaTime) {
-        // Update input manager (do this every frame)
         _inputManager.Update(deltaTime);
 
         // Example: Check actions
@@ -127,17 +135,16 @@ public class InputExample {
 
     private void HandleGameplayInput() {
         // Check if actions are active
-        if (_inputManager.IsActionJustPressed(_moveLeftAction!)) {
+        if (_inputManager.IsActionTriggeredWithDASAndDCD(_moveLeftAction!)) {
             _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.LEFT);
             //Logger.Log("Move Left detected", Logger.LogLevel.Info);
-        }
-
-        if (_inputManager.IsActionJustPressed(_moveRightAction!)) {
+        } else if (_inputManager.IsActionTriggeredWithDASAndDCD(_moveRightAction!)) {
             _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.RIGHT);
             //Logger.Log("Move Right detected", Logger.LogLevel.Info);
         }
 
-        if (_inputManager.IsActionActive(_moveDownAction!)) {
+
+        if (_inputManager.IsActionTriggeredWithDASAndDCD(_moveDownAction!)) {
             _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.DOWN);
             //Logger.Log("Move Down active", Logger.LogLevel.Info);
         }
@@ -150,6 +157,11 @@ public class InputExample {
         if (_inputManager.IsActionJustPressed(_rotateRightAction!)) {
             _game?.RotateTetromino(Core.Pieces.Tetromino.RotationDirection.CW);
             //Logger.Log("Rotate Right detected", Logger.LogLevel.Info);
+        }
+
+        if (_inputManager.IsActionJustPressed(_rotateFlipAction!)) {
+            _game?.RotateTetromino(Core.Pieces.Tetromino.RotationDirection.Flip);
+            //Logger.Log("Rotate Flip detected", Logger.LogLevel.Info);
         }
 
         if (_inputManager.IsActionJustPressed(_hardDropAction!)) {
@@ -205,12 +217,12 @@ public class InputExample {
 
         // Confirm/Cancel actions
         if (_inputManager.IsActionJustPressed(_confirmAction!)) {
-            Console.WriteLine("Confirm!");
+            //Console.WriteLine("Confirm!");
             // ConfirmSelection();
         }
 
         if (_inputManager.IsActionJustPressed(_cancelAction!)) {
-            Console.WriteLine("Cancel!");
+            //Console.WriteLine("Cancel!");
             // CancelSelection();
         }
     }

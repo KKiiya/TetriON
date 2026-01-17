@@ -1,4 +1,5 @@
-﻿#----------------------------- Global Properties ----------------------------#
+
+#----------------------------- Global Properties ----------------------------#
 
 /outputDir:bin/$(Platform)
 /intermediateDir:obj/$(Platform)
@@ -11,3 +12,9 @@
 
 
 #---------------------------------- Content ---------------------------------#
+
+#begin arial.ttf
+/importer:
+/processor:
+/build:arial.ttf
+

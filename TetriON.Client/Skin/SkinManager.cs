@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
@@ -27,6 +21,7 @@ public class SkinManager : IDisposable {
 
     private readonly Dictionary<string, SoundWrapper> _audioAssets = [];
     private readonly Dictionary<string, TextureWrapper> _textureAssets = [];
+    private readonly Dictionary<string, FontWrapper> _fontAssets = [];
 
     // Valid asset names that are allowed to be loaded (security/validation)
     private static readonly HashSet<string> ValidTextureNames = [
@@ -81,6 +76,10 @@ public class SkinManager : IDisposable {
         "zenith_levelup", "zenith_speedrun_start", "zenith_speedrun_end"
     ];
 
+    private static readonly HashSet<string> ValidFontSprites = [
+        "default"
+    ];
+
     private static readonly string SupportedAudioExtension = ".wav";
     private static readonly string SupportedTextureExtensions = ".png";
 
@@ -123,6 +122,7 @@ public class SkinManager : IDisposable {
         Logger.Log($"SkinManager: Loading all assets for skin '{_currentSkin}'...", Logger.LogLevel.Info);
         LoadTextureAssets();
         LoadAudioAssets();
+        LoadFontAssets();
         Logger.Log($"SkinManager: All assets loaded for skin '{_currentSkin}'. Textures: {_textureAssets.Count}, Sounds: {_audioAssets.Count}", Logger.LogLevel.Info);
     }
 
@@ -352,6 +352,40 @@ public class SkinManager : IDisposable {
         Logger.Log($"SkinManager: Audio loading complete. Loaded: {loadedCount}, Skipped: {skippedSounds.Count} [{string.Join(", ", skippedSounds)}]", Logger.LogLevel.Info);
     }
 
+
+    public void LoadFontAssets() {
+        Logger.Log($"SkinManager: Loading font assets for skin '{_currentSkin}'...", Logger.LogLevel.Info);
+
+        // Clear existing font assets
+        var disposedCount = 0;
+        foreach (var fontAsset in _fontAssets.Values) {
+            fontAsset?.Dispose();
+            disposedCount++;
+        }
+        _fontAssets.Clear();
+
+        if (disposedCount > 0) Logger.Log($"SkinManager: Disposed {disposedCount} previous font assets", Logger.LogLevel.Info);
+
+        // Load all valid fonts that exist for the current skin
+        var loadedCount = 0;
+        var skippedFonts = new List<string>();
+        foreach (var fontName in ValidFontSprites) {
+            try {
+                var texture = LoadCustomTexture(fontName);
+                var textureWrapper = new TextureWrapper(_controller, texture, true); // ownsTexture = true
+                var fontWrapper = new FontWrapper(textureWrapper);
+                _fontAssets[fontName] = fontWrapper;
+                loadedCount++;
+                Logger.Log($"SkinManager: ✓ Loaded font '{fontName}' ({texture.Width}x{texture.Height})", Logger.LogLevel.Info);
+            } catch (FileNotFoundException) {
+                // Font doesn't exist for this skin, skip it
+                skippedFonts.Add(fontName);
+                continue;
+            }
+        }
+        Logger.Log($"SkinManager: Font loading complete. Loaded: {loadedCount}, Skipped: {skippedFonts.Count} [{string.Join(", ", skippedFonts)}]", Logger.LogLevel.Info);
+    }
+
     /// <summary>
     /// Get a cached texture asset as TextureWrapper
     /// </summary>
@@ -387,6 +421,20 @@ public class SkinManager : IDisposable {
 
         if (debug) Logger.Log($"SkinManager: ✗ Sound '{soundName}' not found in loaded assets. Available: [{string.Join(", ", _audioAssets.Keys)}]", Logger.LogLevel.Error);
         throw new KeyNotFoundException($"Sound '{soundName}' not found in loaded assets. Call LoadAudioAssets() first.");
+    }
+
+    public FontWrapper GetFontAsset(string fontName, bool debug = false) {
+        if (!ValidFontSprites.Contains(fontName)) {
+            if (debug) Logger.Log($"SkinManager: ✗ Attempted to get invalid font '{fontName}'. Valid names: [{string.Join(", ", ValidFontSprites)}]", Logger.LogLevel.Error);
+        }
+
+        if (_fontAssets.TryGetValue(fontName, out var fontWrapper)) {
+            if (debug) Logger.Log($"SkinManager: ✓ Retrieved font asset '{fontName}' for skin '{_currentSkin}'", Logger.LogLevel.Info);
+            return fontWrapper;
+        }
+
+        if (debug) Logger.Log($"SkinManager: ✗ Font '{fontName}' not found in loaded assets. Available: [{string.Join(", ", _fontAssets.Keys)}]", Logger.LogLevel.Error);
+        throw new KeyNotFoundException($"Font '{fontName}' not found in loaded assets. Call LoadFontAssets() first.");
     }
 
     /// <summary>

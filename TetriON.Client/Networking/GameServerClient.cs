@@ -19,6 +19,7 @@ public class GameServerClient : IDisposable {
     public void Dispose() {
         _webSocket?.Dispose();
         _cancellationTokenSource?.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     // TODO: Implement WebSocket connection and message handling

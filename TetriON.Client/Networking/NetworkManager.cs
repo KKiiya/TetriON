@@ -19,6 +19,7 @@ public class NetworkManager(ClientController clientController) : IDisposable {
     public void Dispose() {
         _webAppClient?.Dispose();
         _gameServerClient?.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     // TODO: Implement connection management and message routing

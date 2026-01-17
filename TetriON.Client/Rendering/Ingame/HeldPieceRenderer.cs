@@ -35,7 +35,8 @@ public class HeldPieceRenderer(TetrisGame tetrisGame, ClientController controlle
                     scaledHeight
                 );
 
-                SpriteBatch.Draw(TileSheet.GetTexture(), destRect, rectangle, Color.White);
+                var color = TetrisGame.CanHold() ? Color.White : Color.Gray;
+                SpriteBatch.Draw(TileSheet.GetTexture(), destRect, rectangle, color);
             }
         }
     }

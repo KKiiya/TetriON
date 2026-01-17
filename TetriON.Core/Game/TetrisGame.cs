@@ -148,6 +148,9 @@ public class TetrisGame {
         _score = score;
     }
 
+    public int GetComboCount() {
+        return _comboCount;
+    }
 
     public float GetGravity() {
         return _gravity;
@@ -352,7 +355,7 @@ public class TetrisGame {
     }
 
     public void MoveTetromino(MoveDirection direction) {
-        Logger.Log($"TetrisGame.MoveTetromino: Moving piece {_currentTetromino?.GetShape()} {direction}", Logger.LogLevel.Info);
+        //Logger.Log($"TetrisGame.MoveTetromino: Moving piece {_currentTetromino?.GetShape()} {direction}", Logger.LogLevel.Info);
         if (_currentTetromino == null) return;
 
         Point newPoint = direction switch {
@@ -419,8 +422,10 @@ public class TetrisGame {
             OnLineClear?.Invoke(linesCleared);
             LevelUp();
         }
-        if (!wereCleared && _comboCount > 0) _comboCount = 0;
-        else _previousLineClear = false;
+        if (!wereCleared) {
+            if (_comboCount > 0) _comboCount = 0;
+            _previousLineClear = false;
+        }
 
         AddScore(CalculateScore(linesCleared, _wasLastHardDrop));
         CalculateAttack(linesCleared);
