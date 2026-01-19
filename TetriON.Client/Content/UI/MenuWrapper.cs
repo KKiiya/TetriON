@@ -348,12 +348,6 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
             _currentFocusedComponent.HandleKeyboardInput(currentKeyboardState, previousKeyboardState);
         }
 
-        // Handle focus changes on click using new input system
-        if (mouse.IsButtonJustPressed(MouseButton.Left)) {
-            if (hoveredComponent != null) SetFocus(hoveredComponent);
-            else ClearFocus();
-        }
-
         // Support touch input for mobile/touch devices
         if (inputManager.EnableTouch && inputManager.Touch.GetActiveTouchCount() > 0) {
             var primaryTouch = inputManager.Touch.GetPrimaryTouch();
@@ -365,7 +359,19 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
                     if (!component.CanReceiveInput) continue;
 
                     if (component.HitTest(touchPosition)) {
-                        SetFocus(component);
+                        var activeDevice = inputManager.ActiveDevice;
+                        Logger.Log($"MenuWrapper [{_menuId}]: Touch input detected on component '{component.Identifier}' at bounds {component.AbsoluteBounds} using device {activeDevice}", Logger.LogLevel.Debug);
+                        switch (activeDevice) {
+                            case InputDevice.Touch:
+                                SetFocus(component);
+                                break;
+                            case InputDevice.Mouse:
+                                // Already handled by mouse click
+                                break;
+                            case InputDevice.Gamepad:
+                                // Optionally handle gamepad focus changes here
+                                break;
+                        }
                         break;
                     }
                 }

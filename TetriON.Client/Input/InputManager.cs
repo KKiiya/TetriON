@@ -641,15 +641,26 @@ public class InputManager : IDisposable {
         // Handle confirm action (Enter/Space/A button/Left Click/Tap)
         if (confirm != null && IsActionJustPressed(confirm)) {
             var focusedComponent = menu.FocusedComponent;
+            if (ActiveDevice == InputDevice.Mouse) focusedComponent = menu.HoveredComponent;
+
             if (focusedComponent != null && focusedComponent.CanReceiveInput) {
-                Logger.Log($"InputManager: Confirm action triggered on focused component '{focusedComponent.Identifier}'", Logger.LogLevel.Info);
-                // Trigger click on focused component
-                if (focusedComponent is ButtonWrapper button) {
-                    Logger.Log($"InputManager: Triggering Click() on button '{button.Identifier}'", Logger.LogLevel.Debug);
-                    button.Click();
-                } else if (focusedComponent is CheckBoxWrapper checkbox) {
-                    Logger.Log($"InputManager: Triggering Toggle() on checkbox '{checkbox.Identifier}'", Logger.LogLevel.Debug);
-                    checkbox.Toggle();
+                // Check if this is a mouse click - if so, only trigger if clicking on the focused component
+                var isMouseClick = EnableMouse && _mouse.IsButtonJustPressed(MouseButton.Left);
+                var hoveredComponent = menu.HoveredComponent;
+
+                // Only trigger focused component if:
+                // 1. It's NOT a mouse click (keyboard/gamepad input), OR
+                // 2. It IS a mouse click AND the mouse is over the focused component
+                if (!isMouseClick || hoveredComponent == focusedComponent) {
+                    Logger.Log($"InputManager: Confirm action triggered on focused component '{focusedComponent?.Identifier}'", Logger.LogLevel.Info);
+                    // Trigger click on focused component
+                    if (focusedComponent is ButtonWrapper button) {
+                        Logger.Log($"InputManager: Triggering Click() on button '{button.Identifier}'", Logger.LogLevel.Debug);
+                        button.Click();
+                    } else if (focusedComponent is CheckBoxWrapper checkbox) {
+                        Logger.Log($"InputManager: Triggering Toggle() on checkbox '{checkbox.Identifier}'", Logger.LogLevel.Debug);
+                        checkbox.Toggle();
+                    }
                 }
             } else {
                 Logger.Log("InputManager: Confirm action triggered but no focusable component", Logger.LogLevel.Debug);
