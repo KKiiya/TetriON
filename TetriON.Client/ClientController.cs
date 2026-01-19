@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TetriON.Client.Animations;
+using TetriON.Client.Content.UI;
+using TetriON.Client.Content.UI.Menus;
 using TetriON.Client.Content.UI.Modal;
 using TetriON.Client.Examples;
 using TetriON.Client.Input;
@@ -37,6 +39,8 @@ public class ClientController {
     public SpriteBatch SpriteBatch { get; }
     public GameInput GameInput { get; }
 
+    private readonly Dictionary<string, MenuWrapper> _menus = [];
+    private MenuWrapper? _activeMenu;
 
 
     private List<Renderer> _renderers = [];
@@ -72,8 +76,11 @@ public class ClientController {
         NetworkManager.Initialize();
         StateManager.Initialize();
 
-        LoadTestGame();
+        //LoadTestGame();
         LoadRenderers();
+        LoadMenus();
+
+        _activeMenu = _menus["MainMenu"];
     }
 
     public void Update(GameTime gameTime) {
@@ -84,6 +91,7 @@ public class ClientController {
         _currentGame?.Update(gameTime.ElapsedGameTime);
         // Other updates...
         foreach (var renderer in _renderers) {
+            if (!renderer.IsActive) continue;
             renderer.Update(deltaTime);
         }
     }
@@ -91,17 +99,17 @@ public class ClientController {
     public void Draw() {
         SpriteBatch.Begin();
         //Logger.Log($"ClientController: Drawing {_renderers.Count} renderers", Logger.LogLevel.Info);
+        _activeMenu?.Draw();
         foreach (var renderer in _renderers) {
             //Logger.Log($"ClientController: Drawing {renderer.GetType().Name}", Logger.LogLevel.Info);
+            if (!renderer.IsActive) continue;
             renderer.Draw();
         }
         SpriteBatch.End();
 
         // Execute post-draw actions once
         if (_postDrawActions.Count > 0) {
-            foreach (var action in _postDrawActions) {
-                action();
-            }
+            foreach (var action in _postDrawActions) action();
             _postDrawActions.Clear();
         }
     }
@@ -116,11 +124,18 @@ public class ClientController {
         AnimationPlayer.Dispose();
     }
 
-    public void LoadRenderers() {
+    private void LoadRenderers() {
         Logger.Log("ClientController: Loading renderers...", Logger.LogLevel.Info);
         _renderers.Add(new FPSRenderer(this));
         _renderers.Add(new CursorRenderer(this));
         Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
+    }
+
+    private void LoadMenus() {
+        Logger.Log("ClientController: Loading menus...", Logger.LogLevel.Info);
+        var mainMenu = MainMenu.Create(this);
+        _menus.Add("MainMenu", mainMenu);
+        Logger.Log($"ClientController: Added {_menus.Count} menus", Logger.LogLevel.Info);
     }
 
     public void LoadTestGame() {

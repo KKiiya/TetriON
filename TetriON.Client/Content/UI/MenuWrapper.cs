@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TetriON.Client.Input;
+using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.Content.UI;
 
@@ -21,9 +22,9 @@ namespace TetriON.Client.Content.UI;
 /// - Leverages new input features: gestures, multi-touch, gamepad support
 /// </para>
 /// </summary>
-public class MenuWrapper : IDisposable {
-    private readonly ClientController _controller;
-    private readonly string _menuId;
+public class MenuWrapper(ClientController controller, string menuId = "") : IDisposable {
+    private readonly ClientController _controller = controller ?? throw new ArgumentNullException(nameof(controller));
+    private readonly string _menuId = string.IsNullOrEmpty(menuId) ? Guid.NewGuid().ToString() : menuId;
     private readonly List<MenuComponent> _components = [];
     private readonly object _componentsLock = new();
 
@@ -109,23 +110,15 @@ public class MenuWrapper : IDisposable {
 
     /// <summary>Gets the currently focused component.</summary>
     public MenuComponent? FocusedComponent => _currentFocusedComponent;
-
     #endregion
 
-    #region Constructors
-
-    public MenuWrapper(ClientController controller, string menuId = "") {
-        _controller = controller ?? throw new ArgumentNullException(nameof(controller));
-        _menuId = string.IsNullOrEmpty(menuId) ? Guid.NewGuid().ToString() : menuId;
-    }
-
-    #endregion
 
     #region Component Management
 
     /// <summary>Add a component to the menu.</summary>
     public MenuWrapper AddComponent(MenuComponent component) {
-        if (component == null) throw new ArgumentNullException(nameof(component));
+        ArgumentNullException.ThrowIfNull(nameof(component));
+        Logger.Log($"MenuWrapper: Adding component {component.Identifier} to menu {_menuId}", Logger.LogLevel.Debug);
 
         lock (_componentsLock) {
             if (!_components.Contains(component)) {
@@ -142,15 +135,13 @@ public class MenuWrapper : IDisposable {
                 ComponentAdded?.Invoke(this, new MenuComponentEventArgs(component));
             }
         }
-
+        UpdateOrderCaches();
         return this;
     }
 
     /// <summary>Add multiple components to the menu.</summary>
     public MenuWrapper AddComponents(params MenuComponent[] components) {
-        foreach (var component in components) {
-            AddComponent(component);
-        }
+        foreach (var component in components) AddComponent(component);
         return this;
     }
 
@@ -205,7 +196,7 @@ public class MenuWrapper : IDisposable {
     /// <summary>Get all components of a specific type.</summary>
     public List<T> GetComponents<T>() where T : MenuComponent {
         lock (_componentsLock) {
-            return _components.OfType<T>().ToList();
+            return [.. _components.OfType<T>()];
         }
     }
 
@@ -264,16 +255,23 @@ public class MenuWrapper : IDisposable {
 
     /// <summary>Render all components in Z-index order.</summary>
     public void Draw() {
+        //Logger.Log($"MenuWrapper: Drawing menu {_menuId}", Logger.LogLevel.Debug);
         if (!_isVisible || _disposed) return;
+        //Logger.Log($"MenuWrapper: Menu {_menuId} is visible, rendering components", Logger.LogLevel.Debug);
 
         var spriteBatch = _controller.SpriteBatch;
+        //Logger.Log($"MenuWrapper: Retrieved SpriteBatch for menu {_menuId} ({spriteBatch})", Logger.LogLevel.Debug);
         if (spriteBatch == null) return;
+        //Logger.Log($"MenuWrapper: SpriteBatch is valid for menu {_menuId}", Logger.LogLevel.Debug);
+
 
         // Render components in Z-index order (low to high, back to front)
+        //Logger.Log($"MenuWrapper: Rendering components for menu {_menuId} ({_renderOrderCache.Count} components)", Logger.LogLevel.Debug);
         foreach (var component in _renderOrderCache) {
-            if (component.IsVisible) {
-                component.Render();
-            }
+            //Logger.Log($"MenuWrapper: Considering component {component.Identifier} for drawing", Logger.LogLevel.Debug);
+            if (!component.IsVisible) continue;
+            component.Render();
+            //Logger.Log($"MenuWrapper: Drew component {component.Identifier}", Logger.LogLevel.Debug);
         }
     }
 
@@ -570,12 +568,8 @@ public class MenuComponentEventArgs : EventArgs {
 /// <summary>
 /// Fluent builder for creating menus with a convenient API.
 /// </summary>
-public class MenuBuilder {
-    private readonly MenuWrapper _menu;
-
-    public MenuBuilder(ClientController controller, string menuId = "") {
-        _menu = new MenuWrapper(controller, menuId);
-    }
+public class MenuBuilder(ClientController controller, string menuId = "") {
+    private readonly MenuWrapper _menu = new(controller, menuId);
 
     /// <summary>Add a component to the menu.</summary>
     public MenuBuilder Add(MenuComponent component) {

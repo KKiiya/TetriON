@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using TetriON.Client.Content.Media;
 
 namespace TetriON.Client.Content.UI.Components;
 
@@ -11,7 +12,7 @@ namespace TetriON.Client.Content.UI.Components;
 /// </summary>
 public class TextWrapper(ClientController controller, string id = "") : MenuComponent(controller, id) {
     private string _text = string.Empty;
-    private SpriteFont? _font;
+    private FontWrapper? _font;
     private Color _textColor = Color.White;
     private Color _hoverColor = Color.Yellow;
     private Color _disabledColor = Color.Gray;
@@ -56,7 +57,7 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
     }
 
     /// <summary>Gets or sets the font used for rendering.</summary>
-    public SpriteFont? Font {
+    public FontWrapper? Font {
         get => _font;
         set {
             if (_font != value) {
@@ -174,23 +175,12 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
     #endregion
     #region Constructors
 
-    public TextWrapper(
-        ClientController controller,
-        string text,
-        SpriteFont font,
-        string id = ""
-    ) : this(controller, id) {
+    public TextWrapper(ClientController controller, string text, FontWrapper? font, string id = "") : this(controller, id) {
         _text = text;
         _font = font;
     }
 
-    public TextWrapper(
-        ClientController controller,
-        string text,
-        SpriteFont font,
-        Color textColor,
-        string id = ""
-    ) : this(controller, text, font, id) {
+    public TextWrapper(ClientController controller, string text, FontWrapper? font, Color textColor, string id = "") : this(controller, text, font, id) {
         _textColor = textColor;
     }
 
@@ -223,9 +213,7 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
         Color currentColor = GetCurrentTextColor();
 
         // Render shadow if enabled
-        if (_showShadow) {
-            RenderText(spriteBatch, _shadowColor * CurrentOpacity, _shadowOffset);
-        }
+        if (_showShadow) RenderText(spriteBatch, _shadowColor * CurrentOpacity, _shadowOffset);
 
         // Render main text
         RenderText(spriteBatch, currentColor * CurrentOpacity, Vector2.Zero);
@@ -242,7 +230,7 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
 
         if (_wordWrap && _wrappedLines != null) {
             // Render wrapped lines
-            float lineHeight = _font.LineSpacing * _lineSpacing;
+            float lineHeight = _font.CharHeight * CurrentScale * _lineSpacing;
             Vector2 linePosition = basePosition;
 
             // Apply vertical alignment
@@ -257,7 +245,7 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
             }
 
             foreach (string line in _wrappedLines) {
-                Vector2 lineSize = _font.MeasureString(line);
+                Vector2 lineSize = _font.MeasureString(line, CurrentScale);
                 Vector2 textPosition = linePosition;
 
                 // Apply horizontal alignment
@@ -276,7 +264,7 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
         } else {
             // Render single line or multi-line without wrapping
             string[] lines = _text.Split(['\n', '\r'], StringSplitOptions.None);
-            float lineHeight = _font.LineSpacing * _lineSpacing;
+            float lineHeight = _font.CharHeight * CurrentScale * _lineSpacing;
             Vector2 linePosition = basePosition;
 
             // Apply vertical alignment
@@ -291,7 +279,7 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
             }
 
             foreach (string line in lines) {
-                Vector2 lineSize = _font.MeasureString(line);
+                Vector2 lineSize = _font.MeasureString(line, CurrentScale);
                 Vector2 textPosition = linePosition;
 
                 // Apply horizontal alignment
@@ -314,15 +302,15 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
         if (_font == null) return;
 
         if (Math.Abs(_characterSpacing) < 0.001f) {
-            // No character spacing - use standard draw
-            spriteBatch.DrawString(_font, text, position, color, 0f, Vector2.Zero, CurrentScale, SpriteEffects.None, 0f);
+            // No character spacing - use FontWrapper's Draw method
+            _font.Draw(text, position, color, CurrentScale);
         } else {
-            // Draw with character spacing
+            // Draw with custom character spacing
             Vector2 currentPos = position;
             foreach (char c in text) {
                 string charStr = c.ToString();
-                spriteBatch.DrawString(_font, charStr, currentPos, color, 0f, Vector2.Zero, CurrentScale, SpriteEffects.None, 0f);
-                Vector2 charSize = _font.MeasureString(charStr);
+                _font.Draw(charStr, currentPos, color, CurrentScale);
+                Vector2 charSize = _font.MeasureString(charStr, CurrentScale);
                 currentPos.X += charSize.X + _characterSpacing;
             }
         }
@@ -346,10 +334,10 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
 
             // Calculate total size
             float maxLineWidth = 0f;
-            float totalHeight = _wrappedLines.Length * _font.LineSpacing * _lineSpacing;
+            float totalHeight = _wrappedLines.Length * _font.CharHeight * CurrentScale * _lineSpacing;
 
             foreach (string line in _wrappedLines) {
-                Vector2 lineSize = _font.MeasureString(line);
+                Vector2 lineSize = _font.MeasureString(line, CurrentScale);
                 if (lineSize.X > maxLineWidth) {
                     maxLineWidth = lineSize.X;
                 }
@@ -358,12 +346,12 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
             _measuredSize = new Vector2(maxLineWidth, totalHeight);
         } else {
             // Measure without wrapping
-            string[] lines = _text.Split(new[] { '\n', '\r' }, StringSplitOptions.None);
+            string[] lines = _text.Split(['\n', '\r'], StringSplitOptions.None);
             float maxLineWidth = 0f;
-            float totalHeight = lines.Length * _font.LineSpacing * _lineSpacing;
+            float totalHeight = lines.Length * _font.CharHeight * CurrentScale * _lineSpacing;
 
             foreach (string line in lines) {
-                Vector2 lineSize = _font.MeasureString(line);
+                Vector2 lineSize = _font.MeasureString(line, CurrentScale);
                 if (lineSize.X > maxLineWidth) {
                     maxLineWidth = lineSize.X;
                 }
@@ -395,7 +383,7 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
 
             foreach (string word in words) {
                 string testLine = currentLine.Length == 0 ? word : currentLine + " " + word;
-                Vector2 size = _font.MeasureString(testLine);
+                Vector2 size = _font.MeasureString(testLine, CurrentScale);
 
                 if (size.X > maxWidth && currentLine.Length > 0) {
                     // Start new line

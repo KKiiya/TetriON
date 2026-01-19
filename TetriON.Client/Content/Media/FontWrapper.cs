@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace TetriON.Client.Content.Media;
 
-public class FontWrapper(TextureWrapper fontSheet) : IDisposable {
+public class FontWrapper : IDisposable {
 
     // Mapping of characters to their respective indices in the font sheet
     private readonly Dictionary<char, int> _charMap = new() {
@@ -19,6 +19,9 @@ public class FontWrapper(TextureWrapper fontSheet) : IDisposable {
         {'8', 61}, {'9', 62},
         {' ', 0}, {'.', 63}, {':', 64}
     };
+
+    private readonly Dictionary<char, Rectangle> _charSourceCache = [];
+
     // Character dimensions in sprite sheet
     private readonly int _charWidth = 41;
     private readonly int _charHeight = 44;
@@ -32,8 +35,13 @@ public class FontWrapper(TextureWrapper fontSheet) : IDisposable {
     // Rendering settings
     private readonly int _renderCharSpacing = 2; // Spacing when rendering text on screen
 
-    private readonly TextureWrapper _fontSheet = fontSheet;
+    private readonly TextureWrapper _fontSheet;
     private bool _disposed;
+
+    public FontWrapper(TextureWrapper fontSheet) {
+        _fontSheet = fontSheet;
+        InitializeCharSourceCache();
+    }
 
     public Rectangle GetCharSourceRect(char c) {
         if (!_charMap.TryGetValue(c, out int index)) {
@@ -53,6 +61,13 @@ public class FontWrapper(TextureWrapper fontSheet) : IDisposable {
         int y = _sheetBorderPadding + (row * (_charHeight + _sheetCharSpacingY));
 
         return new Rectangle(x, y, _charWidth, _charHeight);
+    }
+
+    public Rectangle GetCharSourceRectCached(char c) {
+        if (_charSourceCache.TryGetValue(c, out Rectangle rect)) {
+            return rect;
+        }
+        return new Rectangle(0, 0, 0, 0);
     }
 
     public void Draw(string text, Vector2 position, Color color, float scale = 1f) {
@@ -79,7 +94,7 @@ public class FontWrapper(TextureWrapper fontSheet) : IDisposable {
                 continue;
             }
 
-            Rectangle sourceRect = GetCharSourceRect(c);
+            Rectangle sourceRect = GetCharSourceRectCached(c);
 
             if (sourceRect.Width > 0 && sourceRect.Height > 0) {
                 spriteBatch.Draw(
@@ -150,4 +165,12 @@ public class FontWrapper(TextureWrapper fontSheet) : IDisposable {
     public int CharWidth => _charWidth;
     public int CharHeight => _charHeight;
     public int RenderCharSpacing => _renderCharSpacing;
+
+    private void InitializeCharSourceCache() {
+        foreach (var kvp in _charMap) {
+            char c = kvp.Key;
+            Rectangle rect = GetCharSourceRect(c);
+            _charSourceCache[c] = rect;
+        }
+    }
 }
