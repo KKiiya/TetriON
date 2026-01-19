@@ -245,6 +245,15 @@ public abstract class MenuComponent(MenuWrapper? menu, string id = "") : Adjusta
     /// <summary>Gets whether this component can currently receive input.</summary>
     public bool CanReceiveInput { get; set; } = true;
 
+    /// <summary>Gets the current position from Adjustable.</summary>
+    public System.Drawing.Point GetCurrentPosition() => CurrentPosition;
+
+    /// <summary>Gets the current size from Adjustable.</summary>
+    public System.Drawing.Size GetCurrentSize() => CurrentSize;
+
+    /// <summary>Gets the original container size from Adjustable.</summary>
+    public System.Drawing.Size GetOriginalContainerSize() => OriginalContainerSize;
+
     /// <summary>Gets the absolute bounds in world space, accounting for parent hierarchy.</summary>
     public Rectangle AbsoluteBounds {
         get {

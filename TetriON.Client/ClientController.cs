@@ -76,6 +76,9 @@ public class ClientController {
         NetworkManager.Initialize();
         StateManager.Initialize();
 
+        // Subscribe to window resize events
+        Game.Window.ClientSizeChanged += OnWindowResized;
+
         //LoadTestGame();
         LoadRenderers();
         LoadMenus();
@@ -179,5 +182,18 @@ public class ClientController {
     public MenuWrapper? ActiveMenu {
         get => _activeMenu;
         set => _activeMenu = value;
+    }
+
+    private void OnWindowResized(object? sender, EventArgs e) {
+        var viewport = Game.GraphicsDevice.Viewport;
+        int newWidth = viewport.Width;
+        int newHeight = viewport.Height;
+
+        Logger.Log($"ClientController: Window resized to {newWidth}x{newHeight}", Logger.LogLevel.Info);
+
+        // Notify all menus about the resize
+        foreach (var menu in _menus.Values) {
+            menu.HandleResize(newWidth, newHeight);
+        }
     }
 }

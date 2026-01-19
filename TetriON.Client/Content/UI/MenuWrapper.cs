@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using TetriON.Client.Content.UI.Components;
 using TetriON.Client.Input;
 using TetriON.Shared.Utilities;
 
@@ -231,6 +233,53 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
 
     #region Update & Render
 
+    /// <summary>Handle window resize by updating all components recursively.</summary>
+    public void HandleResize(int newWidth, int newHeight) {
+        Logger.Log($"MenuWrapper [{_menuId}]: Handling resize to {newWidth}x{newHeight}", Logger.LogLevel.Info);
+
+        // Recursively update all components
+        lock (_componentsLock) {
+            foreach (var component in _components) {
+                HandleComponentResize(component, newWidth, newHeight);
+            }
+        }
+
+        _needsOrderUpdate = true;
+    }
+
+    private void HandleComponentResize(MenuComponent component, int newWidth, int newHeight) {
+        // Get the original container size from the component
+        var oldContainerSize = component.GetOriginalContainerSize();
+        
+        if (oldContainerSize.Width == 0 || oldContainerSize.Height == 0) {
+            Logger.Log($"MenuWrapper: Component '{component.Identifier}' has invalid original container size, skipping", Logger.LogLevel.Warning);
+            return;
+        }
+
+        var newContainerSize = new Size(newWidth, newHeight);
+
+        // Use Adjustable's built-in screen resize method which handles anchoring correctly
+        component.AdjustForScreenResize(newContainerSize, progress: 1.0f);
+        
+        // Update the component's internal state to reflect new container size
+        var newPos = component.GetCurrentPosition();
+        var newSize = component.GetCurrentSize();
+        component.Initialize(newPos, newSize, newContainerSize);
+        
+        Logger.Log($"MenuWrapper: Resized component '{component.Identifier}' to container {newContainerSize}, pos: {newPos}, size: {newSize}", Logger.LogLevel.Debug);
+
+        // Handle FrameWrapper specifically - need to update children relative to new frame size
+        if (component is FrameWrapper frameWithChildren) {
+            // Recursively resize all children using the frame's new size as their container
+            foreach (var child in frameWithChildren.Children) {
+                HandleComponentResize(child, newSize.Width, newSize.Height);
+            }
+            
+            // After children are resized, update layout to reposition them
+            frameWithChildren.InvalidateLayout();
+        }
+    }
+
     /// <summary>Update all components and handle input.</summary>
     public void Update(float deltaTime) {
         if (!_isActive || _disposed) return;
@@ -289,7 +338,7 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
         var keyboard = inputManager.Keyboard;
 
         // Get mouse/pointer position (prefer pointer for unified touch/mouse support)
-        Point pointerPosition = new((int)pointer.Position.X, (int)pointer.Position.Y);
+        Microsoft.Xna.Framework.Point pointerPosition = new((int)pointer.Position.X, (int)pointer.Position.Y);
         MenuComponent? hoveredComponent = null;
 
         //Logger.Log($"MenuWrapper [{_menuId}]: HandleMenuInput - Pointer at ({pointerPosition.X}, {pointerPosition.Y}), checking {_inputOrderCache.Count} components", Logger.LogLevel.Debug);
@@ -352,7 +401,7 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
         if (inputManager.EnableTouch && inputManager.Touch.GetActiveTouchCount() > 0) {
             var primaryTouch = inputManager.Touch.GetPrimaryTouch();
             if (primaryTouch != null && primaryTouch.JustStarted) {
-                Point touchPosition = new((int)primaryTouch.Position.X, (int)primaryTouch.Position.Y);
+                Microsoft.Xna.Framework.Point touchPosition = new((int)primaryTouch.Position.X, (int)primaryTouch.Position.Y);
 
                 // Find component at touch position
                 foreach (var component in _inputOrderCache) {
