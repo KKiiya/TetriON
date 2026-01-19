@@ -248,35 +248,19 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
     }
 
     private void HandleComponentResize(MenuComponent component, int newWidth, int newHeight) {
-        // Get the original container size from the component
-        var oldContainerSize = component.GetOriginalContainerSize();
-        
-        if (oldContainerSize.Width == 0 || oldContainerSize.Height == 0) {
-            Logger.Log($"MenuWrapper: Component '{component.Identifier}' has invalid original container size, skipping", Logger.LogLevel.Warning);
-            return;
+        // Update component bounds if it's a root-level component (full screen)
+        if (component is FrameWrapper frame && frame.Identifier == "root_container") {
+            // This is a root container, resize it to match the new window size
+            var newSize = new Size(newWidth, newHeight);
+            frame.Initialize(new System.Drawing.Point(0, 0), newSize, newSize);
+            Logger.Log($"MenuWrapper: Resized root container '{frame.Identifier}' to {newWidth}x{newHeight}", Logger.LogLevel.Debug);
         }
 
-        var newContainerSize = new Size(newWidth, newHeight);
-
-        // Use Adjustable's built-in screen resize method which handles anchoring correctly
-        component.AdjustForScreenResize(newContainerSize, progress: 1.0f);
-        
-        // Update the component's internal state to reflect new container size
-        var newPos = component.GetCurrentPosition();
-        var newSize = component.GetCurrentSize();
-        component.Initialize(newPos, newSize, newContainerSize);
-        
-        Logger.Log($"MenuWrapper: Resized component '{component.Identifier}' to container {newContainerSize}, pos: {newPos}, size: {newSize}", Logger.LogLevel.Debug);
-
-        // Handle FrameWrapper specifically - need to update children relative to new frame size
+        // Recursively handle children
         if (component is FrameWrapper frameWithChildren) {
-            // Recursively resize all children using the frame's new size as their container
             foreach (var child in frameWithChildren.Children) {
-                HandleComponentResize(child, newSize.Width, newSize.Height);
+                HandleComponentResize(child, newWidth, newHeight);
             }
-            
-            // After children are resized, update layout to reposition them
-            frameWithChildren.InvalidateLayout();
         }
     }
 
