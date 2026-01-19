@@ -121,8 +121,7 @@ public static class MainMenu {
                 AnchorPreset.TopCenter
             );
 
-            button.Initialize(buttonPos, new Size(buttonWidth, buttonHeight),
-                new Size(screenWidth, screenHeight));
+            button.Initialize(buttonPos, new Size(buttonWidth, buttonHeight), new Size(screenWidth, screenHeight));
             button.SetPosition(buttonPos);
             button.SetSize(new Size(buttonWidth, buttonHeight));
             button.ZIndex = 50;
