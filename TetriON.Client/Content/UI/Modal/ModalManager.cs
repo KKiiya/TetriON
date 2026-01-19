@@ -256,7 +256,7 @@ public class ModalManager(ClientController controller) : IDisposable {
             var (success, texture) = _controller.SkinManager.GetTextureAsset("modal_button");
             if (success && texture != null) {
                 var textureWrapper = new TextureWrapper(_controller, texture.GetTexture(), false);
-                var button = new ButtonWrapper(_controller, textureWrapper, id);
+                var button = new ButtonWrapper(null, textureWrapper, id);
                 return button;
             }
         } catch (Exception ex) {
@@ -264,7 +264,7 @@ public class ModalManager(ClientController controller) : IDisposable {
         }
 
         // Fallback: create button without texture
-        return new ButtonWrapper(_controller, id);
+        return new ButtonWrapper(null, id);
     }
 
     #endregion

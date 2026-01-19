@@ -129,7 +129,6 @@ public class GameInput {
 
         // Example: Check actions
         HandleGameplayInput();
-        HandleUIInput();
         HandlePointerInput();
     }
 
@@ -198,32 +197,6 @@ public class GameInput {
                 Console.WriteLine($"Left stick: {leftStick}");
                 // HandleAnalogMovement(leftStick);
             }
-        }
-    }
-
-    private void HandleUIInput() {
-        // UI interactions with pointer
-        var pointer = _inputManager.Pointer;
-
-        if (pointer.JustActivated) {
-            Console.WriteLine($"UI element clicked at: {pointer.Position}");
-            // CheckUIElementClick(pointer.Position);
-        }
-
-        if (pointer.IsActive && pointer.HoldTime > 0.5f) {
-            Console.WriteLine($"Long press at: {pointer.Position}");
-            // ShowContextMenu(pointer.Position);
-        }
-
-        // Confirm/Cancel actions
-        if (_inputManager.IsActionJustPressed(_confirmAction!)) {
-            //Console.WriteLine("Confirm!");
-            // ConfirmSelection();
-        }
-
-        if (_inputManager.IsActionJustPressed(_cancelAction!)) {
-            //Console.WriteLine("Cancel!");
-            // CancelSelection();
         }
     }
 
@@ -300,10 +273,10 @@ public class GameInput {
     }
 
     private void OnMouseGesture(object? sender, MouseGestureEventArgs e) {
-        Console.WriteLine($"Mouse gesture: {e.Type} with {e.Button}");
+        //Console.WriteLine($"Mouse gesture: {e.Type} with {e.Button}");
 
         if (e.Type == GestureType.Swipe) {
-            Console.WriteLine($"Mouse swipe {e.Direction}: {e.Delta}");
+            //Console.WriteLine($"Mouse swipe {e.Direction}: {e.Delta}");
         }
     }
 

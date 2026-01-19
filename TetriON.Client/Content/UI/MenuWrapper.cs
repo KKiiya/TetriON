@@ -292,6 +292,8 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
         Point pointerPosition = new((int)pointer.Position.X, (int)pointer.Position.Y);
         MenuComponent? hoveredComponent = null;
 
+        //Logger.Log($"MenuWrapper [{_menuId}]: HandleMenuInput - Pointer at ({pointerPosition.X}, {pointerPosition.Y}), checking {_inputOrderCache.Count} components", Logger.LogLevel.Debug);
+
         // Find the top-most component under the pointer (highest Z-index first)
         // This ensures only ONE component can be hovered at a time
         foreach (var component in _inputOrderCache) {
@@ -300,6 +302,7 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
             // Check if pointer is over this component
             if (component.HitTest(pointerPosition)) {
                 hoveredComponent = component;
+                //Logger.Log($"MenuWrapper [{_menuId}]: Hit detected on component '{component.Identifier}' at bounds {component.AbsoluteBounds}", Logger.LogLevel.Debug);
                 break; // Stop at first hit (top-most component)
             }
         }
@@ -373,6 +376,10 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
     private void UpdateHoverStates(MenuComponent? newHoveredComponent) {
         // If hover changed, update states
         if (_currentHoveredComponent != newHoveredComponent) {
+            var prevId = _currentHoveredComponent?.Identifier ?? "none";
+            var newId = newHoveredComponent?.Identifier ?? "none";
+            //Logger.Log($"MenuWrapper [{_menuId}]: Hover changed from '{prevId}' to '{newId}'", Logger.LogLevel.Info);
+
             // Clear previous hover by sending mouse state outside component bounds
             if (_currentHoveredComponent != null) {
                 var clearMouseState = new MouseState(
@@ -390,6 +397,10 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
     public void SetFocus(MenuComponent component) {
         if (_currentFocusedComponent == component) return;
 
+        var prevId = _currentFocusedComponent?.Identifier ?? "none";
+        var newId = component?.Identifier ?? "none";
+        Logger.Log($"MenuWrapper [{_menuId}]: Focus changed from '{prevId}' to '{newId}'", Logger.LogLevel.Info);
+
         if (_currentFocusedComponent != null) {
             _currentFocusedComponent.IsFocused = false;
         }
@@ -404,6 +415,8 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
     /// <summary>Clear focus from any component.</summary>
     public void ClearFocus() {
         if (_currentFocusedComponent != null) {
+            var prevId = _currentFocusedComponent.Identifier;
+            Logger.Log($"MenuWrapper [{_menuId}]: Clearing focus from '{prevId}'", Logger.LogLevel.Info);
             _currentFocusedComponent.IsFocused = false;
             _currentFocusedComponent = null;
         }
@@ -415,13 +428,33 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
 
     private void UpdateOrderCaches() {
         lock (_componentsLock) {
+            // Get all components including nested children
+            var allComponents = GetAllComponentsRecursive().ToList();
+
             // Render order: low Z-index to high (back to front)
             _renderOrderCache = _components.OrderBy(c => c.ZIndex).ToList();
 
             // Input order: high Z-index to low (front to back for hit testing)
-            _inputOrderCache = _components.OrderByDescending(c => c.ZIndex).ToList();
+            // Use all components including nested for input
+            _inputOrderCache = allComponents.OrderByDescending(c => c.ZIndex).ToList();
 
             _needsOrderUpdate = false;
+
+            Logger.Log($"MenuWrapper [{_menuId}]: Updated order caches - {_components.Count} root components, {allComponents.Count} total interactive components", Logger.LogLevel.Debug);
+        }
+    }
+
+    /// <summary>
+    /// Recursively gets all components including nested children from containers like FrameWrapper.
+    /// </summary>
+    private IEnumerable<MenuComponent> GetAllComponentsRecursive() {
+        foreach (var component in _components) {
+            yield return component;
+
+            // Recursively get descendants from this component
+            foreach (var descendant in component.GetDescendants()) {
+                yield return descendant;
+            }
         }
     }
 
@@ -474,6 +507,92 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
                 component.ZIndex = prevZ - 1;
                 _needsOrderUpdate = true;
             }
+        }
+    }
+
+    /// <summary>
+    /// Navigate focus to the previous focusable component in tab order.
+    /// Wraps around to the last component when reaching the first.
+    /// </summary>
+    public void NavigateUp() {
+        if (_components.Count == 0) return;
+
+        lock (_componentsLock) {
+            // Get all focusable components sorted by TabIndex and position
+            var focusableComponents = _components
+                .Where(c => c.CanReceiveInput && c.TabIndex >= 0)
+                .OrderBy(c => c.TabIndex)
+                .ThenBy(c => c.GetPosition().Y)
+                .ThenBy(c => c.GetPosition().X)
+                .ToList();
+
+            if (focusableComponents.Count == 0) return;
+
+            if (_currentFocusedComponent == null) {
+                // No focus yet, focus the first component
+                SetFocus(focusableComponents[0]);
+                return;
+            }
+
+            // Find current index
+            int currentIndex = focusableComponents.IndexOf(_currentFocusedComponent);
+
+            if (currentIndex < 0) {
+                // Current focused component is not in the list, focus first
+                SetFocus(focusableComponents[0]);
+                return;
+            }
+
+            // Move to previous, wrap around if needed
+            int previousIndex = currentIndex - 1;
+            if (previousIndex < 0) {
+                previousIndex = focusableComponents.Count - 1;
+            }
+
+            SetFocus(focusableComponents[previousIndex]);
+        }
+    }
+
+    /// <summary>
+    /// Navigate focus to the next focusable component in tab order.
+    /// Wraps around to the first component when reaching the last.
+    /// </summary>
+    public void NavigateDown() {
+        if (_components.Count == 0) return;
+
+        lock (_componentsLock) {
+            // Get all focusable components sorted by TabIndex and position
+            var focusableComponents = _components
+                .Where(c => c.CanReceiveInput && c.TabIndex >= 0)
+                .OrderBy(c => c.TabIndex)
+                .ThenBy(c => c.GetPosition().Y)
+                .ThenBy(c => c.GetPosition().X)
+                .ToList();
+
+            if (focusableComponents.Count == 0) return;
+
+            if (_currentFocusedComponent == null) {
+                // No focus yet, focus the first component
+                SetFocus(focusableComponents[0]);
+                return;
+            }
+
+            // Find current index
+            int currentIndex = focusableComponents.IndexOf(_currentFocusedComponent);
+
+            if (currentIndex < 0) {
+                // Current focused component is not in the list, focus first
+                SetFocus(focusableComponents[0]);
+                return;
+            }
+
+            // Move to next, wrap around if needed
+            int nextIndex = currentIndex + 1;
+            if (nextIndex >= focusableComponents.Count) {
+                nextIndex = 0;
+            }
+
+            SetFocus(focusableComponents[nextIndex]);
         }
     }
 

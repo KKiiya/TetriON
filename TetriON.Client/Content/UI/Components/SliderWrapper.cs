@@ -10,7 +10,7 @@ namespace TetriON.Client.Content.UI.Components;
 /// Slider component with draggable handle, track, and value range support.
 /// Supports mouse dragging, clicking on track to jump, and keyboard arrow key adjustment.
 /// </summary>
-public class SliderWrapper(ClientController controller, string id = "") : MenuComponent(controller, id) {
+public class SliderWrapper(MenuWrapper menu, string id = "") : MenuComponent(menu, id) {
     private float _value;
     private float _minValue;
     private float _maxValue = 100f;
@@ -150,26 +150,26 @@ public class SliderWrapper(ClientController controller, string id = "") : MenuCo
     #region Constructors
 
     public SliderWrapper(
-        ClientController controller,
+        MenuWrapper menu,
         float minValue,
         float maxValue,
         float initialValue = 0f,
         string id = ""
-    ) : this(controller, id) {
+    ) : this(menu, id) {
         _minValue = minValue;
         _maxValue = maxValue;
         _value = ClampValue(initialValue);
     }
 
     public SliderWrapper(
-        ClientController controller,
+        MenuWrapper menu,
         TextureWrapper trackTexture,
         TextureWrapper handleTexture,
         float minValue = 0f,
         float maxValue = 100f,
         float initialValue = 0f,
         string id = ""
-    ) : this(controller, minValue, maxValue, initialValue, id) {
+    ) : this(menu, minValue, maxValue, initialValue, id) {
         _trackTexture = trackTexture;
         _handleTexture = handleTexture;
     }

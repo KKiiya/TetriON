@@ -1,6 +1,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using TetriON.Client.Content.UI;
+using TetriON.Client.Content.UI.Components;
 using TetriON.Client.Input.Support;
+using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.Input;
 
@@ -308,6 +311,11 @@ public class InputManager : IDisposable {
         // Update hold times and repeat timers for DAS/ARR
         UpdateTimingTrackers(deltaTime);
 
+        // Handle menu navigation if there's an active menu
+        if (_controller.ActiveMenu != null && _controller.ActiveMenu.IsActive) {
+            HandleMenuNavigation(_controller.ActiveMenu, deltaTime);
+        }
+
         // Reset frame-specific flags
         ResetFrameFlags();
     }
@@ -403,10 +411,8 @@ public class InputManager : IDisposable {
     /// </summary>
     public void SetupDefaultBindings() {
         // Movement
-        var moveUp = RegisterAction("MoveUp", "Movement");
-        var moveDown = RegisterAction("MoveDown", "Movement");
-        var moveLeft = RegisterAction("MoveLeft", "Movement");
-        var moveRight = RegisterAction("MoveRight", "Movement");
+        var moveUp = RegisterAction("MoveUp", "UI");
+        var moveDown = RegisterAction("MoveDown", "UI");
 
         _keyBindManager.BindKey(moveUp, Keys.W);
         _keyBindManager.BindKey(moveUp, Keys.Up);
@@ -415,14 +421,6 @@ public class InputManager : IDisposable {
         _keyBindManager.BindKey(moveDown, Keys.S);
         _keyBindManager.BindKey(moveDown, Keys.Down);
         _keyBindManager.BindButton(moveDown, Buttons.DPadDown);
-
-        _keyBindManager.BindKey(moveLeft, Keys.A);
-        _keyBindManager.BindKey(moveLeft, Keys.Left);
-        _keyBindManager.BindButton(moveLeft, Buttons.DPadLeft);
-
-        _keyBindManager.BindKey(moveRight, Keys.D);
-        _keyBindManager.BindKey(moveRight, Keys.Right);
-        _keyBindManager.BindButton(moveRight, Buttons.DPadRight);
 
         // Actions
         var confirm = RegisterAction("Confirm", "UI");
@@ -544,6 +542,7 @@ public class InputManager : IDisposable {
 
         // Notify if device changed
         if (ActiveDevice != previousDevice) {
+            Logger.Log($"InputManager: Active input device changed from {previousDevice} to {ActiveDevice}", Logger.LogLevel.Info);
             InputDeviceChanged?.Invoke(this, ActiveDevice);
         }
     }
@@ -604,6 +603,87 @@ public class InputManager : IDisposable {
         }
 
         return false;
+    }
+
+    private void HandleMenuNavigation(MenuWrapper menu, float deltaTime) {
+        if (menu == null || !menu.IsActive) return;
+
+        // Get navigation actions
+        var moveUp = _keyBindManager.GetAction("MoveUp", "UI");
+        var moveDown = _keyBindManager.GetAction("MoveDown", "UI");
+        var confirm = _keyBindManager.GetAction("Confirm", "UI");
+        var cancel = _keyBindManager.GetAction("Cancel", "UI");
+
+        // Handle keyboard/gamepad navigation (up/down)
+        if (moveUp != null && IsActionJustPressed(moveUp)) {
+            Logger.Log("InputManager: MoveUp action triggered - navigating up", Logger.LogLevel.Debug);
+            menu.NavigateUp();
+        }
+
+        if (moveDown != null && IsActionJustPressed(moveDown)) {
+            Logger.Log("InputManager: MoveDown action triggered - navigating down", Logger.LogLevel.Debug);
+            menu.NavigateDown();
+        }
+
+        // Handle Tab navigation (forward/backward)
+        if (EnableKeyboard) {
+            if (_keyboard.IsKeyJustPressed(Keys.Tab)) {
+                if (_keyboard.IsKeyDown(Keys.LeftShift) || _keyboard.IsKeyDown(Keys.RightShift)) {
+                    Logger.Log("InputManager: Shift+Tab pressed - navigating up", Logger.LogLevel.Debug);
+                    menu.NavigateUp();
+                } else {
+                    Logger.Log("InputManager: Tab pressed - navigating down", Logger.LogLevel.Debug);
+                    menu.NavigateDown();
+                }
+            }
+        }
+
+        // Handle confirm action (Enter/Space/A button/Left Click/Tap)
+        if (confirm != null && IsActionJustPressed(confirm)) {
+            var focusedComponent = menu.FocusedComponent;
+            if (focusedComponent != null && focusedComponent.CanReceiveInput) {
+                Logger.Log($"InputManager: Confirm action triggered on focused component '{focusedComponent.Identifier}'", Logger.LogLevel.Info);
+                // Trigger click on focused component
+                if (focusedComponent is ButtonWrapper button) {
+                    Logger.Log($"InputManager: Triggering Click() on button '{button.Identifier}'", Logger.LogLevel.Debug);
+                    button.Click();
+                } else if (focusedComponent is CheckBoxWrapper checkbox) {
+                    Logger.Log($"InputManager: Triggering Toggle() on checkbox '{checkbox.Identifier}'", Logger.LogLevel.Debug);
+                    checkbox.Toggle();
+                }
+            } else {
+                Logger.Log("InputManager: Confirm action triggered but no focusable component", Logger.LogLevel.Debug);
+            }
+        }
+
+        // Handle cancel action (Escape/B button/Right Click)
+        if (cancel != null && IsActionJustPressed(cancel)) {
+            Logger.Log($"InputManager: Cancel action triggered in menu '{menu.MenuId}'", Logger.LogLevel.Info);
+            // Could trigger back navigation or close menu
+            // This is application-specific, could be handled via event
+        }
+
+        // Handle gamepad analog stick navigation with DAS/ARR
+        if (EnableGamepad && _gamepad.IsConnected) {
+            var leftStick = _gamepad.LeftStick;
+
+            // Vertical navigation with deadzone
+            if (Math.Abs(leftStick.Y) > 0.5f) {
+                if (leftStick.Y > 0.5f) {
+                    // Up
+                    if (moveUp != null && IsActionTriggeredWithDAS(moveUp)) {
+                        Logger.Log("InputManager: Gamepad stick up - navigating up with DAS", Logger.LogLevel.Debug);
+                        menu.NavigateUp();
+                    }
+                } else if (leftStick.Y < -0.5f) {
+                    // Down
+                    if (moveDown != null && IsActionTriggeredWithDAS(moveDown)) {
+                        Logger.Log("InputManager: Gamepad stick down - navigating down with DAS", Logger.LogLevel.Debug);
+                        menu.NavigateDown();
+                    }
+                }
+            }
+        }
     }
 
     private void ResetFrameFlags() {

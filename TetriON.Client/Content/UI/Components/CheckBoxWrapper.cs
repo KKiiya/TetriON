@@ -11,7 +11,7 @@ namespace TetriON.Client.Content.UI.Components;
 /// CheckBox component with label, textures for checked/unchecked states, and customizable colors.
 /// Supports toggle on click, keyboard space bar toggle when focused, and state change events.
 /// </summary>
-public class CheckBoxWrapper(ClientController controller, string id = "") : MenuComponent(controller, id) {
+public class CheckBoxWrapper(MenuWrapper menu, string id = "") : MenuComponent(menu, id) {
     private bool _isChecked;
     private string _label = string.Empty;
     private TextureWrapper? _checkedTexture;
@@ -109,12 +109,12 @@ public class CheckBoxWrapper(ClientController controller, string id = "") : Menu
 
 
     #region Constructors
-    public CheckBoxWrapper(ClientController controller, string label, bool isChecked = false, string id = "") : this(controller, id) {
+    public CheckBoxWrapper(MenuWrapper menu, string label, bool isChecked = false, string id = "") : this(menu, id) {
         _label = label;
         _isChecked = isChecked;
     }
 
-    public CheckBoxWrapper(ClientController controller, TextureWrapper checkedTexture, TextureWrapper uncheckedTexture, string label = "", bool isChecked = false, string id = "") : this(controller, label, isChecked, id) {
+    public CheckBoxWrapper(MenuWrapper menu, TextureWrapper checkedTexture, TextureWrapper uncheckedTexture, string label = "", bool isChecked = false, string id = "") : this(menu, label, isChecked, id) {
         _checkedTexture = checkedTexture;
         _uncheckedTexture = uncheckedTexture;
     }

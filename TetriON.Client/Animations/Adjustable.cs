@@ -8,7 +8,7 @@ namespace TetriON.Client.Animations;
 /// Base class for UI elements that support smooth resizing, animations and adjustments.
 /// Uses normalized values (0.0 to 1.0) to interpolate between original and target states.
 /// </summary>
-public abstract class Adjustable(ClientController controller) {
+public abstract class Adjustable(ClientController? controller) {
 
     public ClientController Controller { get; } = controller ?? throw new ArgumentNullException(nameof(controller));
 

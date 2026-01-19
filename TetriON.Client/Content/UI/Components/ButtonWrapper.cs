@@ -2,6 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TetriON.Client.Content.Media;
+using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.Content.UI.Components;
 
@@ -9,14 +10,13 @@ namespace TetriON.Client.Content.UI.Components;
 /// Button component that supports texture-based rendering with state-dependent colors.
 /// Integrates with MenuComponent's input handling and state management.
 /// </summary>
-public class ButtonWrapper(ClientController controller, string id = "") : MenuComponent(controller, id) {
+public class ButtonWrapper(MenuWrapper? menu, string id = "") : MenuComponent(menu, id) {
     private TextureWrapper? _texture;
     private readonly ComponentColorState _colorState = ComponentColorState.CreateDefault();
 
     #region Constructors
 
-    public ButtonWrapper(ClientController controller, TextureWrapper texture, string id = "")
-        : this(controller, id) {
+    public ButtonWrapper(MenuWrapper? menu, TextureWrapper texture, string id = "") : this(menu, id) {
         _texture = texture;
     }
 
@@ -115,7 +115,8 @@ public class ButtonWrapper(ClientController controller, string id = "") : MenuCo
     /// </summary>
     public void Click() {
         if (!CanReceiveInput) return;
-        //SafeInvoke(OnClicked, new ComponentEventArgs());
+        Logger.DebugLog("ButtonWrapper: Programmatic Click invoked.");
+        RaiseClicked();
     }
 
     /// <summary>
@@ -123,7 +124,7 @@ public class ButtonWrapper(ClientController controller, string id = "") : MenuCo
     /// </summary>
     public void RightClick() {
         if (!CanReceiveInput) return;
-        //SafeInvoke(OnRightClicked, new ComponentEventArgs());
+        RaiseRightClicked();
     }
 
     /// <summary>
@@ -131,7 +132,7 @@ public class ButtonWrapper(ClientController controller, string id = "") : MenuCo
     /// </summary>
     public void MiddleClick() {
         if (!CanReceiveInput) return;
-        //SafeInvoke(OnMiddleClicked, new ComponentEventArgs());
+        RaiseMiddleClicked();
     }
 
     #endregion

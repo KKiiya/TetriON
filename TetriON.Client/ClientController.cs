@@ -88,6 +88,10 @@ public class ClientController {
         InputManager.Update(deltaTime);
         GameInput.Update(deltaTime);
         AnimationPlayer.Update(deltaTime); // Critical!
+
+        // Update active menu (handles input, hover, focus states)
+        _activeMenu?.Update(deltaTime);
+
         _currentGame?.Update(gameTime.ElapsedGameTime);
         // Other updates...
         foreach (var renderer in _renderers) {
@@ -163,5 +167,17 @@ public class ClientController {
         _currentGame.Start();
         GameInput.LoadForGame(_currentGame);
         Logger.Log("ClientController: Test game started", Logger.LogLevel.Info);
+    }
+
+    public MenuWrapper? GetMenuById(string id) {
+        if (_menus.TryGetValue(id, out var menu)) {
+            return menu;
+        }
+        return null;
+    }
+
+    public MenuWrapper? ActiveMenu {
+        get => _activeMenu;
+        set => _activeMenu = value;
     }
 }

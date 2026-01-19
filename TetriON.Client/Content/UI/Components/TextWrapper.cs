@@ -10,7 +10,7 @@ namespace TetriON.Client.Content.UI.Components;
 /// Text display component with support for multi-line text, word wrapping, alignment, and rich formatting.
 /// Can be made interactive for clickable text links or selectable text.
 /// </summary>
-public class TextWrapper(ClientController controller, string id = "") : MenuComponent(controller, id) {
+public class TextWrapper(MenuWrapper menu, string id = "") : MenuComponent(menu, id) {
     private string _text = string.Empty;
     private FontWrapper? _font;
     private Color _textColor = Color.White;
@@ -175,12 +175,12 @@ public class TextWrapper(ClientController controller, string id = "") : MenuComp
     #endregion
     #region Constructors
 
-    public TextWrapper(ClientController controller, string text, FontWrapper? font, string id = "") : this(controller, id) {
+    public TextWrapper(MenuWrapper menu, string text, FontWrapper? font, string id = "") : this(menu, id) {
         _text = text;
         _font = font;
     }
 
-    public TextWrapper(ClientController controller, string text, FontWrapper? font, Color textColor, string id = "") : this(controller, text, font, id) {
+    public TextWrapper(MenuWrapper menu, string text, FontWrapper? font, Color textColor, string id = "") : this(menu, text, font, id) {
         _textColor = textColor;
     }
 

@@ -192,28 +192,17 @@ public class FrameWrapper : MenuComponent {
 
     #region Constructors
 
-    public FrameWrapper(ClientController controller, string id = "")
-        : base(controller, id) {
+    public FrameWrapper(MenuWrapper menu, string id = "") : base(menu, id) {
+        CanReceiveInput = false;
     }
 
-    public FrameWrapper(
-        ClientController controller,
-        int width,
-        int height,
-        string title = "",
-        string id = ""
-    ) : this(controller, id) {
+    public FrameWrapper(MenuWrapper menu, int width, int height, string title = "", string id = "") : this(menu, id) {
         SetSize(new System.Drawing.Size(width, height));
         _title = title;
         _showTitleBar = !string.IsNullOrEmpty(title);
     }
 
-    public FrameWrapper(
-        ClientController controller,
-        Rectangle bounds,
-        string title = "",
-        string id = ""
-    ) : this(controller, bounds.Width, bounds.Height, title, id) {
+    public FrameWrapper(MenuWrapper menu, Rectangle bounds, string title = "", string id = "") : this(menu, bounds.Width, bounds.Height, title, id) {
         SetPosition(new System.Drawing.Point(bounds.X, bounds.Y));
     }
 
@@ -223,9 +212,9 @@ public class FrameWrapper : MenuComponent {
 
     public override void Initialize() {
         // Subscribe to input events
-        //OnMousePressed += HandleMousePressed;
-        //OnMouseReleased += HandleMouseReleased;
-        //OnMouseHolding += HandleMouseHolding;
+        OnMousePressed += (s, e) => HandleMousePressed();
+        OnMouseReleased += (s, e) => HandleMouseReleased();
+        OnMouseHolding += (s, e) => HandleMouseHolding(e.Duration);
 
         // Initialize all children
         foreach (var child in Children) {

@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using TetriON.Client.Animations;
+using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.Content.UI;
 
@@ -13,7 +14,7 @@ namespace TetriON.Client.Content.UI;
 /// Initializes a new instance of the MenuComponent class.
 /// </remarks>
 /// <param name="controller">The client controller instance.</param>
-public abstract class MenuComponent(ClientController controller, string id = "") : Adjustable(controller), IDisposable {
+public abstract class MenuComponent(MenuWrapper? menu, string id = "") : Adjustable(menu?.Controller), IDisposable {
 
     private readonly string _id = id ?? string.Empty;
 
@@ -79,7 +80,26 @@ public abstract class MenuComponent(ClientController controller, string id = "")
 
     #endregion
 
+    #region Event Raisers
+
+    /// <summary>Raises the OnClicked event.</summary>
+    public void RaiseClicked() {
+        //Logger.Log($"MenuComponent [{Identifier}] (Instance: {GetHashCode()}): RaiseClicked called, OnClicked has {(OnClicked?.GetInvocationList()?.Length ?? 0)} subscribers", Logger.LogLevel.Debug);
+        SafeInvoke(OnClicked, new ComponentEventArgs());
+    }
+
+    /// <summary>Raises the OnRightClicked event.</summary>
+    public void RaiseRightClicked() => SafeInvoke(OnRightClicked, new ComponentEventArgs());
+
+    /// <summary>Raises the OnMiddleClicked event.</summary>
+    public void RaiseMiddleClicked() => SafeInvoke(OnMiddleClicked, new ComponentEventArgs());
+
+    #endregion
+
     #region Properties
+
+    /// <summary>Gets the number of subscribers to the OnClicked event.</summary>
+    public int OnClickedSubscriberCount => OnClicked?.GetInvocationList()?.Length ?? 0;
 
     /// <summary>Gets the unique identifier for this component.</summary>
     public string Identifier => _id;
@@ -223,20 +243,15 @@ public abstract class MenuComponent(ClientController controller, string id = "")
     }
 
     /// <summary>Gets whether this component can currently receive input.</summary>
-    public bool CanReceiveInput => IsEnabled && IsVisible && !IsDisposed;
+    public bool CanReceiveInput { get; set; } = true;
 
     /// <summary>Gets the absolute bounds in world space, accounting for parent hierarchy.</summary>
     public Rectangle AbsoluteBounds {
         get {
-            if (Parent == null) return Bounds;
-
-            var parentBounds = Parent.AbsoluteBounds;
-            return new Rectangle(
-                parentBounds.X + CurrentPosition.X,
-                parentBounds.Y + CurrentPosition.Y,
-                CurrentSize.Width,
-                CurrentSize.Height
-            );
+            // Note: Many layout systems (like FrameWrapper) already set CurrentPosition
+            // in absolute coordinates, so we just return Bounds directly.
+            // If your component needs relative positioning, override this property.
+            return Bounds;
         }
     }
 
@@ -356,8 +371,11 @@ public abstract class MenuComponent(ClientController controller, string id = "")
 
                     // Only fire click if released while still hovered
                     if (IsHovered) {
+                        //Logger.Log($"MenuComponent [{Identifier}]: Mouse click detected (IsHovered={IsHovered}, IsPressed={IsPressed}), firing OnClicked", Logger.LogLevel.Debug);
                         SafeInvoke(OnClicked, new ComponentEventArgs());
                         OnClick();
+                    } else {
+                        //Logger.Log($"MenuComponent [{Identifier}]: Mouse released but not hovered (IsHovered={IsHovered}), NOT firing OnClicked", Logger.LogLevel.Debug);
                     }
                 }
                 IsPressed = false;
@@ -377,7 +395,9 @@ public abstract class MenuComponent(ClientController controller, string id = "")
     /// <param name="point">Point to test in screen coordinates.</param>
     /// <returns>True if point is within bounds.</returns>
     public virtual bool HitTest(Point point) {
-        return AbsoluteBounds.Contains(point);
+        // Use Bounds directly since layout systems (like FrameWrapper)
+        // already set CurrentPosition in absolute screen coordinates
+        return Bounds.Contains(point);
     }
 
     /// <summary>
@@ -484,11 +504,16 @@ public abstract class MenuComponent(ClientController controller, string id = "")
     /// Thread-safe event invocation for EventHandler.
     /// </summary>
     protected void SafeInvoke<TEventArgs>(EventHandler<TEventArgs>? handler, TEventArgs args) where TEventArgs : EventArgs {
-        if (handler == null) return;
+        if (handler == null) {
+            //Logger.Log($"MenuComponent [{Identifier}]: SafeInvoke called but handler is null", Logger.LogLevel.Debug);
+            return;
+        }
 
         lock (_eventLock) {
             try {
+                //Logger.Log($"MenuComponent [{Identifier}]: SafeInvoke invoking handler with {handler.GetInvocationList().Length} subscribers", Logger.LogLevel.Debug);
                 handler?.Invoke(this, args);
+                //Logger.Log($"MenuComponent [{Identifier}]: SafeInvoke completed successfully", Logger.LogLevel.Debug);
             } catch (Exception ex) {
                 LogError($"Exception in event handler: {ex.Message}");
             }

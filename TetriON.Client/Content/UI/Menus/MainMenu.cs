@@ -1,374 +1,302 @@
 using System;
-using System.Drawing;
-using Microsoft.Xna.Framework;
+using System.Collections.Generic;
+using System.Linq; // Added for Linq
+using System.Drawing; // For Point, Size
+using Microsoft.Xna.Framework; // For Color, Vector2
 using Microsoft.Xna.Framework.Graphics;
 using TetriON.Client.Animations;
 using TetriON.Client.Content.Media;
 using TetriON.Client.Content.UI.Components;
-using TetriON.Core.Pieces.PieceTypes;
 using static TetriON.Client.Content.UI.Composers;
+using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.Content.UI.Menus;
 
 /// <summary>
-/// Main menu showcasing all available UI components with animations.
-/// Demonstrates buttons, text, checkboxes, sliders, and frames with smooth entrance animations.
+/// Redesigned Main Menu with proper hierarchy, layout management, and separated views.
 /// </summary>
 public static class MainMenu {
 
+    private const int ButtonWidth = 280;
+    private const int ButtonHeight = 50;
+    private const int PanelWidth = 400;
+    private const int PanelHeight = 500;
+
     /// <summary>
-    /// Creates a fully-featured main menu with all UI components and animations.
+    /// Creates the main menu.
     /// </summary>
     public static MenuWrapper Create(ClientController controller) {
         var builder = new MenuBuilder(controller, "main_menu");
+        var menu = builder.Build();
+        var viewport = controller.Game.GraphicsDevice.Viewport;
 
-        // Get screen dimensions for positioning
-        var screenWidth = controller.Game.GraphicsDevice.Viewport.Width;
-        var screenHeight = controller.Game.GraphicsDevice.Viewport.Height;
-
-        // Load font
+        int screenWidth = viewport.Width;
+        int screenHeight = viewport.Height;
         var font = controller.SkinManager.GetFontAsset("default");
 
-        // Create components
-        CreateTitleText(controller, font, screenWidth, builder);
-        CreateMainButtons(controller, font, screenWidth, screenHeight, builder);
-        CreateOptionsPanel(controller, font, screenWidth, screenHeight, builder);
-        CreateInfoText(controller, font, screenWidth, screenHeight, builder);
+        // 1. Root Container (Full Screen, Invisible) to hold everything centered
+        var rootContainer = new FrameWrapper(menu, screenWidth, screenHeight, id: "root_container") {
+            ShowBorder = false,
+            ShowTitleBar = false,
+            Layout = FrameLayout.None
+        };
+        rootContainer.SetBackgroundColor(Microsoft.Xna.Framework.Color.Transparent);
+        rootContainer.Initialize(new System.Drawing.Point(0, 0), new Size(screenWidth, screenHeight), new Size(screenWidth, screenHeight));
 
-        var menu = builder.Build();
-        menu.GetComponents<MenuComponent>().ForEach(c => {
-            c.IsEnabled = true;
-            c.IsVisible = true;
+        // 2. Main View (Title + Buttons)
+        var mainView = CreateMainView(menu, font, screenWidth, screenHeight);
+        rootContainer.AddChild(mainView);
+
+        // 3. Options View (Initially Hidden)
+        var optionsView = CreateOptionsView(menu, font, screenWidth, screenHeight, () => {
+            // Placeholder action, wired up later
         });
+        optionsView.IsVisible = false;
+        optionsView.IsEnabled = false;
+        rootContainer.AddChild(optionsView);
+
+        builder.Add(rootContainer);
+
+        // 4. Events Wiring
+        WireUpEvents(menu, mainView, optionsView);
+
+        // 5. Initial Entrance Animation
+        AnimateEntrance(controller, mainView);
+
         menu.IsVisible = true;
         menu.IsActive = true;
         return menu;
     }
 
-    /// <summary>
-    /// Create the animated title text.
-    /// </summary>
-    private static void CreateTitleText(ClientController controller, FontWrapper font, int screenWidth, MenuBuilder builder) {
-        var title = new TextWrapper(controller, "TETRION", font, "title_text") {
-            TextColor = Microsoft.Xna.Framework.Color.Cyan,
+    private static FrameWrapper CreateMainView(MenuWrapper menu, FontWrapper font, int screenWidth, int screenHeight) {
+        // Container for Title and Buttons
+        var container = new FrameWrapper(menu, "main_view") {
+            ShowBorder = false,
+            ShowTitleBar = false,
+            Layout = FrameLayout.None
+        };
+        container.SetBackgroundColor(Microsoft.Xna.Framework.Color.Transparent);
+        container.Initialize(new System.Drawing.Point(0, 0), new Size(screenWidth, screenHeight), new Size(screenWidth, screenHeight));
+
+        // Title
+        var title = new TextWrapper(menu, "TETRION", font, "title_text") {
+            TextColor = Microsoft.Xna.Framework.Color.White,
             ShowShadow = true,
             ShadowOffset = new Vector2(4, 4),
             ShadowColor = Microsoft.Xna.Framework.Color.Black * 0.7f
         };
 
-        // Initialize with size and position
-        var titleSize = new Size(400, 60);
-        var containerSize = new Size(screenWidth, 1080);
-        var titlePos = GetAnchoredPoint(
-            new System.Drawing.Point(0, 50),
-            titleSize,
-            containerSize,
-            AnchorPreset.TopCenter
-        );
-
-        title.Initialize(titlePos, titleSize, containerSize);
+        var titleSize = new Size(400, 80);
+        var titlePos = GetAnchoredPoint(new System.Drawing.Point(0, 60), titleSize, new Size(screenWidth, screenHeight), AnchorPreset.TopCenter);
+        title.Initialize(titlePos, titleSize, new Size(screenWidth, screenHeight));
         title.SetPosition(titlePos);
-        title.SetSize(titleSize);
-        title.ZIndex = 100;
+        container.AddChild(title);
 
-        // Animate title entrance: fade in + slide from top
-        title.SetOpacity(0f);
-        title.SetPosition(new System.Drawing.Point(titlePos.X, titlePos.Y - 50));
+        // Buttons Panel
+        var buttonsPanel = new FrameWrapper(menu, "buttons_panel") {
+            ShowBorder = false,
+            ShowTitleBar = false,
+            Layout = FrameLayout.Vertical,
+            LayoutSpacing = 15,
+            Padding = 10
+        };
+        buttonsPanel.SetBackgroundColor(Microsoft.Xna.Framework.Color.Transparent);
 
-        var animPlayer = controller.AnimationPlayer;
-        var fadeIn = AnimationDefinition.Create(AnimationType.Opacity, 1.0f)
-            .WithEasing(EasingType.EaseOutCubic)
-            .Build();
+        // Calculate size based on content
+        int buttonCount = 6;
+        int panelHeight = (ButtonHeight + 15) * buttonCount + 20;
+        buttonsPanel.SetSize(new Size(ButtonWidth + 20, panelHeight));
 
-        var slideDown = AnimationDefinition.Create(AnimationType.Position, 1.0f)
-            .WithEasing(EasingType.EaseOutBack)
-            .WithDelay(0.2f)
-            .Build();
+        // Position panel at center
+        var panelPos = GetAnchoredPoint(new System.Drawing.Point(0, 50), buttonsPanel.GetSize(), new Size(screenWidth, screenHeight), AnchorPreset.Center);
+        buttonsPanel.SetPosition(panelPos);
+        buttonsPanel.Initialize();
 
-        title.SetTargetOpacity(1f);
-        animPlayer.Play(title, fadeIn);
-
-        title.SetTarget(titlePos, titleSize, containerSize);
-        animPlayer.Play(title, slideDown);
-        builder.Add(title);
-    }
-
-    /// <summary>
-    /// Create main menu buttons with staggered animations.
-    /// </summary>
-    private static void CreateMainButtons(ClientController controller, FontWrapper font, int screenWidth, int screenHeight, MenuBuilder builder) {
-        var animPlayer = controller.AnimationPlayer;
-        var buttonNames = new[] { "Play", "Options", "Multiplayer", "Statistics", "Credits", "Exit" };
-        var buttonWidth = 300;
-        var buttonHeight = 60;
-        var buttonSpacing = 20;
-        var startY = 250;
-
-        for (int i = 0; i < buttonNames.Length; i++) {
-            var buttonName = buttonNames[i];
-            var buttonId = $"btn_{buttonName.ToLower()}";
-
-            // Create button texture (placeholder - you can use actual textures)
-            var buttonTexture = CreateButtonTexture(controller, buttonWidth, buttonHeight);
-            var button = new ButtonWrapper(controller, buttonTexture, buttonId);
-
-            // Position button
-            var yPos = startY + i * (buttonHeight + buttonSpacing);
-            var buttonPos = GetAnchoredPoint(
-                new System.Drawing.Point(0, yPos),
-                new Size(buttonWidth, buttonHeight),
-                new Size(screenWidth, screenHeight),
-                AnchorPreset.TopCenter
-            );
-
-            button.Initialize(buttonPos, new Size(buttonWidth, buttonHeight), new Size(screenWidth, screenHeight));
-            button.SetPosition(buttonPos);
-            button.SetSize(new Size(buttonWidth, buttonHeight));
-            button.ZIndex = 50;
-
-            // Set button colors
-            button.SetColors(
-                normal: Microsoft.Xna.Framework.Color.White,
-                hover: Microsoft.Xna.Framework.Color.Yellow,
-                pressed: Microsoft.Xna.Framework.Color.Orange,
-                disabled: Microsoft.Xna.Framework.Color.Gray,
-                selected: Microsoft.Xna.Framework.Color.Cyan
-            );
-
-            // Add button text label
-            var label = new TextWrapper(controller, buttonName, font, $"lbl_{buttonName.ToLower()}") {
-                TextColor = Microsoft.Xna.Framework.Color.White,
-                HoverColor = Microsoft.Xna.Framework.Color.Black
-            };
-
-            var labelPos = new System.Drawing.Point(buttonPos.X + 100, buttonPos.Y + 15);
-            label.Initialize(labelPos, new Size(100, 30),
-                new Size(screenWidth, screenHeight));
-            label.SetPosition(labelPos);
-            label.ZIndex = 51;
-
-            // Animate button entrance: slide from left + fade in
-            button.SetOpacity(0f);
-            button.SetPosition(new System.Drawing.Point(buttonPos.X - 200, buttonPos.Y));
-
-            var delay = 0.5f + (i * 0.1f);
-
-            var fadeIn = AnimationDefinition.Create(AnimationType.Opacity, 0.6f)
-                .WithEasing(EasingType.EaseOutQuad)
-                .WithDelay(delay)
-                .Build();
-
-            var slideIn = AnimationDefinition.Create(AnimationType.Position, 0.8f)
-                .WithEasing(EasingType.EaseOutBack)
-                .WithDelay(delay)
-                .Build();
-
-            button.SetTargetOpacity(1f);
-            animPlayer.Play(button, fadeIn);
-
-            button.SetTarget(buttonPos, new Size(buttonWidth, buttonHeight), new Size(screenWidth, screenHeight));
-            button.OnHoverEnter += (sender, e) => {
-                var hoverScale = AnimationDefinition.Create(AnimationType.Scale, 0.2f)
-                    .WithEasing(EasingType.EaseOutQuad)
-                    .Build();
-                button.SetTargetScale(1.1f);
-                animPlayer.Play(button, hoverScale);
-            };
-
-            button.OnHoverExit += (sender, e) => {
-                var normalScale = AnimationDefinition.Create(AnimationType.Scale, 0.2f)
-                    .WithEasing(EasingType.EaseOutQuad)
-                    .Build();
-                button.SetTargetScale(1.0f);
-                animPlayer.Play(button, normalScale);
-            };
-
-            // Button click handler
-            button.OnClicked += (sender, e) => {
-                System.Diagnostics.Debug.WriteLine($"Button clicked: {buttonName}");
-
-                // Click animation: quick scale down and up
-                var clickAnim = AnimationDefinition.Create(AnimationType.Scale, 0.1f)
-                    .WithEasing(EasingType.EaseInOutQuad)
-                    .Build();
-                button.SetTargetScale(0.9f);
-                animPlayer.Play(button, clickAnim);
-
-                // Scale back after brief delay
-                var scaleBack = AnimationDefinition.Create(AnimationType.Scale, 0.1f)
-                    .WithEasing(EasingType.EaseOutQuad)
-                    .WithDelay(0.1f)
-                    .Build();
-                button.SetTargetScale(1.1f);
-                animPlayer.Play(button, scaleBack);
-            };
-
-            builder.Add(button);
-            builder.Add(label);
+        // Buttons
+        string[] btnNames = { "Play", "Options", "Multiplayer", "Statistics", "Credits", "Exit" };
+        foreach (var name in btnNames) {
+            var btn = CreateStyledButton(menu, name, font);
+            buttonsPanel.AddChild(btn);
         }
+
+        container.AddChild(buttonsPanel);
+
+        // Info Text
+        var infoText = new TextWrapper(menu, "Press ESC to return | Use mouse or touch to interact", font, "info_text") {
+            TextColor = Microsoft.Xna.Framework.Color.Gray * 0.7f
+        };
+        var infoPos = GetAnchoredPoint(new System.Drawing.Point(0, 20), new Size(400, 30), new Size(screenWidth, screenHeight), AnchorPreset.BottomLeft);
+        infoText.Initialize(infoPos, new Size(600, 30), new Size(screenWidth, screenHeight));
+        infoText.SetPosition(infoPos);
+        container.AddChild(infoText);
+
+        return container;
     }
 
-    /// <summary>
-    /// Create options panel with sliders and checkboxes.
-    /// </summary>
-    private static void CreateOptionsPanel(ClientController controller, FontWrapper font, int screenWidth, int screenHeight, MenuBuilder builder) {
-        var animPlayer = controller.AnimationPlayer;
-
-        // Create frame container
-        var frame = new FrameWrapper(controller, "options_frame") {
+    private static FrameWrapper CreateOptionsView(MenuWrapper menu, FontWrapper font, int screenWidth, int screenHeight, Action onClose) {
+        var optionsFrame = new FrameWrapper(menu, "options_frame") {
             Title = "Settings",
             ShowTitleBar = true,
             ShowBorder = true,
-            BorderWidth = 3,
-            Padding = 15
+            BorderWidth = 2,
+            Padding = 20,
+            Layout = FrameLayout.Vertical,
+            LayoutSpacing = 20,
+            IsDraggable = true,
+            EnableScrolling = false
         };
-
-        var frameWidth = 400;
-        var frameHeight = 300;
-        var framePos = new System.Drawing.Point(screenWidth - frameWidth - 50, screenHeight - frameHeight - 50);
-
-        frame.Initialize(framePos, new Size(frameWidth, frameHeight),
-            new Size(screenWidth, screenHeight));
-        frame.SetPosition(framePos);
-        frame.SetSize(new Size(frameWidth, frameHeight));
-        frame.ZIndex = 30;
-
-        // Animate frame entrance: scale up + fade in
-        frame.SetOpacity(0f);
-        frame.SetScale(0.5f);
-
-        var frameFade = AnimationDefinition.Create(AnimationType.Opacity, 0.8f)
-            .WithEasing(EasingType.EaseOutQuad)
-            .WithDelay(1.5f)
-            .Build();
-
-        var frameScale = AnimationDefinition.Create(AnimationType.Scale, 0.8f)
-            .WithEasing(EasingType.EaseOutBack)
-            .WithDelay(1.5f)
-            .Build();
-
-        frame.SetTargetOpacity(1f);
-        frame.SetTargetScale(1.0f);
-        animPlayer.Play(frame, frameFade);
-        animPlayer.Play(frame, frameScale);
-
-        builder.Add(frame);
-
-        // Add volume slider
-        var volumeSlider = new SliderWrapper(controller, 0f, 100f, 75f, "volume_slider") {
-            Label = "Volume",
-            ShowValue = true,
-            SliderWidth = 250,
-            SliderHeight = 20
-        };
-
-        var sliderPos = new System.Drawing.Point(framePos.X + 75, framePos.Y + 70);
-        volumeSlider.Initialize(sliderPos, new Size(250, 24),
-            new Size(screenWidth, screenHeight));
-        volumeSlider.SetPosition(sliderPos);
-        volumeSlider.ZIndex = 31;
-
-        volumeSlider.ValueChanged += (sender, e) => {
-            System.Diagnostics.Debug.WriteLine($"Volume changed: {e.NewValue}");
-        };
-
-        // Animate slider
-        volumeSlider.SetOpacity(0f);
-        var sliderFade = AnimationDefinition.Create(AnimationType.Opacity, 0.5f)
-            .WithEasing(EasingType.EaseOutQuad)
-            .WithDelay(1.8f)
-            .Build();
-        volumeSlider.SetTargetOpacity(1f);
-        animPlayer.Play(volumeSlider, sliderFade);
-
-        builder.Add(volumeSlider);
-
-        // Add checkboxes
-        var checkboxOptions = new[] { "Fullscreen", "VSync", "Show FPS" };
-        for (int i = 0; i < checkboxOptions.Length; i++) {
-            var option = checkboxOptions[i];
-            var checkbox = new CheckBoxWrapper(controller, option, false, $"chk_{option.ToLower().Replace(" ", "_")}") {
-                CheckBoxSize = 24,
-                LabelSpacing = 10
-            };
-
-            var chkPos = new System.Drawing.Point(framePos.X + 75, framePos.Y + 130 + i * 40);
-            checkbox.Initialize(chkPos, new Size(200, 24),
-                new Size(screenWidth, screenHeight));
-            checkbox.SetPosition(chkPos);
-            checkbox.ZIndex = 31;
-
-            checkbox.CheckedChanged += (sender, e) => {
-                System.Diagnostics.Debug.WriteLine($"{option}: {e.NewValue}");
-            };
-
-            // Animate checkbox
-            checkbox.SetOpacity(0f);
-            var chkFade = AnimationDefinition.Create(AnimationType.Opacity, 0.5f)
-                .WithEasing(EasingType.EaseOutQuad)
-                .WithDelay(2.0f + i * 0.1f)
-                .Build();
-            checkbox.SetTargetOpacity(1f);
-            animPlayer.Play(checkbox, chkFade);
-
-            builder.Add(checkbox);
-        }
-    }
-
-    /// <summary>
-    /// Create info text at the bottom.
-    /// </summary>
-    private static void CreateInfoText(ClientController controller, FontWrapper font, int screenWidth, int screenHeight, MenuBuilder builder) {
-        var infoText = new TextWrapper(controller, "Press ESC to return | Use mouse or touch to interact",
-            font, "info_text") {
-            TextColor = Microsoft.Xna.Framework.Color.Gray * 0.7f
-        };
-
-        var infoPos = GetAnchoredPoint(
-            new System.Drawing.Point(0, 20),
-            new Size(600, 30),
-            new Size(screenWidth, screenHeight),
-            AnchorPreset.BottomCenter
+        optionsFrame.SetColors(
+            background: new Microsoft.Xna.Framework.Color(30, 30, 35, 250),
+            border: new Microsoft.Xna.Framework.Color(80, 80, 90),
+            titleBar: new Microsoft.Xna.Framework.Color(40, 40, 45),
+            titleText: Microsoft.Xna.Framework.Color.White
         );
 
-        infoText.Initialize(infoPos, new Size(600, 30),
-            new Size(screenWidth, screenHeight));
-        infoText.SetPosition(infoPos);
-        infoText.ZIndex = 10;
+        optionsFrame.SetSize(new Size(PanelWidth, PanelHeight));
+        optionsFrame.CenterOnScreen(screenWidth, screenHeight);
+        optionsFrame.Initialize();
 
-        // Pulse animation
-        infoText.SetOpacity(0.5f);
-        var pulse = AnimationDefinition.Create(AnimationType.Opacity, 2.0f)
-            .WithEasing(EasingType.EaseInOutSine)
-            .WithDelay(2.5f)
-            .WithLoop(true)
-            .WithReverse(true)
-            .Build();
+        // 1. Volume Slider
+        var volLabel = new TextWrapper(menu, "Master Volume", font);
+        volLabel.Initialize(System.Drawing.Point.Empty, new Size(200, 25), new Size(PanelWidth, PanelHeight));
+        optionsFrame.AddChild(volLabel);
 
-        infoText.SetTargetOpacity(1.0f);
-        controller.AnimationPlayer.Play(infoText, pulse);
+        var volumeSlider = new SliderWrapper(menu, 0f, 100f, 75f, "volume_slider") {
+            SliderWidth = PanelWidth - 60,
+            ShowValue = true
+        };
+        volumeSlider.Initialize(System.Drawing.Point.Empty, new Size(PanelWidth - 60, 30), new Size(PanelWidth, PanelHeight));
+        optionsFrame.AddChild(volumeSlider);
 
-        builder.Add(infoText);
+        // 2. Checkboxes
+        string[] checks = { "Fullscreen", "VSync", "Show FPS" };
+        foreach (var check in checks) {
+            var chk = new CheckBoxWrapper(menu, check, false, $"chk_{check.Replace(" ", "")}") {
+                LabelSpacing = 15,
+                CheckBoxSize = 24
+            };
+            chk.Initialize(System.Drawing.Point.Empty, new Size(200, 30), new Size(PanelWidth, PanelHeight));
+            optionsFrame.AddChild(chk);
+        }
+
+        // Spacer
+        var spacer = new FrameWrapper(menu, "spacer") { ShowBorder = false };
+        spacer.SetBackgroundColor(Microsoft.Xna.Framework.Color.Transparent);
+        spacer.SetSize(new Size(10, 40));
+        spacer.Initialize();
+        optionsFrame.AddChild(spacer);
+
+        // 3. Back Button
+        var backBtn = CreateStyledButton(menu, "Back", font);
+        // ID "btn_back" used for wiring
+        // CreateStyledButton uses lowercase "btn_back"
+        optionsFrame.AddChild(backBtn);
+
+        return optionsFrame;
     }
 
-    /// <summary>
-    /// Helper method to create a simple button texture.
-    /// Replace with actual texture loading in production.
-    /// </summary>
-    private static TextureWrapper CreateButtonTexture(ClientController controller, int width, int height) {
-        var texture = new Texture2D(controller.Game.GraphicsDevice, width, height);
-        var colorData = new Microsoft.Xna.Framework.Color[width * height];
+    private static ButtonWrapper CreateStyledButton(MenuWrapper menu, string text, FontWrapper font) {
+        var tex = CreateSolidTexture(menu, ButtonWidth, ButtonHeight, Microsoft.Xna.Framework.Color.White);
 
-        // Create gradient button
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                float gradient = (float)y / height;
-                byte value = (byte)(100 + gradient * 100);
-                colorData[y * width + x] = new Microsoft.Xna.Framework.Color(value, value, value);
+        var btn = new ButtonWrapper(menu, tex, $"btn_{text.ToLower()}") {
+            // Initialization handled by parent add or manual call if needed
+        };
+        btn.SetSize(new Size(ButtonWidth, ButtonHeight));
+
+        btn.SetColors(
+            normal: new Microsoft.Xna.Framework.Color(60, 60, 65),
+            hover: new Microsoft.Xna.Framework.Color(80, 80, 90),
+            pressed: new Microsoft.Xna.Framework.Color(100, 100, 110),
+            disabled: new Microsoft.Xna.Framework.Color(40, 40, 40),
+            selected: new Microsoft.Xna.Framework.Color(50, 50, 150)
+        );
+
+        var label = new TextWrapper(menu, text, font, $"lbl_{text}") {
+            TextColor = Microsoft.Xna.Framework.Color.White,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        label.Initialize(new System.Drawing.Point(0, 0), new Size(ButtonWidth, ButtonHeight), new Size(ButtonWidth, ButtonHeight));
+        label.SetPosition(new System.Drawing.Point(0, 12));
+
+        btn.AddChild(label);
+
+        return btn;
+    }
+
+    private static TextureWrapper CreateSolidTexture(MenuWrapper menu, int width, int height, Microsoft.Xna.Framework.Color color) {
+        var texture = new Texture2D(menu.Controller.Game.GraphicsDevice, width, height);
+        var data = new Microsoft.Xna.Framework.Color[width * height];
+        for (int i = 0; i < data.Length; i++) data[i] = color;
+        texture.SetData(data);
+        return new TextureWrapper(menu.Controller, texture, true);
+    }
+
+    private static void WireUpEvents(MenuWrapper menu, FrameWrapper mainView, FrameWrapper optionsView) {
+        //Logger.Log($"MainMenu: WireUpEvents called. MainView: {mainView.GetHashCode()}, OptionsView: {optionsView.GetHashCode()}", Logger.LogLevel.Info);
+        var buttonsPanel = mainView.Children.FirstOrDefault(c => c.Identifier == "buttons_panel");
+
+        if (buttonsPanel is FrameWrapper panel) {
+            //Logger.Log($"MainMenu: Found buttons_panel with {panel.Children.Count} children", Logger.LogLevel.Info);
+            foreach (var child in panel.Children) {
+                if (child is ButtonWrapper btn) {
+                    //Logger.Log($"MainMenu: Processing button '{btn.Identifier}' (Instance: {btn.GetHashCode()})", Logger.LogLevel.Debug);
+                    switch (btn.Identifier) {
+                        case "btn_options":
+                            btn.OnClicked += (s, e) => {
+                                mainView.IsVisible = false;
+                                mainView.IsEnabled = false;
+
+                                optionsView.IsVisible = true;
+                                optionsView.IsEnabled = true;
+
+                                AnimateEntrance(menu.Controller, optionsView);
+                            };
+                            break;
+                        case "btn_exit":
+                            btn.OnClicked += (s, e) => menu.Controller.Game.Exit();
+                            break;
+                        case "btn_play":
+                            //Logger.Log($"MainMenu: Subscribing to btn_play OnClicked event (Button instance: {btn.GetHashCode()})", Logger.LogLevel.Info);
+                            btn.OnClicked += (s, e) => {
+                                //Logger.Log($"MainMenu: btn_play OnClicked event FIRED! Sender: {s?.GetType().Name}, Args: {e?.GetType().Name}", Logger.LogLevel.Info);
+                                menu.IsActive = false;
+                                menu.Controller.LoadTestGame();
+                            };
+                            //Logger.Log($"MainMenu: btn_play event subscribed. OnClicked has {btn.OnClickedSubscriberCount} subscribers", Logger.LogLevel.Info);
+                            break;
+                    }
+                }
             }
         }
 
-        texture.SetData(colorData);
-        return new TextureWrapper(controller, texture, true); // ownsTexture = true
+        if (optionsView.Children.FirstOrDefault(c => c.Identifier == "btn_back") is ButtonWrapper optionsBack) {
+            optionsBack.OnClicked += (s, e) => {
+                TransitionOut(menu.Controller, optionsView, () => {
+                    optionsView.IsVisible = false;
+                    optionsView.IsEnabled = false;
+                    mainView.IsVisible = true;
+                    mainView.IsEnabled = true;
+                    AnimateEntrance(menu.Controller, mainView);
+                });
+            };
+        }
+    }
+
+    private static void AnimateEntrance(ClientController controller, MenuComponent component) {
+        component.SetOpacity(0f);
+        var fadeIn = AnimationDefinition.Create(AnimationType.Opacity, 0.5f).WithEasing(EasingType.EaseOutQuad).Build();
+        component.SetTargetOpacity(1f);
+        controller.AnimationPlayer.Play(component, fadeIn);
+
+        var originalPos = component.GetPosition();
+        component.SetPosition(new System.Drawing.Point(originalPos.X, originalPos.Y + 50));
+        var slide = AnimationDefinition.Create(AnimationType.Position, 0.5f).WithEasing(EasingType.EaseOutBack).Build();
+        component.SetTarget(originalPos, component.GetSize(), new Size(0, 0));
+        controller.AnimationPlayer.Play(component, slide);
+    }
+
+    private static void TransitionOut(ClientController controller, MenuComponent component, Action onComplete) {
+        // Instant transition for now to avoid async complexity without callback support in AnimationPlayer
+        onComplete?.Invoke();
     }
 }
