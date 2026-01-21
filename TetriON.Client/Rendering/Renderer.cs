@@ -6,10 +6,10 @@ namespace TetriON.Client.Rendering;
 
 public abstract class Renderer(ClientController controller) {
 
-    private readonly ClientController _controller = controller;
-    protected SkinManager SkinManager => _controller.SkinManager;
-    protected SpriteBatch SpriteBatch => _controller.SpriteBatch;
-    protected Game Game => _controller.Game;
+    public readonly ClientController Controller = controller;
+    protected SkinManager SkinManager => Controller.SkinManager;
+    protected SpriteBatch SpriteBatch => Controller.SpriteBatch;
+    protected Game Game => Controller.Game;
     public bool IsActive { get; set; } = true;
     public int ZIndex { get; set; } = 0;
 

@@ -4,10 +4,16 @@ using TetriON.Client.Input;
 
 namespace TetriON.Client.Rendering.UI;
 
-public class CursorRenderer(ClientController controller) : Renderer(controller) {
+public class CursorRenderer : Renderer {
 
-    private readonly TextureWrapper _cursorTexture = controller.SkinManager.GetTextureAsset("cursor").texture;
-    private readonly InputManager _inputManager = controller.InputManager;
+    private readonly TextureWrapper _cursorTexture;
+    private readonly InputManager _inputManager;
+
+    public CursorRenderer(ClientController controller) : base(controller) {
+        _cursorTexture = controller.SkinManager.GetTextureAsset("cursor").texture;
+        _inputManager = controller.InputManager;
+        ZIndex = 1000;
+    }
 
 
     public override void Draw() {

@@ -106,7 +106,6 @@ public class ClientController {
     public void Draw() {
         SpriteBatch.Begin();
         //Logger.Log($"ClientController: Drawing {_renderers.Count} renderers", Logger.LogLevel.Info);
-        _activeMenu?.Draw();
         foreach (var renderer in _renderers) {
             //Logger.Log($"ClientController: Drawing {renderer.GetType().Name}", Logger.LogLevel.Info);
             if (!renderer.IsActive) continue;
@@ -135,6 +134,7 @@ public class ClientController {
         Logger.Log("ClientController: Loading renderers...", Logger.LogLevel.Info);
         _renderers.Add(new FPSRenderer(this));
         _renderers.Add(new CursorRenderer(this));
+        _renderers.Add(new CurrentMenuRenderer(this));
         Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
     }
 
