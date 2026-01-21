@@ -17,7 +17,7 @@ public abstract class Adjustable(ClientController? controller) {
 
     #region Original State Properties
     // Store original position and dimensions
-    protected UDim2 OriginalUDim2 { get; set; }
+    protected UDim2 OriginalUDim2 { get; set; } =
     protected Vector2 OriginalPosition {
         get => OriginalUDim2.PositionPercentil;
         set => OriginalUDim2.PositionPercentil = value;
