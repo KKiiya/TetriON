@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TetriON.Client.Content.UI;
 
 namespace TetriON.Client.Rendering.UI;
 
@@ -27,7 +28,7 @@ public class CurrentMenuRenderer : Renderer {
 
         // Render components in Z-index order (low to high, back to front)
         //Logger.Log($"MenuWrapper: Rendering components for menu {_menuId} ({_renderOrderCache.Count} components)", Logger.LogLevel.Debug);
-        foreach (var component in menu.GetRenderOrder()) {
+        foreach (var component in menu.GetRenderOrder<MenuComponent>()) {
             //Logger.Log($"MenuWrapper: Considering component {component.Identifier} for drawing", Logger.LogLevel.Debug);
             if (!component.IsVisible) continue;
             component.Render();

@@ -11,7 +11,7 @@ namespace TetriON.Client.Content.UI.Components;
 /// CheckBox component with label, textures for checked/unchecked states, and customizable colors.
 /// Supports toggle on click, keyboard space bar toggle when focused, and state change events.
 /// </summary>
-public class CheckBoxWrapper(MenuWrapper menu, string id = "") : MenuComponent(menu, id) {
+public class CheckBoxWrapper(MenuWrapper menu, FrameWrapper? frame = null, string id = "") : MenuComponent(menu, frame, id) {
     private bool _isChecked;
     private string _label = string.Empty;
     private TextureWrapper? _checkedTexture;
@@ -99,22 +99,27 @@ public class CheckBoxWrapper(MenuWrapper menu, string id = "") : MenuComponent(m
     }
 
     /// <summary>Gets the bounds of just the checkbox (for hit testing).</summary>
-    public Rectangle CheckBoxBounds => new(
-        CurrentPosition.X,
-        CurrentPosition.Y,
-        _checkBoxSize,
-        _checkBoxSize
-    );
+    public Rectangle CheckBoxBounds {
+        get {
+            var absPos = GetAbsolutePosition();
+            return new Rectangle(
+                absPos.X,
+                absPos.Y,
+                _checkBoxSize,
+                _checkBoxSize
+            );
+        }
+    }
     #endregion
 
 
     #region Constructors
-    public CheckBoxWrapper(MenuWrapper menu, string label, bool isChecked = false, string id = "") : this(menu, id) {
+    public CheckBoxWrapper(MenuWrapper menu, string label, FrameWrapper? frame = null, bool isChecked = false, string id = "") : this(menu, frame, id) {
         _label = label;
         _isChecked = isChecked;
     }
 
-    public CheckBoxWrapper(MenuWrapper menu, TextureWrapper checkedTexture, TextureWrapper uncheckedTexture, string label = "", bool isChecked = false, string id = "") : this(menu, label, isChecked, id) {
+    public CheckBoxWrapper(MenuWrapper menu, TextureWrapper checkedTexture, TextureWrapper uncheckedTexture, string label = "", FrameWrapper? frame = null, bool isChecked = false, string id = "") : this(menu, label, frame, isChecked, id) {
         _checkedTexture = checkedTexture;
         _uncheckedTexture = uncheckedTexture;
     }
@@ -150,7 +155,8 @@ public class CheckBoxWrapper(MenuWrapper menu, string id = "") : MenuComponent(m
 
         if (currentTexture != null) {
             // Set texture position and draw with state color tint
-            currentTexture.SetPosition(new System.Drawing.Point((int)CurrentPosition.X, (int)CurrentPosition.Y));
+            var absPos = GetAbsolutePosition();
+            currentTexture.SetPosition(new System.Drawing.Point(absPos.X, absPos.Y));
             currentTexture.SetOpacity(CurrentOpacity);
             currentTexture.Draw(currentColor * CurrentOpacity, scaled: true);
         } else {
@@ -161,7 +167,8 @@ public class CheckBoxWrapper(MenuWrapper menu, string id = "") : MenuComponent(m
         // Render label if present
         if (!string.IsNullOrWhiteSpace(_label) && _font != null) {
             Color labelColor = GetCurrentLabelColor();
-            Vector2 labelPosition = new Vector2(CurrentPosition.X, CurrentPosition.Y) + _labelOffset;
+            var absPos = GetAbsolutePosition();
+            Vector2 labelPosition = new Vector2(absPos.X, absPos.Y) + _labelOffset;
 
             spriteBatch.DrawString(
                 _font,

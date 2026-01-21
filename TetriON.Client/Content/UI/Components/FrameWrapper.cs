@@ -162,14 +162,16 @@ public class FrameWrapper : MenuComponent {
     /// <summary>Gets the content area bounds (inside padding and borders).</summary>
     public Rectangle ContentBounds {
         get {
+            var absPos = GetAbsolutePosition();
+            var absSize = GetAbsoluteSize();
             int topOffset = _borderWidth + _padding;
             if (_showTitleBar) topOffset += _titleBarHeight;
 
             return new Rectangle(
-                CurrentPosition.X + _borderWidth + _padding,
-                CurrentPosition.Y + topOffset,
-                CurrentSize.Width - (_borderWidth + _padding) * 2,
-                CurrentSize.Height - topOffset - (_borderWidth + _padding)
+                absPos.X + _borderWidth + _padding,
+                absPos.Y + topOffset,
+                absSize.Width - (_borderWidth + _padding) * 2,
+                absSize.Height - topOffset - (_borderWidth + _padding)
             );
         }
     }
@@ -179,10 +181,12 @@ public class FrameWrapper : MenuComponent {
         get {
             if (!_showTitleBar) return Rectangle.Empty;
 
+            var absPos = GetAbsolutePosition();
+            var absSize = GetAbsoluteSize();
             return new Rectangle(
-                CurrentPosition.X + _borderWidth,
-                CurrentPosition.Y + _borderWidth,
-                CurrentSize.Width - _borderWidth * 2,
+                absPos.X + _borderWidth,
+                absPos.Y + _borderWidth,
+                absSize.Width - _borderWidth * 2,
                 _titleBarHeight
             );
         }
@@ -192,7 +196,7 @@ public class FrameWrapper : MenuComponent {
 
     #region Constructors
 
-    public FrameWrapper(MenuWrapper menu, string id = "") : base(menu, id) {
+    public FrameWrapper(MenuWrapper menu, string id = "") : base(menu, null, id) {
         CanReceiveInput = false;
     }
 

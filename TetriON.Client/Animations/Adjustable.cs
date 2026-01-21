@@ -1,5 +1,7 @@
 using System.Drawing;
+using System.Numerics;
 using TetriON.Client.Content.UI;
+using TetriON.Client.Content.UI.Utils;
 using static TetriON.Client.Content.UI.Composers;
 
 namespace TetriON.Client.Animations;
@@ -15,9 +17,23 @@ public abstract class Adjustable(ClientController? controller) {
 
     #region Original State Properties
     // Store original position and dimensions
-    protected Point OriginalPosition { get; set; }
-    protected Size OriginalSize { get; set; }
-    protected Size OriginalContainerSize { get; set; }
+    protected UDim2 OriginalUDim2 { get; set; }
+    protected Vector2 OriginalPosition {
+        get => OriginalUDim2.PositionPercentil;
+        set => OriginalUDim2.PositionPercentil = value;
+    }
+    protected Point OriginalOffset {
+        get => OriginalUDim2.Offset;
+        set => OriginalUDim2.Offset = new(value.X, value.Y);
+    }
+    protected Vector2 OriginalSize {
+        get => OriginalUDim2.ObjectSize;
+        set => OriginalUDim2.ObjectSize = value;
+    }
+    protected Size OriginalContainerSize {
+        get => OriginalUDim2.ParentSize;
+        set => OriginalUDim2.ParentSize = value;
+    }
 
     // Store original visual properties
     protected float OriginalOpacity { get; set; } = 1.0f;
@@ -28,9 +44,23 @@ public abstract class Adjustable(ClientController? controller) {
 
     #region Target State Properties
     // Store target position and dimensions
-    protected Point TargetPosition { get; set; }
-    protected Size TargetSize { get; set; }
-    protected Size TargetContainerSize { get; set; }
+    protected UDim2 TargetUDim2 { get; set; } = UDim2.Zero;
+    protected Vector2 TargetPosition {
+        get => TargetUDim2.PositionPercentil;
+        set => TargetUDim2.PositionPercentil = value;
+    }
+    protected Point TargetOffset {
+        get => TargetUDim2.Offset;
+        set => TargetUDim2.Offset = new(value.X, value.Y);
+    }
+    protected Vector2 TargetSize {
+        get => TargetUDim2.ObjectSize;
+        set => TargetUDim2.ObjectSize = value;
+    }
+    protected Size TargetContainerSize {
+        get => TargetUDim2.ParentSize;
+        set => TargetUDim2.ParentSize = value;
+    }
 
     // Store target visual properties
     protected float TargetOpacity { get; set; } = 1.0f;
@@ -41,8 +71,33 @@ public abstract class Adjustable(ClientController? controller) {
 
     #region Current State Properties
     // Current interpolated values
-    protected Point CurrentPosition { get; set; }
-    protected Size CurrentSize { get; set; }
+    protected UDim2 CurrentUDim2 { get; set; }
+    protected Vector2 CurrentPosition {
+        get => CurrentUDim2.PositionPercentil;
+        set => CurrentUDim2.PositionPercentil = value;
+    }
+    protected Point CurrentOffset {
+        get => CurrentUDim2.Offset;
+        set => CurrentUDim2.Offset = new(value.X, value.Y);
+    }
+    protected Vector2 CurrentSize {
+        get => CurrentUDim2.ObjectSize;
+        set => CurrentUDim2.ObjectSize = value;
+    }
+    protected Size CurrentContainerSize {
+        get => CurrentUDim2.ParentSize;
+        set => CurrentUDim2.ParentSize = value;
+    }
+
+    /// <summary>Gets the absolute pixel position from the UDim2 (Scale * ParentSize + Offset)</summary>
+    protected Point CurrentAbsolutePosition => CurrentUDim2.ToAbsolute();
+
+    /// <summary>Gets the absolute pixel size from the UDim2 (ObjectSize * ParentSize)</summary>
+    protected Size CurrentAbsoluteSize => new(
+        (int)(CurrentSize.X * CurrentContainerSize.Width),
+        (int)(CurrentSize.Y * CurrentContainerSize.Height)
+    );
+
     protected float CurrentOpacity { get; set; } = 1.0f;
     protected float CurrentRotation { get; set; } = 0.0f;
     protected float CurrentScale { get; set; } = 1.0f;
@@ -58,26 +113,50 @@ public abstract class Adjustable(ClientController? controller) {
 
     #region Initialization Methods
     /// <summary>
-    /// Initialize with original position and size
+    /// Initialize with original position and size using scale values (0-1)
     /// </summary>
-    public virtual void Initialize(Point position, Size size, Size containerSize) {
-        OriginalPosition = position;
-        OriginalSize = size;
-        OriginalContainerSize = containerSize;
+    public virtual void Initialize(Vector2 position, Point offset, Vector2 size, Size containerSize) {
+        OriginalUDim2 = new UDim2(position, offset, size, containerSize);
+        CurrentUDim2 = new UDim2(position, offset, size, containerSize);
+        TargetUDim2 = new UDim2(position, offset, size, containerSize);
+    }
 
-        CurrentPosition = position;
-        CurrentSize = size;
+    /// <summary>
+    /// Initialize with absolute pixel position and size (converts to scale)
+    /// </summary>
+    public virtual void Initialize(Point absolutePosition, Size absoluteSize, Size containerSize) {
+        Vector2 positionScale = new(0, 0);
+        Vector2 sizeScale = new(0, 0);
 
-        TargetPosition = position;
-        TargetSize = size;
-        TargetContainerSize = containerSize;
+        if (containerSize.Width > 0 && containerSize.Height > 0) {
+            positionScale = new Vector2(
+                (float)absolutePosition.X / containerSize.Width,
+                (float)absolutePosition.Y / containerSize.Height
+            );
+            sizeScale = new Vector2(
+                (float)absoluteSize.Width / containerSize.Width,
+                (float)absoluteSize.Height / containerSize.Height
+            );
+        }
+
+        Initialize(positionScale, new Point(0, 0), sizeScale, containerSize);
     }
 
     /// <summary>
     /// Set the target state for adjustment
     /// </summary>
-    public virtual void SetTarget(Point targetPosition, Size targetSize, Size targetContainerSize) {
+    public virtual void SetTarget(Vector2 targetPosition, Vector2 targetSize, Size targetContainerSize) {
         TargetPosition = targetPosition;
+        TargetSize = targetSize;
+        TargetContainerSize = targetContainerSize;
+    }
+
+    /// <summary>
+    /// Set the target state for adjustment with offset
+    /// </summary>
+    public virtual void SetTarget(Vector2 targetPosition, Point targetOffset, Vector2 targetSize, Size targetContainerSize) {
+        TargetPosition = targetPosition;
+        TargetOffset = targetOffset;
         TargetSize = targetSize;
         TargetContainerSize = targetContainerSize;
     }
@@ -87,7 +166,9 @@ public abstract class Adjustable(ClientController? controller) {
     /// </summary>
     public virtual void StoreOriginalState() {
         OriginalPosition = CurrentPosition;
+        OriginalOffset = CurrentOffset;
         OriginalSize = CurrentSize;
+        OriginalContainerSize = CurrentContainerSize;
         OriginalOpacity = CurrentOpacity;
         OriginalRotation = CurrentRotation;
         OriginalScale = CurrentScale;
@@ -103,9 +184,22 @@ public abstract class Adjustable(ClientController? controller) {
     public virtual void AdjustPosition(float progress) {
         progress = Math.Clamp(progress, 0.0f, 1.0f);
 
-        CurrentPosition = new Point(
-            (int)Lerp(OriginalPosition.X, TargetPosition.X, progress),
-            (int)Lerp(OriginalPosition.Y, TargetPosition.Y, progress)
+        CurrentPosition = new Vector2(
+            Lerp(OriginalPosition.X, TargetPosition.X, progress),
+            Lerp(OriginalPosition.Y, TargetPosition.Y, progress)
+        );
+    }
+
+    /// <summary>
+    /// Adjust offset based on normalized progress (0.0 to 1.0)
+    /// </summary>
+    /// <param name="progress">Normalized value from 0.0 (original) to 1.0 (target)</param>
+    public virtual void AdjustOffset(float progress) {
+        progress = Math.Clamp(progress, 0.0f, 1.0f);
+
+        CurrentOffset = new Point(
+            (int)Lerp(OriginalOffset.X, TargetOffset.X, progress),
+            (int)Lerp(OriginalOffset.Y, TargetOffset.Y, progress)
         );
     }
 
@@ -116,9 +210,9 @@ public abstract class Adjustable(ClientController? controller) {
     public virtual void AdjustSize(float progress) {
         progress = Math.Clamp(progress, 0.0f, 1.0f);
 
-        CurrentSize = new Size(
-            (int)Lerp(OriginalSize.Width, TargetSize.Width, progress),
-            (int)Lerp(OriginalSize.Height, TargetSize.Height, progress)
+        CurrentSize = new Vector2(
+            Lerp(OriginalSize.X, TargetSize.X, progress),
+            Lerp(OriginalSize.Y, TargetSize.Y, progress)
         );
     }
 
@@ -155,6 +249,7 @@ public abstract class Adjustable(ClientController? controller) {
     /// <param name="progress">Normalized value from 0.0 (original) to 1.0 (target)</param>
     public virtual void AdjustAll(float progress) {
         AdjustPosition(progress);
+        AdjustOffset(progress);
         AdjustSize(progress);
         AdjustOpacity(progress);
         AdjustRotation(progress);
@@ -163,112 +258,38 @@ public abstract class Adjustable(ClientController? controller) {
     #endregion
 
 
-    #region Screen Adjustment Methods
-    /// <summary>
-    /// Adjust for screen resize using Composers utility methods
-    /// </summary>
-    /// <param name="newContainerSize">New container/screen size</param>
-    /// <param name="progress">Normalized transition progress (0.0 to 1.0)</param>
-    public virtual void AdjustForScreenResize(Size newContainerSize, float progress = 1.0f) {
-        progress = Math.Clamp(progress, 0.0f, 1.0f);
-
-        // Calculate scale using Composers utility
-        float scale = Composers.GetScale(OriginalContainerSize, newContainerSize, ScalingMode);
-
-        // Calculate new position using Composers utility
-        Point newPosition = GetScaledAndAnchoredPoint(
-            OriginalPosition,
-            OriginalSize,
-            OriginalContainerSize,
-            newContainerSize,
-            Anchor,
-            ScalingMode
-        );
-
-        // Calculate new size using Composers utility
-        Size newSize = GetScaledSize(OriginalSize, scale);
-
-        // Interpolate to new values based on progress
-        CurrentPosition = new Point(
-            (int)Lerp(CurrentPosition.X, newPosition.X, progress),
-            (int)Lerp(CurrentPosition.Y, newPosition.Y, progress)
-        );
-
-        CurrentSize = new Size(
-            (int)Lerp(CurrentSize.Width, newSize.Width, progress),
-            (int)Lerp(CurrentSize.Height, newSize.Height, progress)
-        );
-
-        CurrentScale = Lerp(CurrentScale, scale, progress);
-    }
-
-    /// <summary>
-    /// Adjust position with anchor using Composers utility
-    /// </summary>
-    /// <param name="offset">Position offset</param>
-    /// <param name="containerSize">Container size</param>
-    /// <param name="anchor">Anchor preset</param>
-    /// <param name="progress">Normalized transition progress (0.0 to 1.0)</param>
-    public virtual void AdjustWithAnchor(Point offset, Size containerSize, AnchorPreset anchor, float progress = 1.0f) {
-        progress = Math.Clamp(progress, 0.0f, 1.0f);
-
-        Point anchoredPosition = GetAnchoredPoint(
-            offset,
-            CurrentSize,
-            containerSize,
-            anchor
-        );
-
-        CurrentPosition = new Point(
-            (int)Lerp(CurrentPosition.X, anchoredPosition.X, progress),
-            (int)Lerp(CurrentPosition.Y, anchoredPosition.Y, progress)
-        );
-    }
-
-    /// <summary>
-    /// Adjust position with alignment using Composers utility
-    /// </summary>
-    /// <param name="containerSize">Container size</param>
-    /// <param name="horizontalAlignment">Horizontal alignment</param>
-    /// <param name="verticalAlignment">Vertical alignment</param>
-    /// <param name="progress">Normalized transition progress (0.0 to 1.0)</param>
-    public virtual void AdjustWithAlignment(Size containerSize, Alignment horizontalAlignment,
-        Alignment verticalAlignment, float progress = 1.0f) {
-        progress = Math.Clamp(progress, 0.0f, 1.0f);
-
-        Point alignedPosition = GetAlignedPoint(
-            containerSize,
-            CurrentSize,
-            horizontalAlignment,
-            verticalAlignment
-        );
-
-        CurrentPosition = new Point(
-            (int)Lerp(CurrentPosition.X, alignedPosition.X, progress),
-            (int)Lerp(CurrentPosition.Y, alignedPosition.Y, progress)
-        );
-    }
-    #endregion
-
-
     #region Getter Methods
     /// <summary>
-    /// Get current position
+    /// Get current position (scale, 0-1)
     /// </summary>
-    public virtual Point GetPosition() => CurrentPosition;
+    public virtual Vector2 GetPosition() => CurrentPosition;
 
     /// <summary>
-    /// Get current size
+    /// Get current absolute position in pixels (Scale * ParentSize + Offset)
     /// </summary>
-    public virtual Size GetSize() => CurrentSize;
+    public virtual Point GetAbsolutePosition() => CurrentAbsolutePosition;
 
     /// <summary>
-    /// Get current center point
+    /// Get current size (scale, 0-1)
     /// </summary>
-    public virtual Point GetCenter() => new(
-        CurrentPosition.X + CurrentSize.Width / 2,
-        CurrentPosition.Y + CurrentSize.Height / 2
-    );
+    public virtual Vector2 GetSize() => CurrentSize;
+
+    /// <summary>
+    /// Get current absolute size in pixels (ObjectSize * ParentSize)
+    /// </summary>
+    public virtual Size GetAbsoluteSize() => CurrentAbsoluteSize;
+
+    /// <summary>
+    /// Get current center point in absolute pixels
+    /// </summary>
+    public virtual Point GetCenter() {
+        var absPos = CurrentAbsolutePosition;
+        var absSize = CurrentAbsoluteSize;
+        return new Point(
+            absPos.X + absSize.Width / 2,
+            absPos.Y + absSize.Height / 2
+        );
+    }
 
     /// <summary>
     /// Get current opacity (0.0 to 1.0)
@@ -288,22 +309,42 @@ public abstract class Adjustable(ClientController? controller) {
     /// <summary>
     /// Get original position
     /// </summary>
-    public virtual Point GetOriginalPosition() => OriginalPosition;
+    public virtual Vector2 GetOriginalPosition() => OriginalPosition;
+
+    /// <summary>
+    /// Get original offset
+    /// </summary>
+    public virtual Point GetOriginalOffset() => OriginalOffset;
 
     /// <summary>
     /// Get original size
     /// </summary>
-    public virtual Size GetOriginalSize() => OriginalSize;
+    public virtual Vector2 GetOriginalSize() => OriginalSize;
+
+    /// <summary>
+    /// Get original container size
+    /// </summary>
+    public virtual Size GetOriginalContainerSize() => OriginalContainerSize;
 
     /// <summary>
     /// Get target position
     /// </summary>
-    public virtual Point GetTargetPosition() => TargetPosition;
+    public virtual Vector2 GetTargetPosition() => TargetPosition;
+
+    /// <summary>
+    /// Get target offset
+    /// </summary>
+    public virtual Point GetTargetOffset() => TargetOffset;
 
     /// <summary>
     /// Get target size
     /// </summary>
-    public virtual Size GetTargetSize() => TargetSize;
+    public virtual Vector2 GetTargetSize() => TargetSize;
+
+    /// <summary>
+    /// Get target container size
+    /// </summary>
+    public virtual Size GetTargetContainerSize() => TargetContainerSize;
 
     /// <summary>
     /// Check if currently adjusting
@@ -314,14 +355,54 @@ public abstract class Adjustable(ClientController? controller) {
 
     #region Setter Methods
     /// <summary>
-    /// Set current position
+    /// Set current udim2
     /// </summary>
-    public virtual void SetPosition(Point position) => CurrentPosition = position;
+    public virtual void SetUDim2(UDim2 udim2) => CurrentUDim2 = udim2;
+
 
     /// <summary>
-    /// Set current size
+    /// Set current position (scale, 0-1)
     /// </summary>
-    public virtual void SetSize(Size size) => CurrentSize = size;
+    public virtual void SetPosition(Vector2 position) => CurrentPosition = position;
+
+    /// <summary>
+    /// Set current position from absolute pixels (converts to scale based on parent size)
+    /// </summary>
+    public virtual void SetPosition(Point absolutePosition) {
+        if (CurrentContainerSize.Width > 0 && CurrentContainerSize.Height > 0) {
+            CurrentPosition = new Vector2(
+                (float)absolutePosition.X / CurrentContainerSize.Width,
+                (float)absolutePosition.Y / CurrentContainerSize.Height
+            );
+        }
+    }
+
+    /// <summary
+    /// Set current offset
+    /// </summary>
+    public virtual void SetOffset(Point offset) => CurrentOffset = offset;
+
+    /// <summary>
+    /// Set current size (scale, 0-1)
+    /// </summary>
+    public virtual void SetSize(Vector2 size) => CurrentSize = size;
+
+    /// <summary>
+    /// Set current size from absolute pixels (converts to scale based on parent size)
+    /// </summary>
+    public virtual void SetSize(Size absoluteSize) {
+        if (CurrentContainerSize.Width > 0 && CurrentContainerSize.Height > 0) {
+            CurrentSize = new Vector2(
+                (float)absoluteSize.Width / CurrentContainerSize.Width,
+                (float)absoluteSize.Height / CurrentContainerSize.Height
+            );
+        }
+    }
+
+    /// <summary>
+    /// Set current parent size
+    /// </summary>
+    public virtual void SetContainerSize(Size containerSize) => CurrentContainerSize = containerSize;
 
     /// <summary>
     /// Set current opacity (0.0 to 1.0)
@@ -376,7 +457,9 @@ public abstract class Adjustable(ClientController? controller) {
     /// </summary>
     public virtual void ResetToOriginal() {
         CurrentPosition = OriginalPosition;
+        CurrentOffset = OriginalOffset;
         CurrentSize = OriginalSize;
+        CurrentContainerSize = OriginalContainerSize;
         CurrentOpacity = OriginalOpacity;
         CurrentRotation = OriginalRotation;
         CurrentScale = OriginalScale;
@@ -387,7 +470,9 @@ public abstract class Adjustable(ClientController? controller) {
     /// </summary>
     public virtual void ResetToTarget() {
         CurrentPosition = TargetPosition;
+        CurrentOffset = TargetOffset;
         CurrentSize = TargetSize;
+        CurrentContainerSize = TargetContainerSize;
         CurrentOpacity = TargetOpacity;
         CurrentRotation = TargetRotation;
         CurrentScale = TargetScale;
@@ -431,7 +516,7 @@ public abstract class Adjustable(ClientController? controller) {
     /// <summary>
     /// Calculate distance between two points
     /// </summary>
-    protected static float Distance(Point a, Point b) {
+    protected static float Distance(Vector2 a, Vector2 b) {
         float dx = b.X - a.X;
         float dy = b.Y - a.Y;
         return (float)Math.Sqrt(dx * dx + dy * dy);

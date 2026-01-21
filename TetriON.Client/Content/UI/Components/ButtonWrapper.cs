@@ -10,13 +10,13 @@ namespace TetriON.Client.Content.UI.Components;
 /// Button component that supports texture-based rendering with state-dependent colors.
 /// Integrates with MenuComponent's input handling and state management.
 /// </summary>
-public class ButtonWrapper(MenuWrapper? menu, string id = "") : MenuComponent(menu, id) {
+public class ButtonWrapper(MenuWrapper? menu, FrameWrapper? frame = null, string id = "") : MenuComponent(menu, frame, id) {
     private TextureWrapper? _texture;
     private readonly ComponentColorState _colorState = ComponentColorState.CreateDefault();
 
     #region Constructors
 
-    public ButtonWrapper(MenuWrapper? menu, TextureWrapper texture, string id = "") : this(menu, id) {
+    public ButtonWrapper(MenuWrapper? menu, TextureWrapper texture, FrameWrapper? frame = null, string id = "") : this(menu, frame, id) {
         _texture = texture;
     }
 
@@ -42,7 +42,8 @@ public class ButtonWrapper(MenuWrapper? menu, string id = "") : MenuComponent(me
         drawColor *= CurrentOpacity;
 
         // Set position and draw using TextureWrapper's Draw method
-        _texture.SetPosition(new System.Drawing.Point(CurrentPosition.X, CurrentPosition.Y));
+        var absPos = GetAbsolutePosition();
+        _texture.SetPosition(new System.Drawing.Point(absPos.X, absPos.Y));
         _texture.SetOpacity(CurrentOpacity);
         _texture.Draw(drawColor, scaled: true);
     }

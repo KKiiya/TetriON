@@ -41,7 +41,7 @@ public static class MainMenu {
             Layout = FrameLayout.None
         };
         rootContainer.SetBackgroundColor(Microsoft.Xna.Framework.Color.Transparent);
-        rootContainer.Initialize(new System.Drawing.Point(0, 0), new Size(screenWidth, screenHeight), new Size(screenWidth, screenHeight));
+        rootContainer.Initialize(new(0, 0), new(0, 0), new(1, 1), new Size(screenWidth, screenHeight));
 
         // 2. Main View (Title + Buttons)
         var mainView = CreateMainView(menu, font, screenWidth, screenHeight);
@@ -76,19 +76,19 @@ public static class MainMenu {
             Layout = FrameLayout.None
         };
         container.SetBackgroundColor(Microsoft.Xna.Framework.Color.Transparent);
-        container.Initialize(new System.Drawing.Point(0, 0), new Size(screenWidth, screenHeight), new Size(screenWidth, screenHeight));
+        container.Initialize(new(0, 0), new(0, 0), new(1, 1), new Size(screenWidth, screenHeight));
 
         // Title
-        var title = new TextWrapper(menu, "TETRION", font, "title_text") {
+        var title = new TextWrapper(menu, "TETRION", font, container, "title_text") {
             TextColor = Microsoft.Xna.Framework.Color.White,
             ShowShadow = true,
             ShadowOffset = new Vector2(4, 4),
             ShadowColor = Microsoft.Xna.Framework.Color.Black * 0.7f
         };
 
-        var titleSize = new Size(400, 80);
+        var titleSize = new System.Numerics.Vector2(0.3f, 0.1f);
         var titlePos = GetAnchoredPoint(new System.Drawing.Point(0, 60), titleSize, new Size(screenWidth, screenHeight), AnchorPreset.TopCenter);
-        title.Initialize(titlePos, titleSize, new Size(screenWidth, screenHeight));
+        title.Initialize(titlePos, new(0, 0), titleSize, new Size(screenWidth, screenHeight));
         title.SetPosition(titlePos);
         container.AddChild(title);
 
@@ -115,14 +115,14 @@ public static class MainMenu {
         // Buttons
         string[] btnNames = { "Play", "Options", "Multiplayer", "Statistics", "Credits", "Exit" };
         foreach (var name in btnNames) {
-            var btn = CreateStyledButton(menu, name, font);
+            var btn = CreateStyledButton(menu, buttonsPanel, name, font);
             buttonsPanel.AddChild(btn);
         }
 
         container.AddChild(buttonsPanel);
 
         // Info Text
-        var infoText = new TextWrapper(menu, "Press ESC to return | Use mouse or touch to interact", font, "info_text") {
+        var infoText = new TextWrapper(menu, "Press ESC to return | Use mouse or touch to interact", font, container, "info_text") {
             TextColor = Microsoft.Xna.Framework.Color.Gray * 0.7f
         };
         var infoPos = GetAnchoredPoint(new System.Drawing.Point(0, 20), new Size(400, 30), new Size(screenWidth, screenHeight), AnchorPreset.BottomLeft);
@@ -157,25 +157,25 @@ public static class MainMenu {
         optionsFrame.Initialize();
 
         // 1. Volume Slider
-        var volLabel = new TextWrapper(menu, "Master Volume", font);
-        volLabel.Initialize(System.Drawing.Point.Empty, new Size(200, 25), new Size(PanelWidth, PanelHeight));
+        var volLabel = new TextWrapper(menu, "Master Volume", font, optionsFrame);
+        volLabel.Initialize(new(0, 0), new(0, 0), new(0.15f, 0.325f), new Size(PanelWidth, PanelHeight));
         optionsFrame.AddChild(volLabel);
 
-        var volumeSlider = new SliderWrapper(menu, 0f, 100f, 75f, "volume_slider") {
+        var volumeSlider = new SliderWrapper(menu, 0f, 100f, 75f, optionsFrame, "volume_slider") {
             SliderWidth = PanelWidth - 60,
             ShowValue = true
         };
-        volumeSlider.Initialize(System.Drawing.Point.Empty, new Size(PanelWidth - 60, 30), new Size(PanelWidth, PanelHeight));
+        volumeSlider.Initialize(new(0, 0), new(0, 0), new((float)(PanelWidth - 60) / screenWidth, 0.4f), new Size(PanelWidth, PanelHeight));
         optionsFrame.AddChild(volumeSlider);
 
         // 2. Checkboxes
-        string[] checks = { "Fullscreen", "VSync", "Show FPS" };
+        string[] checks = ["Fullscreen", "VSync", "Show FPS"];
         foreach (var check in checks) {
-            var chk = new CheckBoxWrapper(menu, check, false, $"chk_{check.Replace(" ", "")}") {
+            var chk = new CheckBoxWrapper(menu, check, optionsFrame, false, $"chk_{check.Replace(" ", "")}") {
                 LabelSpacing = 15,
                 CheckBoxSize = 24
             };
-            chk.Initialize(System.Drawing.Point.Empty, new Size(200, 30), new Size(PanelWidth, PanelHeight));
+            chk.Initialize(new(0, 0), new(0, 0), new(0.15f, 0.4f), new Size(PanelWidth, PanelHeight));
             optionsFrame.AddChild(chk);
         }
 
@@ -187,7 +187,7 @@ public static class MainMenu {
         optionsFrame.AddChild(spacer);
 
         // 3. Back Button
-        var backBtn = CreateStyledButton(menu, "Back", font);
+        var backBtn = CreateStyledButton(menu, optionsFrame, "Back", font);
         // ID "btn_back" used for wiring
         // CreateStyledButton uses lowercase "btn_back"
         optionsFrame.AddChild(backBtn);
@@ -195,10 +195,10 @@ public static class MainMenu {
         return optionsFrame;
     }
 
-    private static ButtonWrapper CreateStyledButton(MenuWrapper menu, string text, FontWrapper font) {
+    private static ButtonWrapper CreateStyledButton(MenuWrapper menu, FrameWrapper frame, string text, FontWrapper font) {
         var tex = CreateSolidTexture(menu, ButtonWidth, ButtonHeight, Microsoft.Xna.Framework.Color.White);
 
-        var btn = new ButtonWrapper(menu, tex, $"btn_{text.ToLower()}") {
+        var btn = new ButtonWrapper(menu, tex, frame, $"btn_{text.ToLower()}") {
             // Initialization handled by parent add or manual call if needed
         };
         btn.SetSize(new Size(ButtonWidth, ButtonHeight));
@@ -211,7 +211,7 @@ public static class MainMenu {
             selected: new Microsoft.Xna.Framework.Color(50, 50, 150)
         );
 
-        var label = new TextWrapper(menu, text, font, $"lbl_{text}") {
+        var label = new TextWrapper(menu, text, font, frame, $"lbl_{text}") {
             TextColor = Microsoft.Xna.Framework.Color.White,
             HorizontalAlignment = HorizontalAlignment.Center
         };
@@ -289,7 +289,7 @@ public static class MainMenu {
         controller.AnimationPlayer.Play(component, fadeIn);
 
         var originalPos = component.GetPosition();
-        component.SetPosition(new System.Drawing.Point(originalPos.X, originalPos.Y + 50));
+        component.SetPosition(new System.Drawing.Point((int)originalPos.X, (int)(originalPos.Y + 50)));
         var slide = AnimationDefinition.Create(AnimationType.Position, 0.5f).WithEasing(EasingType.EaseOutBack).Build();
         component.SetTarget(originalPos, component.GetSize(), new Size(0, 0));
         controller.AnimationPlayer.Play(component, slide);

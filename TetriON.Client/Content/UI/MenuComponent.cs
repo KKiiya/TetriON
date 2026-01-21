@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using TetriON.Client.Animations;
+using TetriON.Client.Content.UI.Components;
 using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.Content.UI;
@@ -14,9 +15,10 @@ namespace TetriON.Client.Content.UI;
 /// Initializes a new instance of the MenuComponent class.
 /// </remarks>
 /// <param name="controller">The client controller instance.</param>
-public abstract class MenuComponent(MenuWrapper? menu, string id = "") : Adjustable(menu?.Controller), IDisposable {
+public abstract class MenuComponent(MenuWrapper? menu, FrameWrapper? frame = null, string id = "") : Adjustable(menu?.Controller), IDisposable {
 
     private readonly string _id = id ?? string.Empty;
+    private readonly FrameWrapper? _frame = frame;
 
     #region Fields
     private bool _isHovered;
@@ -202,12 +204,13 @@ public abstract class MenuComponent(MenuWrapper? menu, string id = "") : Adjusta
     }
 
     /// <summary>Gets the bounding rectangle for this component using Adjustable's position and size.</summary>
-    public Rectangle Bounds => new(
-        (int)CurrentPosition.X,
-        (int)CurrentPosition.Y,
-        CurrentSize.Width,
-        CurrentSize.Height
-    );
+    public Rectangle Bounds {
+        get {
+            var absPos = GetAbsolutePosition();
+            var absSize = GetAbsoluteSize();
+            return new Rectangle(absPos.X, absPos.Y, absSize.Width, absSize.Height);
+        }
+    }
 
     /// <summary>Gets or sets the Z-index for rendering order. Higher values render on top.</summary>
     public int ZIndex {
@@ -245,11 +248,11 @@ public abstract class MenuComponent(MenuWrapper? menu, string id = "") : Adjusta
     /// <summary>Gets whether this component can currently receive input.</summary>
     public bool CanReceiveInput { get; set; } = true;
 
-    /// <summary>Gets the current position from Adjustable.</summary>
-    public System.Drawing.Point GetCurrentPosition() => CurrentPosition;
+    /// <summary>Gets the current absolute position in pixels from UDim2.</summary>
+    public System.Drawing.Point GetCurrentPosition() => GetAbsolutePosition();
 
-    /// <summary>Gets the current size from Adjustable.</summary>
-    public System.Drawing.Size GetCurrentSize() => CurrentSize;
+    /// <summary>Gets the current absolute size in pixels from UDim2.</summary>
+    public System.Drawing.Size GetCurrentSize() => GetAbsoluteSize();
 
     /// <summary>Gets the original container size from Adjustable.</summary>
     public System.Drawing.Size GetOriginalContainerSize() => OriginalContainerSize;

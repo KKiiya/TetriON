@@ -89,6 +89,9 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
         }
     }
 
+    /// <summary>Gets whether the menu has been disposed.</summary>
+    public bool IsDisposed => _disposed;
+
     /// <summary>Gets the number of components in the menu.</summary>
     public int ComponentCount {
         get {
@@ -199,6 +202,12 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
     public List<T> GetComponents<T>() where T : MenuComponent {
         lock (_componentsLock) {
             return [.. _components.OfType<T>()];
+        }
+    }
+
+    public List<T> GetRenderOrder<T>() where T : MenuComponent {
+        lock (_componentsLock) {
+            return [.. _renderOrderCache.OfType<T>()];
         }
     }
 

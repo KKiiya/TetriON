@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 
 namespace TetriON.Client.Content.UI;
@@ -106,6 +107,70 @@ public class Composers {
     public static Point GetAnchoredPoint(Point position, Size elementSize, Size containerSize, AnchorPreset anchor) {
         return GetAnchoredPoint(position.X, position.Y, elementSize.Width, elementSize.Height,
             containerSize.Width, containerSize.Height, anchor);
+    }
+
+    /// <summary>
+    /// Calculate positioned point based on anchor preset using UDim2 scale values.
+    /// Returns absolute pixel offset to use with scale position.
+    /// </summary>
+    public static Point GetAnchoredPoint(Point pixelOffset, Vector2 elementSizeScale, Size containerSize, AnchorPreset anchor) {
+        // Convert scale size to pixels
+        int elementWidth = (int)(elementSizeScale.X * containerSize.Width);
+        int elementHeight = (int)(elementSizeScale.Y * containerSize.Height);
+
+        return GetAnchoredPoint(pixelOffset.X, pixelOffset.Y, elementWidth, elementHeight,
+            containerSize.Width, containerSize.Height, anchor);
+    }
+
+    /// <summary>
+    /// Get UDim2 position (scale + offset) for an anchored element.
+    /// Returns a tuple of (scale position, pixel offset) for UDim2 initialization.
+    /// </summary>
+    public static (Vector2 scale, Point offset) GetAnchoredUDim2Position(
+        Point pixelOffset,
+        Vector2 elementSizeScale,
+        Size containerSize,
+        AnchorPreset anchor) {
+        // Determine scale position based on anchor
+        Vector2 scalePosition = anchor switch {
+            AnchorPreset.TopLeft => new Vector2(0f, 0f),
+            AnchorPreset.TopCenter => new Vector2(0.5f, 0f),
+            AnchorPreset.TopRight => new Vector2(1f, 0f),
+            AnchorPreset.MiddleLeft => new Vector2(0f, 0.5f),
+            AnchorPreset.Center => new Vector2(0.5f, 0.5f),
+            AnchorPreset.MiddleRight => new Vector2(1f, 0.5f),
+            AnchorPreset.BottomLeft => new Vector2(0f, 1f),
+            AnchorPreset.BottomCenter => new Vector2(0.5f, 1f),
+            AnchorPreset.BottomRight => new Vector2(1f, 1f),
+            _ => new Vector2(0f, 0f)
+        };
+
+        // Calculate element size in pixels
+        int elementWidth = (int)(elementSizeScale.X * containerSize.Width);
+        int elementHeight = (int)(elementSizeScale.Y * containerSize.Height);
+
+        // Calculate offset adjustments based on anchor
+        // The offset needs to center/position the element relative to the anchor point
+        Point offsetAdjustment = anchor switch {
+            AnchorPreset.TopLeft => new Point(0, 0),
+            AnchorPreset.TopCenter => new Point(-elementWidth / 2, 0),
+            AnchorPreset.TopRight => new Point(-elementWidth, 0),
+            AnchorPreset.MiddleLeft => new Point(0, -elementHeight / 2),
+            AnchorPreset.Center => new Point(-elementWidth / 2, -elementHeight / 2),
+            AnchorPreset.MiddleRight => new Point(-elementWidth, -elementHeight / 2),
+            AnchorPreset.BottomLeft => new Point(0, -elementHeight),
+            AnchorPreset.BottomCenter => new Point(-elementWidth / 2, -elementHeight),
+            AnchorPreset.BottomRight => new Point(-elementWidth, -elementHeight),
+            _ => new Point(0, 0)
+        };
+
+        // Combine user offset with anchor adjustment
+        Point finalOffset = new Point(
+            pixelOffset.X + offsetAdjustment.X,
+            pixelOffset.Y + offsetAdjustment.Y
+        );
+
+        return (scalePosition, finalOffset);
     }
 
     /// <summary>

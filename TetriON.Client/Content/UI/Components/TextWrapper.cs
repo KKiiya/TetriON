@@ -10,7 +10,7 @@ namespace TetriON.Client.Content.UI.Components;
 /// Text display component with support for multi-line text, word wrapping, alignment, and rich formatting.
 /// Can be made interactive for clickable text links or selectable text.
 /// </summary>
-public class TextWrapper(MenuWrapper menu, string id = "") : MenuComponent(menu, id) {
+public class TextWrapper(MenuWrapper menu, FrameWrapper? frame = null, string id = "") : MenuComponent(menu, frame, id) {
     private string _text = string.Empty;
     private FontWrapper? _font;
     private Color _textColor = Color.White;
@@ -175,12 +175,12 @@ public class TextWrapper(MenuWrapper menu, string id = "") : MenuComponent(menu,
     #endregion
     #region Constructors
 
-    public TextWrapper(MenuWrapper menu, string text, FontWrapper? font, string id = "") : this(menu, id) {
+    public TextWrapper(MenuWrapper menu, string text, FontWrapper? font, FrameWrapper? frame = null, string id = "") : this(menu, frame, id) {
         _text = text;
         _font = font;
     }
 
-    public TextWrapper(MenuWrapper menu, string text, FontWrapper? font, Color textColor, string id = "") : this(menu, text, font, id) {
+    public TextWrapper(MenuWrapper menu, string text, FontWrapper? font, Color textColor, FrameWrapper? frame = null, string id = "") : this(menu, text, font, frame, id) {
         _textColor = textColor;
     }
 
@@ -226,7 +226,9 @@ public class TextWrapper(MenuWrapper menu, string id = "") : MenuComponent(menu,
     private void RenderText(SpriteBatch spriteBatch, Color color, Vector2 offset) {
         if (_font == null) return;
 
-        Vector2 basePosition = new Vector2(CurrentPosition.X, CurrentPosition.Y) + offset;
+        var absPos = GetAbsolutePosition();
+        var absSize = GetAbsoluteSize();
+        Vector2 basePosition = new Vector2(absPos.X, absPos.Y) + offset;
 
         if (_wordWrap && _wrappedLines != null) {
             // Render wrapped lines
@@ -237,10 +239,10 @@ public class TextWrapper(MenuWrapper menu, string id = "") : MenuComponent(menu,
             float totalHeight = _wrappedLines.Length * lineHeight;
             switch (_verticalAlignment) {
                 case VerticalAlignment.Center:
-                    linePosition.Y += (CurrentSize.Height - totalHeight) / 2f;
+                    linePosition.Y += (absSize.Height - totalHeight) / 2f;
                     break;
                 case VerticalAlignment.Bottom:
-                    linePosition.Y += CurrentSize.Height - totalHeight;
+                    linePosition.Y += absSize.Height - totalHeight;
                     break;
             }
 

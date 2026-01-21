@@ -10,7 +10,7 @@ namespace TetriON.Client.Content.UI.Components;
 /// Slider component with draggable handle, track, and value range support.
 /// Supports mouse dragging, clicking on track to jump, and keyboard arrow key adjustment.
 /// </summary>
-public class SliderWrapper(MenuWrapper menu, string id = "") : MenuComponent(menu, id) {
+public class SliderWrapper(MenuWrapper menu, FrameWrapper? frame = null, string id = "") : MenuComponent(menu, frame, id) {
     private float _value;
     private float _minValue;
     private float _maxValue = 100f;
@@ -126,19 +126,25 @@ public class SliderWrapper(MenuWrapper menu, string id = "") : MenuComponent(men
     }
 
     /// <summary>Gets the bounds of the slider track.</summary>
-    public Rectangle TrackBounds => new(
-        CurrentPosition.X,
-        CurrentPosition.Y + (_handleHeight - _sliderHeight) / 2,
-        _sliderWidth,
-        _sliderHeight
-    );
+    public Rectangle TrackBounds {
+        get {
+            var absPos = GetAbsolutePosition();
+            return new Rectangle(
+                absPos.X,
+                absPos.Y + (_handleHeight - _sliderHeight) / 2,
+                _sliderWidth,
+                _sliderHeight
+            );
+        }
+    }
 
     /// <summary>Gets the bounds of the slider handle.</summary>
     public Rectangle HandleBounds {
         get {
+            var absPos = GetAbsolutePosition();
             float normalizedValue = GetNormalizedValue();
-            int handleX = CurrentPosition.X + (int)(normalizedValue * (_sliderWidth - _handleWidth));
-            int handleY = CurrentPosition.Y;
+            int handleX = absPos.X + (int)(normalizedValue * (_sliderWidth - _handleWidth));
+            int handleY = absPos.Y;
             return new Rectangle(handleX, handleY, _handleWidth, _handleHeight);
         }
     }
@@ -154,8 +160,9 @@ public class SliderWrapper(MenuWrapper menu, string id = "") : MenuComponent(men
         float minValue,
         float maxValue,
         float initialValue = 0f,
+        FrameWrapper? frame = null,
         string id = ""
-    ) : this(menu, id) {
+    ) : this(menu, frame, id) {
         _minValue = minValue;
         _maxValue = maxValue;
         _value = ClampValue(initialValue);
@@ -168,8 +175,9 @@ public class SliderWrapper(MenuWrapper menu, string id = "") : MenuComponent(men
         float minValue = 0f,
         float maxValue = 100f,
         float initialValue = 0f,
+        FrameWrapper? frame = null,
         string id = ""
-    ) : this(menu, minValue, maxValue, initialValue, id) {
+    ) : this(menu, minValue, maxValue, initialValue, frame, id) {
         _trackTexture = trackTexture;
         _handleTexture = handleTexture;
     }
@@ -228,7 +236,8 @@ public class SliderWrapper(MenuWrapper menu, string id = "") : MenuComponent(men
 
         // Render label if present
         if (!string.IsNullOrWhiteSpace(_label) && _font != null) {
-            Vector2 labelPos = new(CurrentPosition.X, CurrentPosition.Y - _labelSpacing - _font.LineSpacing);
+            var absPos = GetAbsolutePosition();
+            Vector2 labelPos = new(absPos.X, absPos.Y - _labelSpacing - _font.LineSpacing);
             spriteBatch.DrawString(_font, _label, labelPos, Color.White * CurrentOpacity);
         }
 
@@ -243,11 +252,12 @@ public class SliderWrapper(MenuWrapper menu, string id = "") : MenuComponent(men
 
         // Render value if enabled
         if (_showValue && _font != null) {
+            var absPos = GetAbsolutePosition();
             string valueText = _value.ToString("F1");
             Vector2 valueSize = _font.MeasureString(valueText);
             Vector2 valuePos = new(
-                CurrentPosition.X + _sliderWidth + _labelSpacing,
-                CurrentPosition.Y + (_handleHeight - valueSize.Y) / 2
+                absPos.X + _sliderWidth + _labelSpacing,
+                absPos.Y + (_handleHeight - valueSize.Y) / 2
             );
             spriteBatch.DrawString(_font, valueText, valuePos, Color.White * CurrentOpacity);
         }
