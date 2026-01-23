@@ -136,6 +136,7 @@ public class ClientController {
         _renderers.Add(new CursorRenderer(this));
         _renderers.Add(new CurrentMenuRenderer(this));
         Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
+        _renderers.Sort((a, b) => a.ZIndex.CompareTo(b.ZIndex));
     }
 
     private void LoadMenus() {

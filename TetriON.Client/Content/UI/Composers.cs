@@ -118,8 +118,7 @@ public class Composers {
         int elementWidth = (int)(elementSizeScale.X * containerSize.Width);
         int elementHeight = (int)(elementSizeScale.Y * containerSize.Height);
 
-        return GetAnchoredPoint(pixelOffset.X, pixelOffset.Y, elementWidth, elementHeight,
-            containerSize.Width, containerSize.Height, anchor);
+        return GetAnchoredPoint(pixelOffset.X, pixelOffset.Y, elementWidth, elementHeight, containerSize.Width, containerSize.Height, anchor);
     }
 
     /// <summary>

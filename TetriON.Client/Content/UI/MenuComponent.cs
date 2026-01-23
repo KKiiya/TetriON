@@ -255,7 +255,6 @@ public abstract class MenuComponent(MenuWrapper? menu, FrameWrapper? frame = nul
     public System.Drawing.Size GetCurrentSize() => GetAbsoluteSize();
 
     /// <summary>Gets the original container size from Adjustable.</summary>
-    public System.Drawing.Size GetOriginalContainerSize() => OriginalContainerSize;
 
     /// <summary>Gets the absolute bounds in world space, accounting for parent hierarchy.</summary>
     public Rectangle AbsoluteBounds {
@@ -551,7 +550,7 @@ public abstract class MenuComponent(MenuWrapper? menu, FrameWrapper? frame = nul
     /// </summary>
     public virtual string GetDebugInfo() {
         return $"{GetType().Name} - Pos: ({CurrentPosition.X},{CurrentPosition.Y}), " +
-               $"Size: {CurrentSize.Width}x{CurrentSize.Height}, " +
+               $"Size: {CurrentSize.X}x{CurrentSize.Y}, " +
                $"Enabled: {IsEnabled}, Visible: {IsVisible}, Hovered: {IsHovered}, " +
                $"Pressed: {IsPressed}, Selected: {IsSelected}, Focused: {IsFocused}, " +
                $"Opacity: {CurrentOpacity:F2}, ZIndex: {ZIndex}, Children: {Children.Count}";

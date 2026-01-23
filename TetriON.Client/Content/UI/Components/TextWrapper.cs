@@ -251,12 +251,13 @@ public class TextWrapper(MenuWrapper menu, FrameWrapper? frame = null, string id
                 Vector2 textPosition = linePosition;
 
                 // Apply horizontal alignment
+                var currentXSize = _maxWidth > 0 ? _maxWidth : absSize.Width;
                 switch (_horizontalAlignment) {
                     case HorizontalAlignment.Center:
-                        textPosition.X += ((_maxWidth > 0 ? _maxWidth : CurrentSize.Width) - lineSize.X) / 2f;
+                        textPosition.X += (currentXSize - lineSize.X) / 2f;
                         break;
                     case HorizontalAlignment.Right:
-                        textPosition.X += (_maxWidth > 0 ? _maxWidth : CurrentSize.Width) - lineSize.X;
+                        textPosition.X += currentXSize - lineSize.X;
                         break;
                 }
 
@@ -273,10 +274,10 @@ public class TextWrapper(MenuWrapper menu, FrameWrapper? frame = null, string id
             float totalHeight = lines.Length * lineHeight;
             switch (_verticalAlignment) {
                 case VerticalAlignment.Center:
-                    linePosition.Y += (CurrentSize.Height - totalHeight) / 2f;
+                    linePosition.Y += (absSize.Height - totalHeight) / 2f;
                     break;
                 case VerticalAlignment.Bottom:
-                    linePosition.Y += CurrentSize.Height - totalHeight;
+                    linePosition.Y += absSize.Height - totalHeight;
                     break;
             }
 
@@ -287,10 +288,10 @@ public class TextWrapper(MenuWrapper menu, FrameWrapper? frame = null, string id
                 // Apply horizontal alignment
                 switch (_horizontalAlignment) {
                     case HorizontalAlignment.Center:
-                        textPosition.X += (CurrentSize.Width - lineSize.X) / 2f;
+                        textPosition.X += (absSize.Width - lineSize.X) / 2f;
                         break;
                     case HorizontalAlignment.Right:
-                        textPosition.X += CurrentSize.Width - lineSize.X;
+                        textPosition.X += absSize.Width - lineSize.X;
                         break;
                 }
 

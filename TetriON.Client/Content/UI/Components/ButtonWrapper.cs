@@ -43,6 +43,7 @@ public class ButtonWrapper(MenuWrapper? menu, FrameWrapper? frame = null, string
 
         // Set position and draw using TextureWrapper's Draw method
         var absPos = GetAbsolutePosition();
+        //Logger.DebugLog($"ButtonWrapper: Drawing at position {absPos} with color {drawColor} and opacity {CurrentOpacity}.");
         _texture.SetPosition(new System.Drawing.Point(absPos.X, absPos.Y));
         _texture.SetOpacity(CurrentOpacity);
         _texture.Draw(drawColor, scaled: true);

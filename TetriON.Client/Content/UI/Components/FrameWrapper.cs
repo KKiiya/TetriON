@@ -334,10 +334,11 @@ public class FrameWrapper : MenuComponent {
         Point mousePos = new(mouseState.X, mouseState.Y);
 
         // Check if clicking on title bar for dragging
+        var absolutePos = GetAbsolutePosition();
         if (_isDraggable && _showTitleBar && TitleBarBounds.Contains(mousePos)) {
             _isDragging = true;
             _dragStartPos = mousePos;
-            _dragStartComponentPos = new Point(CurrentPosition.X, CurrentPosition.Y);
+            _dragStartComponentPos = new Point(absolutePos.X, absolutePos.Y);
         }
     }
 
@@ -381,11 +382,12 @@ public class FrameWrapper : MenuComponent {
     #region Rendering Methods
 
     private void RenderBackground(SpriteBatch spriteBatch) {
+        var absSize = GetAbsoluteSize();
         Rectangle bgRect = new(
-            CurrentPosition.X,
-            CurrentPosition.Y,
-            CurrentSize.Width,
-            CurrentSize.Height
+            (int)(CurrentPosition.X * absSize.Width),
+            (int)(CurrentPosition.Y * absSize.Height),
+            absSize.Width,
+            absSize.Height
         );
 
         Color bgColor = _backgroundColor * CurrentOpacity;
@@ -425,11 +427,12 @@ public class FrameWrapper : MenuComponent {
     }
 
     private void RenderBorder(SpriteBatch spriteBatch) {
+        var absSize = GetAbsoluteSize();
         Rectangle outerRect = new(
-            CurrentPosition.X,
-            CurrentPosition.Y,
-            CurrentSize.Width,
-            CurrentSize.Height
+            (int)(CurrentPosition.X * absSize.Width),
+            (int)(CurrentPosition.Y * absSize.Height),
+            absSize.Width,
+            absSize.Height
         );
 
         Color borderColorWithOpacity = _borderColor * CurrentOpacity;
@@ -521,31 +524,32 @@ public class FrameWrapper : MenuComponent {
         foreach (var child in childrenList) {
             if (!child.IsVisible) continue;
 
+            var parentSize = GetCurrentSize();
             switch (_layout) {
                 case FrameLayout.Vertical:
                     child.SetPosition(new System.Drawing.Point(currentX, currentY));
-                    currentY += child.GetSize().Height + _layoutSpacing;
-                    maxWidth = Math.Max(maxWidth, child.GetSize().Width);
+                    currentY += (int)(child.GetSize().X * parentSize.Width) + _layoutSpacing;
+                    maxWidth = Math.Max(maxWidth, (int)(child.GetSize().X * parentSize.Width));
                     maxHeight = currentY - contentBounds.Y;
                     break;
 
                 case FrameLayout.Horizontal:
                     child.SetPosition(new System.Drawing.Point(currentX, currentY));
-                    currentX += child.GetSize().Width + _layoutSpacing;
+                    currentX += (int)(child.GetSize().X * parentSize.Width) + _layoutSpacing;
                     maxWidth = currentX - contentBounds.X;
-                    maxHeight = Math.Max(maxHeight, child.GetSize().Height);
+                    maxHeight = Math.Max(maxHeight, (int)(child.GetSize().Y * parentSize.Height));
                     break;
 
                 case FrameLayout.Grid:
                     // Simple grid layout - wrap to next row when exceeding content width
-                    if (currentX + child.GetSize().Width > contentBounds.X + contentBounds.Width) {
+                    if (currentX + (int)(child.GetSize().X * parentSize.Width) > contentBounds.X + contentBounds.Width) {
                         currentX = contentBounds.X;
                         currentY += maxHeight + _layoutSpacing;
                         maxHeight = 0;
                     }
                     child.SetPosition(new System.Drawing.Point(currentX, currentY));
-                    currentX += child.GetSize().Width + _layoutSpacing;
-                    maxHeight = Math.Max(maxHeight, child.GetSize().Height);
+                    currentX += (int)(child.GetSize().X * parentSize.Width) + _layoutSpacing;
+                    maxHeight = Math.Max(maxHeight, (int)(child.GetSize().Y * parentSize.Height));
                     break;
             }
         }
@@ -606,8 +610,9 @@ public class FrameWrapper : MenuComponent {
 
     /// <summary>Center the frame on screen.</summary>
     public void CenterOnScreen(int screenWidth, int screenHeight) {
-        int x = (screenWidth - CurrentSize.Width) / 2;
-        int y = (screenHeight - CurrentSize.Height) / 2;
+        var parentSize = GetCurrentSize();
+        int x = (screenWidth - parentSize.Width) / 2;
+        int y = (screenHeight - parentSize.Height) / 2;
         SetPosition(new System.Drawing.Point(x, y));
     }
 
@@ -625,11 +630,12 @@ public class FrameWrapper : MenuComponent {
         if (!_enableScrolling || !Children.Contains(child)) return;
 
         var contentBounds = ContentBounds;
+        var absSize = GetAbsoluteSize();
         var childBounds = new Rectangle(
-            child.GetPosition().X,
-            child.GetPosition().Y,
-            child.GetSize().Width,
-            child.GetSize().Height
+            (int)(child.GetPosition().X * absSize.Width),
+            (int)(child.GetPosition().Y * absSize.Height),
+            (int)(child.GetSize().X * absSize.Width),
+            (int)(child.GetSize().Y * absSize.Height)
         );
 
         // Calculate scroll offset to show child
@@ -646,8 +652,9 @@ public class FrameWrapper : MenuComponent {
 
     /// <summary>Called when the frame is moved. Override for custom behavior.</summary>
     protected virtual void OnFrameMoved() {
+        var size = GetAbsoluteSize();
         FrameMoved?.Invoke(this, new FrameMovedEventArgs(
-            new Point(GetPosition().X, GetPosition().Y)
+            new Point((int)(GetPosition().X * size.Width), (int)(GetPosition().Y * size.Height))
         ));
     }
 

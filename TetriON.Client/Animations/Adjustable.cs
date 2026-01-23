@@ -17,7 +17,7 @@ public abstract class Adjustable(ClientController? controller) {
 
     #region Original State Properties
     // Store original position and dimensions
-    protected UDim2 OriginalUDim2 { get; set; } =
+    protected UDim2 OriginalUDim2 { get; set; } = UDim2.Zero;
     protected Vector2 OriginalPosition {
         get => OriginalUDim2.PositionPercentil;
         set => OriginalUDim2.PositionPercentil = value;
@@ -71,7 +71,7 @@ public abstract class Adjustable(ClientController? controller) {
 
     #region Current State Properties
     // Current interpolated values
-    protected UDim2 CurrentUDim2 { get; set; }
+    protected UDim2 CurrentUDim2 { get; set; } = UDim2.Zero;
     protected Vector2 CurrentPosition {
         get => CurrentUDim2.PositionPercentil;
         set => CurrentUDim2.PositionPercentil = value;
@@ -93,10 +93,7 @@ public abstract class Adjustable(ClientController? controller) {
     protected Point CurrentAbsolutePosition => CurrentUDim2.ToAbsolute();
 
     /// <summary>Gets the absolute pixel size from the UDim2 (ObjectSize * ParentSize)</summary>
-    protected Size CurrentAbsoluteSize => new(
-        (int)(CurrentSize.X * CurrentContainerSize.Width),
-        (int)(CurrentSize.Y * CurrentContainerSize.Height)
-    );
+    protected Size CurrentAbsoluteSize { get => CurrentUDim2.GetAbsoluteSize(); }
 
     protected float CurrentOpacity { get; set; } = 1.0f;
     protected float CurrentRotation { get; set; } = 0.0f;

@@ -93,9 +93,13 @@ public class TextureWrapper : Adjustable, IDisposable {
         ObjectDisposedException.ThrowIf(_disposed, nameof(TextureWrapper));
 
         // Boundary checking
-        if (x < 0 || x >= GetSize().Width || y < 0 || y >= GetSize().Height) return Color.Transparent;
+        var absSize = CurrentContainerSize;
+        var size = GetSize();
+        var width = (int)(size.X * absSize.Width);
+        var height = (int)(size.Y * absSize.Height);
+        if (x < 0 || x >= width || y < 0 || y >= height) return Color.Transparent;
         var pixels = GetPixels();
-        var color = pixels[x + y * GetSize().Width];
+        var color = pixels[x + y * width];
         return color.A == 0 ? Color.Transparent : color;
     }
 
@@ -107,7 +111,11 @@ public class TextureWrapper : Adjustable, IDisposable {
         ObjectDisposedException.ThrowIf(_disposed, nameof(TextureWrapper));
 
         // Out of bounds is considered transparent
-        if (x < 0 || x >= GetSize().Width || y < 0 || y >= GetSize().Height) return true;
+        var absSize = CurrentContainerSize;
+        var size = GetSize();
+        var width = (int)(size.X * absSize.Width);
+        var height = (int)(size.Y * absSize.Height);
+        if (x < 0 || x >= width || y < 0 || y >= height) return true;
         var pixelColor = GetPixel(x, y);
         return pixelColor.A == 0;
     }
@@ -117,13 +125,17 @@ public class TextureWrapper : Adjustable, IDisposable {
 
         // Cache pixels for performance
         if (!_pixelsCached || _cachedPixels == null) {
+            var absSize = CurrentContainerSize;
+            var size = GetSize();
+            var width = (int)(size.X * absSize.Width);
+            var height = (int)(size.Y * absSize.Height);
             try {
-                _cachedPixels = new Color[GetSize().Width * GetSize().Height];
+                _cachedPixels = new Color[width * height];
                 Texture.GetData(_cachedPixels);
                 _pixelsCached = true;
             } catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine($"TextureWrapper: Failed to get pixel data: {ex.Message}");
-                return new Color[GetSize().Width * GetSize().Height]; // Return empty array as fallback
+                return new Color[width * height]; // Return empty array as fallback
             }
         }
 
@@ -132,7 +144,11 @@ public class TextureWrapper : Adjustable, IDisposable {
 
     public virtual void Draw(bool scaled = false) {
         ObjectDisposedException.ThrowIf(_disposed, nameof(TextureWrapper));
-        Rectangle rectangleSize = new(0, 0, GetSize().Width, GetSize().Height);
+        var absSize = CurrentContainerSize;
+        var size = GetSize();
+        var width = (int)(size.X * absSize.Width);
+        var height = (int)(size.Y * absSize.Height);
+        Rectangle rectangleSize = new(0, 0, width, height);
         Vector2 position = new(GetPosition().X, GetPosition().Y);
         if (!scaled) _sb.Draw(Texture, position, rectangleSize, Color.White * GetOpacity());
         else _sb.Draw(Texture, position, rectangleSize, Color.White * GetOpacity(), 0f, Vector2.Zero, GetScale(), SpriteEffects.None, 0f);
@@ -140,7 +156,11 @@ public class TextureWrapper : Adjustable, IDisposable {
 
     public virtual void Draw(Color color, bool scaled = false) {
         ObjectDisposedException.ThrowIf(_disposed, nameof(TextureWrapper));
-        Rectangle rectangleSize = new(0, 0, GetSize().Width, GetSize().Height);
+        var absSize = CurrentContainerSize;
+        var size = GetSize();
+        var width = (int)(size.X * absSize.Width);
+        var height = (int)(size.Y * absSize.Height);
+        Rectangle rectangleSize = new(0, 0, width, height);
         Vector2 position = new(GetPosition().X, GetPosition().Y);
         if (!scaled) _sb.Draw(Texture, position, rectangleSize, color * GetOpacity());
         else _sb.Draw(Texture, position, rectangleSize, color * GetOpacity(), 0f, Vector2.Zero, GetScale(), SpriteEffects.None, 0f);
@@ -148,7 +168,11 @@ public class TextureWrapper : Adjustable, IDisposable {
 
     public virtual void Draw(Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth, bool scaled = false) {
         ObjectDisposedException.ThrowIf(_disposed, nameof(TextureWrapper));
-        Rectangle rectangleSize = new(0, 0, GetSize().Width, GetSize().Height);
+        var absSize = CurrentContainerSize;
+        var size = GetSize();
+        var width = (int)(size.X * absSize.Width);
+        var height = (int)(size.Y * absSize.Height);
+        Rectangle rectangleSize = new(0, 0, width, height);
         Vector2 position = new(GetPosition().X, GetPosition().Y);
         if (!scaled) _sb.Draw(Texture, position, rectangleSize, color * GetOpacity(), rotation, origin, scale, effects, layerDepth);
         else _sb.Draw(Texture, position, rectangleSize, color * GetOpacity(), rotation, origin, GetScale(), effects, layerDepth);

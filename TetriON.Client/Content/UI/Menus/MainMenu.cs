@@ -17,8 +17,8 @@ namespace TetriON.Client.Content.UI.Menus;
 /// </summary>
 public static class MainMenu {
 
-    private const int ButtonWidth = 280;
-    private const int ButtonHeight = 50;
+    private const float ButtonWidth = 0.20f;
+    private const float ButtonHeight = 0.06f;
     private const int PanelWidth = 400;
     private const int PanelHeight = 500;
 
@@ -88,7 +88,7 @@ public static class MainMenu {
 
         var titleSize = new System.Numerics.Vector2(0.3f, 0.1f);
         var titlePos = GetAnchoredPoint(new System.Drawing.Point(0, 60), titleSize, new Size(screenWidth, screenHeight), AnchorPreset.TopCenter);
-        title.Initialize(titlePos, new(0, 0), titleSize, new Size(screenWidth, screenHeight));
+        title.Initialize(new(titlePos.X, titlePos.Y), new(0, 0), titleSize, new Size(screenWidth, screenHeight));
         title.SetPosition(titlePos);
         container.AddChild(title);
 
@@ -104,8 +104,9 @@ public static class MainMenu {
 
         // Calculate size based on content
         int buttonCount = 6;
-        int panelHeight = (ButtonHeight + 15) * buttonCount + 20;
-        buttonsPanel.SetSize(new Size(ButtonWidth + 20, panelHeight));
+        int buttonHeight = (int)(ButtonHeight * screenHeight);
+        int panelHeight = (buttonHeight + 15) * buttonCount + 20;
+        buttonsPanel.SetSize(new Size((int)(ButtonWidth * screenWidth) + 20, panelHeight));
 
         // Position panel at center
         var panelPos = GetAnchoredPoint(new System.Drawing.Point(0, 50), buttonsPanel.GetSize(), new Size(screenWidth, screenHeight), AnchorPreset.Center);
@@ -116,9 +117,9 @@ public static class MainMenu {
         string[] btnNames = { "Play", "Options", "Multiplayer", "Statistics", "Credits", "Exit" };
         foreach (var name in btnNames) {
             var btn = CreateStyledButton(menu, buttonsPanel, name, font);
+            btn.SetSize(new Size((int)(ButtonWidth * screenWidth), buttonHeight));
             buttonsPanel.AddChild(btn);
         }
-
         container.AddChild(buttonsPanel);
 
         // Info Text
@@ -197,11 +198,13 @@ public static class MainMenu {
 
     private static ButtonWrapper CreateStyledButton(MenuWrapper menu, FrameWrapper frame, string text, FontWrapper font) {
         var tex = CreateSolidTexture(menu, ButtonWidth, ButtonHeight, Microsoft.Xna.Framework.Color.White);
+        var frameSize = frame.GetAbsoluteSize();
 
         var btn = new ButtonWrapper(menu, tex, frame, $"btn_{text.ToLower()}") {
             // Initialization handled by parent add or manual call if needed
         };
-        btn.SetSize(new Size(ButtonWidth, ButtonHeight));
+        Logger.DebugLog($"MainMenu: Creating button '{text}' with size ({(int)(ButtonWidth * frameSize.Width)}, {(int)(ButtonHeight * frameSize.Height)})");
+        btn.SetSize(new Size((int)(ButtonWidth * frameSize.Width), (int)(ButtonHeight * frameSize.Height)));
 
         btn.SetColors(
             normal: new Microsoft.Xna.Framework.Color(60, 60, 65),
@@ -215,7 +218,8 @@ public static class MainMenu {
             TextColor = Microsoft.Xna.Framework.Color.White,
             HorizontalAlignment = HorizontalAlignment.Center
         };
-        label.Initialize(new System.Drawing.Point(0, 0), new Size(ButtonWidth, ButtonHeight), new Size(ButtonWidth, ButtonHeight));
+        var parentSize = new Size((int)(ButtonWidth * frameSize.Width), (int)(ButtonHeight * frameSize.Height));
+        label.Initialize(new System.Drawing.Point(0, 0), new Size((int)(ButtonWidth * frameSize.Width), (int)(ButtonHeight * frameSize.Height)), parentSize);
         label.SetPosition(new System.Drawing.Point(0, 12));
 
         btn.AddChild(label);
@@ -223,9 +227,11 @@ public static class MainMenu {
         return btn;
     }
 
-    private static TextureWrapper CreateSolidTexture(MenuWrapper menu, int width, int height, Microsoft.Xna.Framework.Color color) {
-        var texture = new Texture2D(menu.Controller.Game.GraphicsDevice, width, height);
-        var data = new Microsoft.Xna.Framework.Color[width * height];
+    private static TextureWrapper CreateSolidTexture(MenuWrapper menu, float width, float height, Microsoft.Xna.Framework.Color color) {
+        var finalWidth = (int)(width * menu.Controller.Game.GraphicsDevice.Viewport.Width);
+        var finalHeight = (int)(height * menu.Controller.Game.GraphicsDevice.Viewport.Height);
+        var texture = new Texture2D(menu.Controller.Game.GraphicsDevice, finalWidth, finalHeight);
+        var data = new Microsoft.Xna.Framework.Color[finalWidth * finalHeight];
         for (int i = 0; i < data.Length; i++) data[i] = color;
         texture.SetData(data);
         return new TextureWrapper(menu.Controller, texture, true);
