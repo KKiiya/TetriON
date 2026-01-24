@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TetriON.Client.Content.Media;
+using TetriON.Client.Content.UI.Utils;
 
 namespace TetriON.Client.Content.UI.Components;
 
@@ -221,9 +222,7 @@ public class FrameWrapper : MenuComponent {
         OnMouseHolding += (s, e) => HandleMouseHolding(e.Duration);
 
         // Initialize all children
-        foreach (var child in Children) {
-            child.Initialize();
-        }
+        foreach (var child in Children) child.Initialize();
 
         UpdateLayout();
     }

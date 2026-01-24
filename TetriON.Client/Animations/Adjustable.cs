@@ -390,8 +390,8 @@ public abstract class Adjustable(ClientController? controller) {
     public virtual void SetSize(Size absoluteSize) {
         if (CurrentContainerSize.Width > 0 && CurrentContainerSize.Height > 0) {
             CurrentSize = new Vector2(
-                (float)absoluteSize.Width / CurrentContainerSize.Width,
-                (float)absoluteSize.Height / CurrentContainerSize.Height
+                ((float)absoluteSize.Width) / CurrentContainerSize.Width,
+                ((float)absoluteSize.Height) / CurrentContainerSize.Height
             );
         }
     }

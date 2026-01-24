@@ -105,8 +105,7 @@ public class Composers {
     /// Calculate positioned point based on anchor preset
     /// </summary>
     public static Point GetAnchoredPoint(Point position, Size elementSize, Size containerSize, AnchorPreset anchor) {
-        return GetAnchoredPoint(position.X, position.Y, elementSize.Width, elementSize.Height,
-            containerSize.Width, containerSize.Height, anchor);
+        return GetAnchoredPoint(position.X, position.Y, elementSize.Width, elementSize.Height, containerSize.Width, containerSize.Height, anchor);
     }
 
     /// <summary>

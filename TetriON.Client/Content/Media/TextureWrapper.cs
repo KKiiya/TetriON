@@ -144,38 +144,59 @@ public class TextureWrapper : Adjustable, IDisposable {
 
     public virtual void Draw(bool scaled = false) {
         ObjectDisposedException.ThrowIf(_disposed, nameof(TextureWrapper));
-        var absSize = CurrentContainerSize;
-        var size = GetSize();
-        var width = (int)(size.X * absSize.Width);
-        var height = (int)(size.Y * absSize.Height);
-        Rectangle rectangleSize = new(0, 0, width, height);
-        Vector2 position = new(GetPosition().X, GetPosition().Y);
-        if (!scaled) _sb.Draw(Texture, position, rectangleSize, Color.White * GetOpacity());
-        else _sb.Draw(Texture, position, rectangleSize, Color.White * GetOpacity(), 0f, Vector2.Zero, GetScale(), SpriteEffects.None, 0f);
+
+        // Source rectangle is the actual texture dimensions
+        Rectangle sourceRect = new(0, 0, Texture.Width, Texture.Height);
+
+        // Get absolute position
+        var absPos = GetAbsolutePosition();
+        Vector2 position = new(absPos.X, absPos.Y);
+
+        if (!scaled) {
+            // Calculate destination size from absolute size
+            var destSize = GetAbsoluteSize();
+            Rectangle destRect = new(absPos.X, absPos.Y, destSize.Width, destSize.Height);
+            _sb.Draw(Texture, destRect, sourceRect, Color.White * GetOpacity());
+        } else {
+            _sb.Draw(Texture, position, sourceRect, Color.White * GetOpacity(), 0f, Vector2.Zero, GetScale(), SpriteEffects.None, 0f);
+        }
     }
 
     public virtual void Draw(Color color, bool scaled = false) {
         ObjectDisposedException.ThrowIf(_disposed, nameof(TextureWrapper));
-        var absSize = CurrentContainerSize;
-        var size = GetSize();
-        var width = (int)(size.X * absSize.Width);
-        var height = (int)(size.Y * absSize.Height);
-        Rectangle rectangleSize = new(0, 0, width, height);
-        Vector2 position = new(GetPosition().X, GetPosition().Y);
-        if (!scaled) _sb.Draw(Texture, position, rectangleSize, color * GetOpacity());
-        else _sb.Draw(Texture, position, rectangleSize, color * GetOpacity(), 0f, Vector2.Zero, GetScale(), SpriteEffects.None, 0f);
+
+        // Source rectangle is the actual texture dimensions
+        Rectangle sourceRect = new(0, 0, Texture.Width, Texture.Height);
+
+        // Get absolute position
+        var absPos = GetAbsolutePosition();
+        Vector2 position = new(absPos.X, absPos.Y);
+
+        if (!scaled) {
+            // Calculate destination size from absolute size
+            var destSize = GetAbsoluteSize();
+            Rectangle destRect = new(absPos.X, absPos.Y, destSize.Width, destSize.Height);
+            _sb.Draw(Texture, destRect, sourceRect, color * GetOpacity());
+        } else {
+            _sb.Draw(Texture, position, sourceRect, color * GetOpacity(), 0f, Vector2.Zero, GetScale(), SpriteEffects.None, 0f);
+        }
     }
 
     public virtual void Draw(Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth, bool scaled = false) {
         ObjectDisposedException.ThrowIf(_disposed, nameof(TextureWrapper));
-        var absSize = CurrentContainerSize;
-        var size = GetSize();
-        var width = (int)(size.X * absSize.Width);
-        var height = (int)(size.Y * absSize.Height);
-        Rectangle rectangleSize = new(0, 0, width, height);
-        Vector2 position = new(GetPosition().X, GetPosition().Y);
-        if (!scaled) _sb.Draw(Texture, position, rectangleSize, color * GetOpacity(), rotation, origin, scale, effects, layerDepth);
-        else _sb.Draw(Texture, position, rectangleSize, color * GetOpacity(), rotation, origin, GetScale(), effects, layerDepth);
+
+        // Source rectangle is the actual texture dimensions
+        Rectangle sourceRect = new(0, 0, Texture.Width, Texture.Height);
+
+        // Get absolute position
+        var absPos = GetAbsolutePosition();
+        Vector2 position = new(absPos.X, absPos.Y);
+
+        if (!scaled) {
+            _sb.Draw(Texture, position, sourceRect, color * GetOpacity(), rotation, origin, scale, effects, layerDepth);
+        } else {
+            _sb.Draw(Texture, position, sourceRect, color * GetOpacity(), rotation, origin, GetScale(), effects, layerDepth);
+        }
     }
 
     // Additional utility methods

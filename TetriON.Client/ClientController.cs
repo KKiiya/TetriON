@@ -136,7 +136,7 @@ public class ClientController {
         _renderers.Add(new CursorRenderer(this));
         _renderers.Add(new CurrentMenuRenderer(this));
         Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
-        _renderers.Sort((a, b) => a.ZIndex.CompareTo(b.ZIndex));
+        SortRenderers();
     }
 
     private void LoadMenus() {
@@ -168,15 +168,15 @@ public class ClientController {
         _renderers.Add(statsRenderer);
 
         Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
+        SortRenderers();
         _currentGame.Start();
         GameInput.LoadForGame(_currentGame);
+        _activeMenu = null; // Hide menus during gameplay
         Logger.Log("ClientController: Test game started", Logger.LogLevel.Info);
     }
 
     public MenuWrapper? GetMenuById(string id) {
-        if (_menus.TryGetValue(id, out var menu)) {
-            return menu;
-        }
+        if (_menus.TryGetValue(id, out var menu)) return menu;
         return null;
     }
 
@@ -196,5 +196,15 @@ public class ClientController {
         foreach (var menu in _menus.Values) {
             menu.HandleResize(newWidth, newHeight);
         }
+    }
+
+    public void AddRenderer(Renderer renderer, bool sort = false) {
+        ArgumentNullException.ThrowIfNull(renderer, nameof(renderer));
+        _renderers.Add(renderer);
+        if (sort) _renderers.Sort((a, b) => a.ZIndex.CompareTo(b.ZIndex));
+    }
+
+    public void SortRenderers() {
+        _renderers.Sort((a, b) => a.ZIndex.CompareTo(b.ZIndex));
     }
 }

@@ -105,11 +105,16 @@ public static class MainMenu {
         // Calculate size based on content
         int buttonCount = 6;
         int buttonHeight = (int)(ButtonHeight * screenHeight);
+        int buttonWidth = (int)(ButtonWidth * screenWidth);
         int panelHeight = (buttonHeight + 15) * buttonCount + 20;
-        buttonsPanel.SetSize(new Size((int)(ButtonWidth * screenWidth) + 20, panelHeight));
+
+        // IMPORTANT: Set container size BEFORE calling SetSize so the scale conversion works properly
+        buttonsPanel.SetContainerSize(new Size(screenWidth, screenHeight));
+        buttonsPanel.SetSize(new Size(buttonWidth + 20, panelHeight));
+        Logger.DebugLog($"MainMenu: Buttons panel size set to ({buttonWidth + 20}, {panelHeight}) -> Absolute: {buttonsPanel.GetAbsoluteSize()}");
 
         // Position panel at center
-        var panelPos = GetAnchoredPoint(new System.Drawing.Point(0, 50), buttonsPanel.GetSize(), new Size(screenWidth, screenHeight), AnchorPreset.Center);
+        var panelPos = GetAnchoredPoint(new System.Drawing.Point(0, 50), buttonsPanel.GetAbsoluteSize(), new Size(screenWidth, screenHeight), AnchorPreset.Center);
         buttonsPanel.SetPosition(panelPos);
         buttonsPanel.Initialize();
 
@@ -117,7 +122,7 @@ public static class MainMenu {
         string[] btnNames = { "Play", "Options", "Multiplayer", "Statistics", "Credits", "Exit" };
         foreach (var name in btnNames) {
             var btn = CreateStyledButton(menu, buttonsPanel, name, font);
-            btn.SetSize(new Size((int)(ButtonWidth * screenWidth), buttonHeight));
+            btn.SetSize(new Size(buttonWidth, buttonHeight));
             buttonsPanel.AddChild(btn);
         }
         container.AddChild(buttonsPanel);
@@ -153,6 +158,8 @@ public static class MainMenu {
             titleText: Microsoft.Xna.Framework.Color.White
         );
 
+        // Set container size BEFORE calling SetSize so the scale conversion works properly
+        optionsFrame.SetContainerSize(new Size(screenWidth, screenHeight));
         optionsFrame.SetSize(new Size(PanelWidth, PanelHeight));
         optionsFrame.CenterOnScreen(screenWidth, screenHeight);
         optionsFrame.Initialize();
@@ -200,11 +207,19 @@ public static class MainMenu {
         var tex = CreateSolidTexture(menu, ButtonWidth, ButtonHeight, Microsoft.Xna.Framework.Color.White);
         var frameSize = frame.GetAbsoluteSize();
 
+        // Use screen dimensions for button sizing since frame might not have proper size yet
+        var viewport = menu.Controller.Game.GraphicsDevice.Viewport;
+        int buttonWidth = (int)(ButtonWidth * viewport.Width);
+        int buttonHeight = (int)(ButtonHeight * viewport.Height);
+
         var btn = new ButtonWrapper(menu, tex, frame, $"btn_{text.ToLower()}") {
             // Initialization handled by parent add or manual call if needed
         };
-        Logger.DebugLog($"MainMenu: Creating button '{text}' with size ({(int)(ButtonWidth * frameSize.Width)}, {(int)(ButtonHeight * frameSize.Height)})");
-        btn.SetSize(new Size((int)(ButtonWidth * frameSize.Width), (int)(ButtonHeight * frameSize.Height)));
+        Logger.DebugLog($"MainMenu: Creating button '{text}' with size ({buttonWidth}, {buttonHeight}) - Frame size: {frameSize}");
+
+        // Set container size before setting button size
+        btn.SetContainerSize(new Size(viewport.Width, viewport.Height));
+        btn.SetSize(new Size(buttonWidth, buttonHeight));
 
         btn.SetColors(
             normal: new Microsoft.Xna.Framework.Color(60, 60, 65),

@@ -41,12 +41,19 @@ public class ButtonWrapper(MenuWrapper? menu, FrameWrapper? frame = null, string
         // Apply opacity from Adjustable
         drawColor *= CurrentOpacity;
 
-        // Set position and draw using TextureWrapper's Draw method
+        // Get position and size
         var absPos = GetAbsolutePosition();
-        //Logger.DebugLog($"ButtonWrapper: Drawing at position {absPos} with color {drawColor} and opacity {CurrentOpacity}.");
+        var absSize = GetAbsoluteSize();
+
+        // Ensure texture has proper container size and size set
+        var viewport = Controller.Game.GraphicsDevice.Viewport;
+        _texture.SetContainerSize(new System.Drawing.Size(viewport.Width, viewport.Height));
         _texture.SetPosition(new System.Drawing.Point(absPos.X, absPos.Y));
+        _texture.SetSize(absSize);
         _texture.SetOpacity(CurrentOpacity);
-        _texture.Draw(drawColor, scaled: true);
+
+        //Logger.DebugLog($"ButtonWrapper [{Identifier}]: Rendering at pos ({absPos.X}, {absPos.Y}) size ({absSize.Width}, {absSize.Height}) color {drawColor} opacity {CurrentOpacity} | Texture size: {_texture.GetAbsoluteSize()}");
+        _texture.Draw(drawColor, scaled: false);
     }
 
     #endregion
