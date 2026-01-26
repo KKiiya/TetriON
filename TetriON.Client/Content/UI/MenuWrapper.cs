@@ -5,7 +5,9 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using TetriON.Client.Animations;
 using TetriON.Client.Content.UI.Components;
+using TetriON.Client.Content.UI.Utils;
 using TetriON.Client.Input;
 using TetriON.Shared.Utilities;
 
@@ -260,15 +262,17 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
         // Update component bounds if it's a root-level component (full screen)
         if (component is FrameWrapper frame && frame.Identifier == "root_container") {
             // This is a root container, resize it to match the new window size
-            var newSize = new Size(newWidth, newHeight);
-            frame.Initialize(new System.Drawing.Point(0, 0), newSize, newSize);
+            frame.CurrentContainerSize = new Size(newWidth, newHeight);
             Logger.Log($"MenuWrapper: Resized root container '{frame.Identifier}' to {newWidth}x{newHeight}", Logger.LogLevel.Debug);
         }
 
         // Recursively handle children
         if (component is FrameWrapper frameWithChildren) {
             foreach (var child in frameWithChildren.Children) {
-                HandleComponentResize(child, newWidth, newHeight);
+                var parentSize = frameWithChildren.CurrentContainerSize;
+                Logger.Log($"MenuWrapper: Resizing child '{child.Identifier}' of '{frameWithChildren.Identifier}' with parent size {parentSize}", Logger.LogLevel.Debug);
+                child.CurrentContainerSize = new Size(parentSize.Width, parentSize.Height);
+                HandleComponentResize(child, parentSize.Width, parentSize.Height);
             }
         }
     }
@@ -288,9 +292,7 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
         // Update all components
         lock (_componentsLock) {
             foreach (var component in _components) {
-                if (component.IsVisible) {
-                    component.Update(deltaTime);
-                }
+                if (component.IsVisible) component.Update(deltaTime);
             }
         }
     }
@@ -340,6 +342,8 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
         // This ensures only ONE component can be hovered at a time
         foreach (var component in _inputOrderCache) {
             if (!component.CanReceiveInput) continue;
+            if (!component.IsVisible) continue;
+            if (!component.IsEnabled) continue;
 
             // Check if pointer is over this component
             if (component.HitTest(pointerPosition)) {

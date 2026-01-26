@@ -17,94 +17,94 @@ public abstract class Adjustable(ClientController? controller) {
 
     #region Original State Properties
     // Store original position and dimensions
-    protected UDim2 OriginalUDim2 { get; set; } = UDim2.Zero;
-    protected Vector2 OriginalPosition {
+    public UDim2 OriginalUDim2 { get; set; } = UDim2.Zero;
+    public Vector2 OriginalPosition {
         get => OriginalUDim2.PositionPercentil;
         set => OriginalUDim2.PositionPercentil = value;
     }
-    protected Point OriginalOffset {
+    public Point OriginalOffset {
         get => OriginalUDim2.Offset;
         set => OriginalUDim2.Offset = new(value.X, value.Y);
     }
-    protected Vector2 OriginalSize {
+    public Vector2 OriginalSize {
         get => OriginalUDim2.ObjectSize;
         set => OriginalUDim2.ObjectSize = value;
     }
-    protected Size OriginalContainerSize {
+    public Size OriginalContainerSize {
         get => OriginalUDim2.ParentSize;
         set => OriginalUDim2.ParentSize = value;
     }
 
     // Store original visual properties
-    protected float OriginalOpacity { get; set; } = 1.0f;
-    protected float OriginalRotation { get; set; } = 0.0f;
-    protected float OriginalScale { get; set; } = 1.0f;
+    public float OriginalOpacity { get; set; } = 1.0f;
+    public float OriginalRotation { get; set; } = 0.0f;
+    public float OriginalScale { get; set; } = 1.0f;
     #endregion
 
 
     #region Target State Properties
     // Store target position and dimensions
-    protected UDim2 TargetUDim2 { get; set; } = UDim2.Zero;
-    protected Vector2 TargetPosition {
+    public UDim2 TargetUDim2 { get; set; } = UDim2.Zero;
+    public Vector2 TargetPosition {
         get => TargetUDim2.PositionPercentil;
         set => TargetUDim2.PositionPercentil = value;
     }
-    protected Point TargetOffset {
+    public Point TargetOffset {
         get => TargetUDim2.Offset;
         set => TargetUDim2.Offset = new(value.X, value.Y);
     }
-    protected Vector2 TargetSize {
+    public Vector2 TargetSize {
         get => TargetUDim2.ObjectSize;
         set => TargetUDim2.ObjectSize = value;
     }
-    protected Size TargetContainerSize {
+    public Size TargetContainerSize {
         get => TargetUDim2.ParentSize;
         set => TargetUDim2.ParentSize = value;
     }
 
     // Store target visual properties
-    protected float TargetOpacity { get; set; } = 1.0f;
-    protected float TargetRotation { get; set; } = 0.0f;
-    protected float TargetScale { get; set; } = 1.0f;
+    public float TargetOpacity { get; set; } = 1.0f;
+    public float TargetRotation { get; set; } = 0.0f;
+    public float TargetScale { get; set; } = 1.0f;
     #endregion
 
 
     #region Current State Properties
     // Current interpolated values
-    protected UDim2 CurrentUDim2 { get; set; } = UDim2.Zero;
-    protected Vector2 CurrentPosition {
+    public UDim2 CurrentUDim2 { get; set; } = UDim2.Zero;
+    public Vector2 CurrentPosition {
         get => CurrentUDim2.PositionPercentil;
         set => CurrentUDim2.PositionPercentil = value;
     }
-    protected Point CurrentOffset {
+    public Point CurrentOffset {
         get => CurrentUDim2.Offset;
         set => CurrentUDim2.Offset = new(value.X, value.Y);
     }
-    protected Vector2 CurrentSize {
+    public Vector2 CurrentSize {
         get => CurrentUDim2.ObjectSize;
         set => CurrentUDim2.ObjectSize = value;
     }
-    protected Size CurrentContainerSize {
+    public Size CurrentContainerSize {
         get => CurrentUDim2.ParentSize;
         set => CurrentUDim2.ParentSize = value;
     }
 
     /// <summary>Gets the absolute pixel position from the UDim2 (Scale * ParentSize + Offset)</summary>
-    protected Point CurrentAbsolutePosition => CurrentUDim2.ToAbsolute();
+    public Point CurrentAbsolutePosition => CurrentUDim2.ToAbsolute();
 
     /// <summary>Gets the absolute pixel size from the UDim2 (ObjectSize * ParentSize)</summary>
-    protected Size CurrentAbsoluteSize { get => CurrentUDim2.GetAbsoluteSize(); }
+    public Size CurrentAbsoluteSize { get => CurrentUDim2.GetAbsoluteSize(); }
 
-    protected float CurrentOpacity { get; set; } = 1.0f;
-    protected float CurrentRotation { get; set; } = 0.0f;
-    protected float CurrentScale { get; set; } = 1.0f;
+    public float CurrentOpacity { get; set; } = 1.0f;
+    public float CurrentRotation { get; set; } = 0.0f;
+    public float CurrentScale { get; set; } = 1.0f;
     #endregion
 
     #region Configuration Properties
     // Adjustment behavior settings
-    protected AnchorPreset Anchor { get; set; } = AnchorPreset.TopLeft;
-    protected ScaleMode ScalingMode { get; set; } = ScaleMode.Proportional;
-    protected bool IsAdjusting { get; set; } = false;
+    public AnchorPreset Anchor { get; set; } = AnchorPreset.TopLeft;
+    public ScaleMode ScalingMode { get; set; } = ScaleMode.Proportional;
+    public bool IsAdjusting { get; set; } = false;
     #endregion
 
 
