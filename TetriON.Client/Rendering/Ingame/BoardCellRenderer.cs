@@ -65,4 +65,8 @@ public class BoardCellRenderer(TetrisGame tetrisGame, ClientController controlle
 
         SpriteBatch.Draw(TileSheet.GetTexture(), destRect, sourceRect, Color.White);
     }
+
+    public override void Initialize() {
+        ZIndex = 2; // Ensure cells render above grid
+    }
 }

@@ -88,4 +88,8 @@ public class BoardGridRenderer(TetrisGame tetrisGame, ClientController controlle
             SpriteBatch.Draw(_pixelTexture, lineRect, Color.Gray * 0.5f);
         }
     }
+
+    public override void Initialize() {
+        ZIndex = 1; // Ensure grid renders above background but below cells/UI
+    }
 }

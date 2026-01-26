@@ -133,11 +133,21 @@ public class GameInput {
     }
 
     private void HandleGameplayInput() {
-        // Check if actions are active
-        if (_inputManager.IsActionTriggeredWithDASAndDCD(_moveLeftAction!)) {
+        // Check if actions are active with last-input priority
+        bool leftTriggered = _inputManager.IsActionTriggeredWithDASAndDCD(_moveLeftAction!);
+        bool rightTriggered = _inputManager.IsActionTriggeredWithDASAndDCD(_moveRightAction!);
+
+        if (leftTriggered && rightTriggered) {
+            // Both pressed: prioritize the most recently pressed
+            if (_inputManager.GetActionPressTime(_moveLeftAction!) > _inputManager.GetActionPressTime(_moveRightAction!)) {
+                _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.LEFT);
+            } else {
+                _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.RIGHT);
+            }
+        } else if (leftTriggered) {
             _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.LEFT);
             //Logger.Log("Move Left detected", Logger.LogLevel.Info);
-        } else if (_inputManager.IsActionTriggeredWithDASAndDCD(_moveRightAction!)) {
+        } else if (rightTriggered) {
             _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.RIGHT);
             //Logger.Log("Move Right detected", Logger.LogLevel.Info);
         }

@@ -27,8 +27,8 @@ public static class MainMenu {
     /// </summary>
     public static MenuWrapper Create(ClientController controller) {
         var builder = new MenuBuilder(controller, "main_menu");
-        var menu = builder.Build();
         var viewport = controller.Game.GraphicsDevice.Viewport;
+        var menu = builder.Build();
 
         int screenWidth = viewport.Width;
         int screenHeight = viewport.Height;
@@ -41,7 +41,7 @@ public static class MainMenu {
             Layout = FrameLayout.None
         };
         rootContainer.SetBackgroundColor(Microsoft.Xna.Framework.Color.Transparent);
-        rootContainer.Initialize(new(0, 0), new(0, 0), new(1, 1), new Size(screenWidth, screenHeight));
+        rootContainer.Initialize(new(0, 0), new(0, 0), new(0.4f, 0.4f), new Size(screenWidth, screenHeight));
 
         // 2. Main View (Title + Buttons)
         var mainView = CreateMainView(menu, font, screenWidth, screenHeight);
@@ -132,8 +132,7 @@ public static class MainMenu {
             TextColor = Microsoft.Xna.Framework.Color.Gray * 0.7f
         };
         var infoPos = GetAnchoredPoint(new System.Drawing.Point(0, 20), new Size(400, 30), new Size(screenWidth, screenHeight), AnchorPreset.BottomLeft);
-        infoText.Initialize(infoPos, new Size(600, 30), new Size(screenWidth, screenHeight));
-        infoText.SetPosition(infoPos);
+        infoText.Initialize(new(infoPos.X, infoPos.Y), new(0, 0), new(0.3f, 0.04f), new Size(screenWidth, screenHeight));
         container.AddChild(infoText);
 
         return container;

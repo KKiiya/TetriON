@@ -26,9 +26,9 @@ namespace TetriON.Client.Content.UI;
 /// - Leverages new input features: gestures, multi-touch, gamepad support
 /// </para>
 /// </summary>
-public class MenuWrapper(ClientController controller, string menuId = "") : IDisposable {
-    private readonly ClientController _controller = controller ?? throw new ArgumentNullException(nameof(controller));
-    private readonly string _menuId = string.IsNullOrEmpty(menuId) ? Guid.NewGuid().ToString() : menuId;
+public class MenuWrapper : IDisposable {
+    private readonly ClientController _controller;
+    private readonly string _menuId;
     private readonly List<MenuComponent> _components = [];
     private readonly object _componentsLock = new();
 
@@ -117,6 +117,15 @@ public class MenuWrapper(ClientController controller, string menuId = "") : IDis
 
     /// <summary>Gets the currently focused component.</summary>
     public MenuComponent? FocusedComponent => _currentFocusedComponent;
+    #endregion
+
+
+    #region Constructors
+    public MenuWrapper(ClientController controller, string menuId = "") {
+        _controller = controller ?? throw new ArgumentNullException(nameof(controller));
+        _menuId = string.IsNullOrEmpty(menuId) ? Guid.NewGuid().ToString() : menuId;
+        controller.AddMenu(this);
+    }
     #endregion
 
 

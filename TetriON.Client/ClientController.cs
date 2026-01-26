@@ -22,7 +22,7 @@ namespace TetriON.Client;
 
 public class ClientController {
 
-    public static readonly float TargetFrameRate = 144f; // Target FPS
+    public static readonly float TargetFrameRate = -1f; // Target FPS
 
 
     // Dependencies
@@ -68,8 +68,10 @@ public class ClientController {
     // Lifecycle methods
     public void Initialize() {
         //InputManager.Initialize();
-        Game.IsFixedTimeStep = true;
-        Game.TargetElapsedTime = TimeSpan.FromSeconds(1.0 / TargetFrameRate);
+        if (TargetFrameRate > 0) {
+            Game.IsFixedTimeStep = true;
+            Game.TargetElapsedTime = TimeSpan.FromSeconds(1.0 / TargetFrameRate);
+        } else if (TargetFrameRate < 0) Game.IsFixedTimeStep = false;
 
         SkinManager.LoadAllAssets();
         ServiceManager.Initialize();
@@ -132,9 +134,9 @@ public class ClientController {
 
     private void LoadRenderers() {
         Logger.Log("ClientController: Loading renderers...", Logger.LogLevel.Info);
-        _renderers.Add(new FPSRenderer(this));
-        _renderers.Add(new CursorRenderer(this));
-        _renderers.Add(new CurrentMenuRenderer(this));
+        _ = new FPSRenderer(this);
+        _ = new CursorRenderer(this);
+        _ = new CurrentMenuRenderer(this);
         Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
         SortRenderers();
     }
@@ -152,23 +154,14 @@ public class ClientController {
         _currentGame = new TetrisGame(settings);
         _gameDisposition = new GameDisposition(_currentGame, 1.0f);
 
-        var boardRenderer = new BoardRenderer(_currentGame, this, _gameDisposition);
-        var pieceRenderer = new PieceRenderer(_currentGame, this, _gameDisposition);
-        var ghostRenderer = new GhostRenderer(_currentGame, this, _gameDisposition);
-        var nextPieceRenderer = new NextPieceRenderer(_currentGame, this, _gameDisposition);
-        var heldPieceRenderer = new HeldPieceRenderer(_currentGame, this, _gameDisposition);
-        var statsRenderer = new StatsRenderer(_currentGame!, this);
-
-        // Draw order matters: board first, then pieces on top
-        _renderers.Add(boardRenderer);
-        _renderers.Add(ghostRenderer);  // Ghost piece behind current piece
-        _renderers.Add(pieceRenderer);  // Current piece on top
-        _renderers.Add(nextPieceRenderer);
-        _renderers.Add(heldPieceRenderer);
-        _renderers.Add(statsRenderer);
+        _ = new BoardRenderer(_currentGame, this, _gameDisposition);
+        _ = new PieceRenderer(_currentGame, this, _gameDisposition);
+        _ = new GhostRenderer(_currentGame, this, _gameDisposition);
+        _ = new NextPieceRenderer(_currentGame, this, _gameDisposition);
+        _ = new HeldPieceRenderer(_currentGame, this, _gameDisposition);
+        _ = new StatsRenderer(_currentGame, this);
 
         Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
-        SortRenderers();
         _currentGame.Start();
         GameInput.LoadForGame(_currentGame);
         _activeMenu = null; // Hide menus during gameplay
@@ -201,10 +194,15 @@ public class ClientController {
     public void AddRenderer(Renderer renderer, bool sort = false) {
         ArgumentNullException.ThrowIfNull(renderer, nameof(renderer));
         _renderers.Add(renderer);
-        if (sort) _renderers.Sort((a, b) => a.ZIndex.CompareTo(b.ZIndex));
+        if (sort) SortRenderers();
     }
 
     public void SortRenderers() {
         _renderers.Sort((a, b) => a.ZIndex.CompareTo(b.ZIndex));
+    }
+
+    public void AddMenu(MenuWrapper menu) {
+        ArgumentNullException.ThrowIfNull(menu, nameof(menu));
+        _menus[menu.MenuId] = menu;
     }
 }

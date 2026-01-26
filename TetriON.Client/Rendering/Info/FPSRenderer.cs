@@ -13,7 +13,7 @@ public class FPSRenderer(ClientController controller) : Renderer(controller) {
 
     public override void Draw() {
         string fpsText = $"FPS: {_fps:F2}";
-        _font.Draw(fpsText, new Vector2(10, 10), Color.White, 0.5f);
+        _font.Draw(fpsText, new Vector2(10, 10), Color.White * 0.5f, 0.5f);
     }
 
     public override void Update(float deltaTime) {

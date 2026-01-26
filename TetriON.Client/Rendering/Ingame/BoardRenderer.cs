@@ -14,6 +14,7 @@ public class BoardRenderer(TetrisGame tetrisGame, ClientController controller, G
     private readonly BoardCellRenderer _cellRenderer = new(tetrisGame, controller);
     private readonly GameDisposition _gameDisposition = gameDisposition;
 
+
     private bool _isInitialized;
 
     public override void Draw() {
@@ -30,8 +31,9 @@ public class BoardRenderer(TetrisGame tetrisGame, ClientController controller, G
         _cellRenderer.Draw();
     }
 
-    private void Initialize() {
+    public override void Initialize() {
         // Logger.Log($"BoardRenderer: Initializing with dimensions {width}x{height}, buffer: {bufferHeight}", Logger.LogLevel.Info);
+        ZIndex = 1; // Ensure board renders above background but below UI
         _isInitialized = true;
         // Logger.Log("BoardRenderer: Initialization complete", Logger.LogLevel.Info);
     }

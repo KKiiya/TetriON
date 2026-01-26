@@ -17,6 +17,7 @@ public class InputManager : IDisposable {
     private readonly Dictionary<InputAction, float> _actionHoldTimes = [];
     private readonly Dictionary<InputAction, float> _actionRepeatTimers = [];
     private readonly Dictionary<InputAction, InputAction?> _actionLastDirection = [];
+    private readonly Dictionary<InputAction, float> _actionPressTimes = [];
     private readonly List<IInputProvider> _inputProviders = [];
 
     // Input systems
@@ -329,6 +330,15 @@ public class InputManager : IDisposable {
     }
 
     /// <summary>
+    /// Gets the time when an action was last pressed.
+    /// Returns 0 if the action has never been pressed.
+    /// Useful for determining which of two actions was pressed most recently.
+    /// </summary>
+    public float GetActionPressTime(InputAction action) {
+        return _actionPressTimes.TryGetValue(action, out var time) ? time : 0f;
+    }
+
+    /// <summary>
     /// Checks if an action was just pressed this frame
     /// </summary>
     public bool IsActionJustPressed(InputAction action) {
@@ -375,7 +385,7 @@ public class InputManager : IDisposable {
     /// <summary>
     /// Gets 2D axis value for movement (combines multiple actions)
     /// </summary>
-    public Vector2 GetAxisValue(InputAction left, InputAction right, InputAction up, InputAction down) {
+    public Vector2 GetAxisValue(InputAction? left, InputAction? right, InputAction? up, InputAction? down) {
         Vector2 axis = Vector2.Zero;
 
         // Check keyboard/button inputs
@@ -568,6 +578,11 @@ public class InputManager : IDisposable {
 
             if (newState != currentState) {
                 _actionStates[action] = newState;
+
+                // Track press time when action is first pressed
+                if (newState == InputState.Pressed) {
+                    _actionPressTimes[action] = (float)DateTime.Now.TimeOfDay.TotalSeconds;
+                }
 
                 // Trigger action event
                 ActionTriggered?.Invoke(this, new InputActionEventArgs(action, newState));

@@ -49,4 +49,8 @@ public class PieceRenderer(TetrisGame tetrisGame, ClientController controller, G
             }
         }
     }
+
+    public override void Initialize() {
+        ZIndex = 5;
+    }
 }

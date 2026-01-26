@@ -40,4 +40,8 @@ public class HeldPieceRenderer(TetrisGame tetrisGame, ClientController controlle
             }
         }
     }
+
+    public override void Initialize() {
+        ZIndex = 5;
+    }
 }
