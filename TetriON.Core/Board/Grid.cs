@@ -13,8 +13,9 @@ public class Grid {
     #region Grid Properties
     private readonly int _width;
     private readonly int _height;
-    private readonly int _bufferHeight = 4;
+    private readonly int _bufferHeight;
     private readonly int _totalHeight;
+    private readonly int _spawnOffset;
     private readonly Cell[,] _cells;
     #endregion
 
@@ -22,6 +23,8 @@ public class Grid {
     public Grid(TetrisGame game, int width, int height) {
         _width = width;
         _height = height;
+        _bufferHeight = 4;
+        _spawnOffset = -3;
         _totalHeight = height + _bufferHeight;
         _game = game;
         _wallKickSystem = _game.GetSettings().GetWallKickSystem();
@@ -64,6 +67,10 @@ public class Grid {
 
     public int GetBufferHeight() {
         return _bufferHeight;
+    }
+
+    public int GetSpawnOffset() {
+        return _spawnOffset;
     }
 
     public Cell[,] GetCells() {

@@ -16,6 +16,7 @@ public class HeldPieceRenderer(TetrisGame tetrisGame, ClientController controlle
 
         var matrix = heldPiece.GetRotations()[0];
         var id = heldPiece.GetId();
+        if (!TetrisGame.CanHold()) id = 0x0B;
         var position = new Point((id - GridSizing.TileSpacing) * 31, 0);
         var rectangle = new Rectangle(position.X, position.Y, GridSizing.BaseTileWidth, GridSizing.BaseTileHeight);
         var scaledWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
@@ -35,8 +36,7 @@ public class HeldPieceRenderer(TetrisGame tetrisGame, ClientController controlle
                     scaledHeight
                 );
 
-                var color = TetrisGame.CanHold() ? Color.White : Color.Gray;
-                SpriteBatch.Draw(TileSheet.GetTexture(), destRect, rectangle, color);
+                SpriteBatch.Draw(TileSheet.GetTexture(), destRect, rectangle, Color.White);
             }
         }
     }
