@@ -275,6 +275,7 @@ public class TetrisGame {
     public void FetchNextTetromino() {
         //Logger.Log("TetrisGame.FetchNextTetromino: Fetching next piece from bag generator", Logger.LogLevel.Info);
         _currentTetromino = _bagGenerator.GetNextPiece();
+        _currentTetromino.ResetOrientation();
         //Logger.Log($"TetrisGame.FetchNextTetromino: Got piece {_currentTetromino?.GetShape()} (ID: {_currentTetromino?.GetId()})", Logger.LogLevel.Info);
         List<Tetromino> nextPieces = _bagGenerator.PeekNext(_nextTetrominos.Length);
         for (int i = 0; i < _nextTetrominos.Length; i++) _nextTetrominos[i] = nextPieces[i];
@@ -493,7 +494,7 @@ public class TetrisGame {
     public void ResetPosition() {
         var startX = (_settings.GridWidth / 2) - 2;
         if (_currentTetromino?.GetType() == typeof(O)) startX += 1; // Center O piece
-        _tetrominoPoint = new Point(startX, 0);
+        _tetrominoPoint = new Point(startX, _grid.GetSpawnOffset());
         System.Diagnostics.Debug.WriteLine($"TetrisGame.ResetPosition: Set position to ({startX}, 0) for piece {_currentTetromino?.GetShape()}");
     }
 

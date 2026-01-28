@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Numerics;
+using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.Content.UI.Utils;
 
@@ -19,6 +20,7 @@ public class UDim2(Vector2 position, Point offset, Vector2 objectSize, Size pare
     // Size of the parent container, used to calculate absolute positions in pixels.
     public Size ParentSize { get; set; } = parentSize;
 
+
     public Point ToAbsolute() {
         int x = (int)(PositionPercentil.X * ParentSize.Width) + Offset.X;
         int y = (int)(PositionPercentil.Y * ParentSize.Height) + Offset.Y;
@@ -36,6 +38,7 @@ public class UDim2(Vector2 position, Point offset, Vector2 objectSize, Size pare
     }
 
     public Size GetAbsoluteSize() {
+        Logger.DebugLog("Calculating absolute size for UDim2...");
         int width = (int)(ObjectSize.X * ParentSize.Width);
         int height = (int)(ObjectSize.Y * ParentSize.Height);
         return new Size(width, height);
