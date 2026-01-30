@@ -263,6 +263,7 @@ public static class MainMenu {
                     switch (btn.Identifier) {
                         case "btn_options":
                             btn.OnClicked += (s, e) => {
+                                menu.IsActive = false;
                                 mainView.IsVisible = false;
                                 mainView.IsEnabled = false;
 

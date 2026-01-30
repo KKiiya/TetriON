@@ -247,9 +247,7 @@ public class CheckBoxWrapper(MenuWrapper menu, FrameWrapper? frame = null, strin
 
             // Update size (this will update CurrentSize in Adjustable)
             SetSize(new System.Drawing.Size(totalWidth, totalHeight));
-        } else {
-            SetSize(new System.Drawing.Size(_checkBoxSize, _checkBoxSize));
-        }
+        } else SetSize(new System.Drawing.Size(_checkBoxSize, _checkBoxSize));
     }
 
     #endregion

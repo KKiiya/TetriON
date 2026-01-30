@@ -18,7 +18,9 @@ namespace TetriON.Client.Content.UI;
 public abstract class MenuComponent(MenuWrapper? menu, FrameWrapper? frame = null, string id = "") : Adjustable(menu?.Controller), IDisposable {
 
     private readonly string _id = id ?? string.Empty;
-    private readonly FrameWrapper? _frame = frame;
+    public FrameWrapper? Frame => frame;
+    public MenuWrapper? Menu => menu;
+
 
     #region Fields
     private bool _isHovered;
@@ -429,7 +431,7 @@ public abstract class MenuComponent(MenuWrapper? menu, FrameWrapper? frame = nul
     /// </summary>
     /// <param name="child">Child component to add.</param>
     public void AddChild(MenuComponent child) {
-        if (child == null) throw new ArgumentNullException(nameof(child));
+        ArgumentNullException.ThrowIfNull(child);
         if (child == this) throw new InvalidOperationException("Cannot add component as child of itself");
 
         lock (_childrenLock) {

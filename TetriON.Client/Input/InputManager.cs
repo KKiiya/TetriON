@@ -621,7 +621,7 @@ public class InputManager : IDisposable {
     }
 
     private void HandleMenuNavigation(MenuWrapper menu, float deltaTime) {
-        if (menu == null || !menu.IsActive) return;
+        if (menu == null || !menu.IsActive || !menu.IsVisible) return;
 
         // Get navigation actions
         var moveUp = _keyBindManager.GetAction("MoveUp", "UI");
@@ -656,6 +656,8 @@ public class InputManager : IDisposable {
         // Handle confirm action (Enter/Space/A button/Left Click/Tap)
         if (confirm != null && IsActionJustPressed(confirm)) {
             var focusedComponent = menu.FocusedComponent;
+            var parent = focusedComponent?.Parent;
+            if (parent != null && (!parent.IsEnabled || !parent.IsVisible)) return;
             if (ActiveDevice == InputDevice.Mouse) focusedComponent = menu.HoveredComponent;
 
             if (focusedComponent != null && focusedComponent.CanReceiveInput) {
