@@ -360,46 +360,62 @@ public abstract class Adjustable(ClientController? controller) {
     /// <summary>
     /// Set current position (scale, 0-1)
     /// </summary>
-    public virtual void SetPosition(Vector2 position) => CurrentPosition = position;
+    public virtual void SetPosition(Vector2 position) {
+        if (CurrentPosition == position) return;
+        CurrentPosition = position;
+    }
 
     /// <summary>
     /// Set current position from absolute pixels (converts to scale based on parent size)
     /// </summary>
     public virtual void SetPosition(Point absolutePosition) {
         if (CurrentContainerSize.Width > 0 && CurrentContainerSize.Height > 0) {
-            CurrentPosition = new Vector2(
+            var newPosition = new Vector2(
                 (float)absolutePosition.X / CurrentContainerSize.Width,
                 (float)absolutePosition.Y / CurrentContainerSize.Height
             );
+            if (CurrentPosition == newPosition) return;
+            CurrentPosition = newPosition;
         }
     }
 
     /// <summary
     /// Set current offset
     /// </summary>
-    public virtual void SetOffset(Point offset) => CurrentOffset = offset;
+    public virtual void SetOffset(Point offset) {
+        if (CurrentOffset == offset) return;
+        CurrentOffset = offset;
+    }
 
     /// <summary>
     /// Set current size (scale, 0-1)
     /// </summary>
-    public virtual void SetSize(Vector2 size) => CurrentSize = size;
+    public virtual void SetSize(Vector2 size) {
+        if (CurrentSize == size) return;
+        CurrentSize = size;
+    }
 
     /// <summary>
     /// Set current size from absolute pixels (converts to scale based on parent size)
     /// </summary>
     public virtual void SetSize(Size absoluteSize) {
         if (CurrentContainerSize.Width > 0 && CurrentContainerSize.Height > 0) {
-            CurrentSize = new Vector2(
+            var newSize = new Vector2(
                 ((float)absoluteSize.Width) / CurrentContainerSize.Width,
                 ((float)absoluteSize.Height) / CurrentContainerSize.Height
             );
+            if (CurrentSize == newSize) return;
+            CurrentSize = newSize;
         }
     }
 
     /// <summary>
     /// Set current parent size
     /// </summary>
-    public virtual void SetContainerSize(Size containerSize) => CurrentContainerSize = containerSize;
+    public virtual void SetContainerSize(Size containerSize) {
+        if (CurrentContainerSize == containerSize) return;
+        CurrentContainerSize = containerSize;
+    }
 
     /// <summary>
     /// Set current opacity (0.0 to 1.0)

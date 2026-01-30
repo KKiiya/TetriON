@@ -54,6 +54,15 @@ public class FrameWrapper : MenuComponent {
     // Cache
     private bool _needsLayoutUpdate = true;
 
+    // Performance: Cached sorted children lists to avoid repeated LINQ operations
+    private List<MenuComponent> _sortedChildrenCache = [];
+    private List<MenuComponent> _sortedChildrenDescCache = [];
+    private bool _needsChildOrderUpdate = true;
+
+    // Rendering cache
+    private Texture2D? _pixelTexture;
+    private RasterizerState? _clipRasterizerState;
+
     #region Events
 
     /// <summary>Fired when the frame is moved (if draggable).</summary>
@@ -227,6 +236,17 @@ public class FrameWrapper : MenuComponent {
         UpdateLayout();
     }
 
+    /// <summary>Update cached sorted children lists. Only called when needed.</summary>
+    private void UpdateChildOrderCaches() {
+        if (!_needsChildOrderUpdate) return;
+
+        lock (_childrenLock) {
+            _sortedChildrenCache = Children.OrderBy(c => c.ZIndex).ToList();
+            _sortedChildrenDescCache = Children.OrderByDescending(c => c.ZIndex).ToList();
+            _needsChildOrderUpdate = false;
+        }
+    }
+
     public override void Update(float deltaTime) {
         // Handle dragging
         if (_isDragging && _isDraggable && IsEnabled) {
@@ -285,10 +305,14 @@ public class FrameWrapper : MenuComponent {
 
         // Render children with clipping if enabled
         if (_clipChildren) {
+            // Cache rasterizer state to avoid creating new one every frame
+            if (_clipRasterizerState == null) {
+                _clipRasterizerState = new RasterizerState { ScissorTestEnable = true };
+            }
+
             // Begin clipping to content bounds
             var contentBounds = ContentBounds;
             var previousScissorRect = spriteBatch.GraphicsDevice.ScissorRectangle;
-            var rasterizerState = new RasterizerState { ScissorTestEnable = true };
 
             spriteBatch.End();
             spriteBatch.Begin(
@@ -296,7 +320,7 @@ public class FrameWrapper : MenuComponent {
                 BlendState.AlphaBlend,
                 SamplerState.PointClamp,
                 DepthStencilState.None,
-                rasterizerState
+                _clipRasterizerState
             );
 
             spriteBatch.GraphicsDevice.ScissorRectangle = new Rectangle(
@@ -446,9 +470,13 @@ public class FrameWrapper : MenuComponent {
     }
 
     private void RenderChildren(SpriteBatch spriteBatch) {
-        // Render children in Z-order (bottom to top)
-        var sortedChildren = Children.OrderBy(c => c.ZIndex).ToList();
-        foreach (var child in sortedChildren) {
+        // Update cache if needed before rendering
+        if (_needsChildOrderUpdate) {
+            UpdateChildOrderCaches();
+        }
+
+        // Render children in Z-order (back to front) using cached list
+        foreach (var child in _sortedChildrenCache) {
             if (child.IsVisible) {
                 child.Render();
             }
@@ -456,26 +484,29 @@ public class FrameWrapper : MenuComponent {
     }
 
     private void DrawRectangle(SpriteBatch spriteBatch, Rectangle rect, Color color) {
-        var texture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
-        texture.SetData([Color.White]);
-        spriteBatch.Draw(texture, rect, color);
-        texture.Dispose();
+        // Cache pixel texture to avoid creating/disposing every frame
+        if (_pixelTexture == null || _pixelTexture.IsDisposed) {
+            _pixelTexture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
+            _pixelTexture.SetData([Color.White]);
+        }
+        spriteBatch.Draw(_pixelTexture, rect, color);
     }
 
     private void DrawBorderRectangle(SpriteBatch spriteBatch, Rectangle rect, int borderWidth, Color color) {
-        var texture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
-        texture.SetData([Color.White]);
+        // Cache pixel texture to avoid creating/disposing every frame
+        if (_pixelTexture == null || _pixelTexture.IsDisposed) {
+            _pixelTexture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
+            _pixelTexture.SetData([Color.White]);
+        }
 
         // Top
-        spriteBatch.Draw(texture, new Rectangle(rect.X, rect.Y, rect.Width, borderWidth), color);
+        spriteBatch.Draw(_pixelTexture, new Rectangle(rect.X, rect.Y, rect.Width, borderWidth), color);
         // Bottom
-        spriteBatch.Draw(texture, new Rectangle(rect.X, rect.Y + rect.Height - borderWidth, rect.Width, borderWidth), color);
+        spriteBatch.Draw(_pixelTexture, new Rectangle(rect.X, rect.Y + rect.Height - borderWidth, rect.Width, borderWidth), color);
         // Left
-        spriteBatch.Draw(texture, new Rectangle(rect.X, rect.Y, borderWidth, rect.Height), color);
+        spriteBatch.Draw(_pixelTexture, new Rectangle(rect.X, rect.Y, borderWidth, rect.Height), color);
         // Right
-        spriteBatch.Draw(texture, new Rectangle(rect.X + rect.Width - borderWidth, rect.Y, borderWidth, rect.Height), color);
-
-        texture.Dispose();
+        spriteBatch.Draw(_pixelTexture, new Rectangle(rect.X + rect.Width - borderWidth, rect.Y, borderWidth, rect.Height), color);
     }
 
     private void DrawBorderWithTexture(SpriteBatch spriteBatch, Rectangle rect, int borderWidth, Color color) {
@@ -676,6 +707,12 @@ public class FrameWrapper : MenuComponent {
         _backgroundTexture = null;
         _borderTexture = null;
         _titleBarTexture = null;
+
+        // Dispose cached rendering resources
+        _pixelTexture?.Dispose();
+        _pixelTexture = null;
+        _clipRasterizerState?.Dispose();
+        _clipRasterizerState = null;
 
         // Children are disposed by base class
     }

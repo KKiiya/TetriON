@@ -41,6 +41,9 @@ public class SliderWrapper(MenuWrapper menu, FrameWrapper? frame = null, string 
     private bool _showValue = true;
     private int _labelSpacing = 8;
 
+    // Performance: Cached pixel texture to avoid allocation every frame
+    private Texture2D? _pixelTexture;
+
     #region Events
 
     /// <summary>Fired when the slider value changes.</summary>
@@ -354,10 +357,12 @@ public class SliderWrapper(MenuWrapper menu, FrameWrapper? frame = null, string 
     }
 
     private void DrawRectangle(SpriteBatch spriteBatch, Rectangle rect, Color color) {
-        var texture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
-        texture.SetData([Color.White]);
-        spriteBatch.Draw(texture, rect, color);
-        texture.Dispose();
+        // Cache pixel texture to avoid creating/disposing every frame
+        if (_pixelTexture == null || _pixelTexture.IsDisposed) {
+            _pixelTexture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
+            _pixelTexture.SetData([Color.White]);
+        }
+        spriteBatch.Draw(_pixelTexture, rect, color);
     }
 
     private Color GetHandleColor() {

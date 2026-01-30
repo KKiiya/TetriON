@@ -16,6 +16,7 @@ public class CheckBoxWrapper(MenuWrapper menu, FrameWrapper? frame = null, strin
     private string _label = string.Empty;
     private TextureWrapper? _checkedTexture;
     private TextureWrapper? _uncheckedTexture;
+    private Texture2D? _pixelTexture; // For fallback rendering
     private SpriteFont? _font;
 
     // Layout properties
@@ -256,9 +257,11 @@ public class CheckBoxWrapper(MenuWrapper menu, FrameWrapper? frame = null, strin
     #region Fallback Rendering
 
     private void DrawCheckBoxFallback(SpriteBatch spriteBatch, Color color) {
-        // Create a 1x1 white texture for drawing rectangles if needed
-        var texture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
-        texture.SetData(new[] { Color.White });
+        // Cache pixel texture to avoid creating/disposing every frame
+        if (_pixelTexture == null || _pixelTexture.IsDisposed) {
+            _pixelTexture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
+            _pixelTexture.SetData([Color.White]);
+        }
 
         // Draw checkbox border
         Rectangle checkBoxRect = CheckBoxBounds;
@@ -266,13 +269,13 @@ public class CheckBoxWrapper(MenuWrapper menu, FrameWrapper? frame = null, strin
 
         // Draw filled background
         spriteBatch.Draw(
-            texture,
+            _pixelTexture,
             checkBoxRect,
             Color.Black * 0.5f * CurrentOpacity
         );
 
         // Draw border
-        DrawRectangleBorder(spriteBatch, texture, checkBoxRect, borderWidth, color * CurrentOpacity);
+        DrawRectangleBorder(spriteBatch, _pixelTexture, checkBoxRect, borderWidth, color * CurrentOpacity);
 
         // Draw check mark if checked
         if (_isChecked) {
@@ -282,10 +285,8 @@ public class CheckBoxWrapper(MenuWrapper menu, FrameWrapper? frame = null, strin
                 checkBoxRect.Width - 8,
                 checkBoxRect.Height - 8
             );
-            spriteBatch.Draw(texture, checkMarkRect, color * CurrentOpacity);
+            spriteBatch.Draw(_pixelTexture, checkMarkRect, color * CurrentOpacity);
         }
-
-        texture.Dispose();
     }
 
     private void DrawRectangleBorder(

@@ -35,7 +35,7 @@ public abstract class MenuComponent(MenuWrapper? menu, FrameWrapper? frame = nul
 
     private readonly List<MenuComponent> _children = [];
     private readonly object _eventLock = new();
-    private readonly object _childrenLock = new();
+    protected readonly object _childrenLock = new();
 
     #endregion
 

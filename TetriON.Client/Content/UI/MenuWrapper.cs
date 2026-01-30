@@ -291,10 +291,7 @@ public class MenuWrapper : IDisposable {
         if (!_isActive || _disposed) return;
 
         // Update order caches if needed
-        if (_needsOrderUpdate) {
-            UpdateOrderCaches();
-        }
-
+        if (_needsOrderUpdate) UpdateOrderCaches();
         // Handle input with proper event isolation using new InputManager
         HandleMenuInput(deltaTime);
 
@@ -493,11 +490,11 @@ public class MenuWrapper : IDisposable {
             var allComponents = GetAllComponentsRecursive().ToList();
 
             // Render order: low Z-index to high (back to front)
-            _renderOrderCache = _components.OrderBy(c => c.ZIndex).ToList();
+            _renderOrderCache = [.. _components.OrderBy(c => c.ZIndex)];
 
             // Input order: high Z-index to low (front to back for hit testing)
             // Use all components including nested for input
-            _inputOrderCache = allComponents.OrderByDescending(c => c.ZIndex).ToList();
+            _inputOrderCache = [.. allComponents.OrderByDescending(c => c.ZIndex)];
 
             _needsOrderUpdate = false;
 
