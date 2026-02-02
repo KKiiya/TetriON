@@ -384,7 +384,11 @@ public class TetrisGame {
             _heldTetromino = _currentTetromino;
             _heldTetromino.ResetOrientation();
             FetchNextTetromino(); // This updates both _currentTetromino and _nextTetrominos preview
-        } else (_heldTetromino, _currentTetromino) = (_currentTetromino, _heldTetromino);
+        } else {
+            (_heldTetromino, _currentTetromino) = (_currentTetromino, _heldTetromino);
+            _currentTetromino.ResetOrientation();
+            _heldTetromino.ResetOrientation();
+        }
 
         ResetPosition();
         _canHold = false;
