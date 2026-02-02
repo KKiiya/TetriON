@@ -1,24 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0-android</TargetFramework>
-    <SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
-    <OutputType>Exe</OutputType>
-    <ApplicationId>com.companyname.TetriON.Platform.Android</ApplicationId>
-    <ApplicationVersion>1</ApplicationVersion>
-    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-    <AndroidSdkDirectory>C:\android-sdk</AndroidSdkDirectory>
-    <JavaSdkDirectory>C:\Program Files\Java\jdk-21</JavaSdkDirectory>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*" />
-    <PackageReference Include="MonoGame.Framework.Android" Version="3.8.*" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\TetriON.Client\TetriON.Client.csproj" />
-    <ProjectReference Include="..\TetriON.Core\TetriON.Core.csproj" />
-  </ItemGroup>
-  <Target Name="RestoreDotnetTools" BeforeTargets="CollectPackageReferences">
-    <Message Text="Restoring dotnet tools (this might take a while depending on your internet speed and should only happen upon building your project for the first time, or after upgrading MonoGame, or clearing your nuget cache)" Importance="High" />
-    <Exec Command="dotnet tool restore" />
-  </Target>
+    <PropertyGroup>
+        <TargetFramework>net8.0-android</TargetFramework>
+        <SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
+        <OutputType>Exe</OutputType>
+        <ApplicationId>com.companyname.TetriON.Platform.Android</ApplicationId>
+        <ApplicationVersion>1</ApplicationVersion>
+        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <AndroidSdkDirectory>C:\android-sdk</AndroidSdkDirectory>
+        <JavaSdkDirectory>C:\Program Files\Java\jdk-21</JavaSdkDirectory>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*" />
+        <PackageReference Include="MonoGame.Framework.Android" Version="3.8.*" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\TetriON.Client\TetriON.Client.csproj" />
+        <ProjectReference Include="..\TetriON.Core\TetriON.Core.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <AndroidAsset Include="Content\GumProject\**\*.*" />
+    </ItemGroup>
+    <Target Name="RestoreDotnetTools" BeforeTargets="CollectPackageReferences">
+        <Message Text="Restoring dotnet tools (this might take a while depending on your internet speed and should only happen upon building your project for the first time, or after upgrading MonoGame, or clearing your nuget cache)" Importance="High" />
+        <Exec Command="dotnet tool restore" />
+    </Target>
 </Project>
