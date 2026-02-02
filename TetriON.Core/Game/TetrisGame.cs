@@ -4,7 +4,6 @@ using TetriON.Core.Game.BagGenerators;
 using TetriON.Core.Pieces;
 using TetriON.Core.Pieces.PieceTypes;
 using TetriON.Core.Rules;
-using TetriON.Shared.Utilities;
 using static TetriON.Core.Pieces.Tetromino;
 
 namespace TetriON.Core.Game;
@@ -383,6 +382,7 @@ public class TetrisGame {
         if (_heldTetromino == null) {
             // First time holding: store current piece and fetch next from bag
             _heldTetromino = _currentTetromino;
+            _heldTetromino.ResetOrientation();
             FetchNextTetromino(); // This updates both _currentTetromino and _nextTetrominos preview
         } else (_heldTetromino, _currentTetromino) = (_currentTetromino, _heldTetromino);
 

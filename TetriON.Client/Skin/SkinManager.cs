@@ -1,12 +1,14 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
-using TetriON.Client.Content.Media;
+using TetriON.Client.Abstraction;
+using TetriON.Client.Abstraction.Media;
+using TetriON.Client.Media;
 using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.Skin;
 
-public class SkinManager : IDisposable {
+public class SkinManager : ISkinManager, IDisposable {
 
     private static readonly Dictionary<string, string> Skins = new() {
         ["default"] = "skins/default/",
@@ -20,8 +22,8 @@ public class SkinManager : IDisposable {
     private readonly Dictionary<string, HashSet<string>> _availableSounds = [];
 
     private readonly Dictionary<string, SoundWrapper> _audioAssets = [];
-    private readonly Dictionary<string, TextureWrapper> _textureAssets = [];
-    private readonly Dictionary<string, FontWrapper> _fontAssets = [];
+    private readonly Dictionary<string, ITexture> _textureAssets = [];
+    private readonly Dictionary<string, IFont> _fontAssets = [];
 
     // Valid asset names that are allowed to be loaded (security/validation)
     private static readonly HashSet<string> ValidTextureNames = [
@@ -83,7 +85,7 @@ public class SkinManager : IDisposable {
     private static readonly string SupportedAudioExtension = ".wav";
     private static readonly string SupportedTextureExtensions = ".png";
 
-    private readonly ClientController _controller;
+    private readonly IController _controller;
 
     private string _currentSkin = "default";
     private Game _instance;
@@ -126,7 +128,7 @@ public class SkinManager : IDisposable {
         Logger.Log($"SkinManager: All assets loaded for skin '{_currentSkin}'. Textures: {_textureAssets.Count}, Sounds: {_audioAssets.Count}", Logger.LogLevel.Info);
     }
 
-    public string GetCurrentSkinPath() {
+    public string GetSkinPath() {
         return Skins[_currentSkin];
     }
 
@@ -389,11 +391,11 @@ public class SkinManager : IDisposable {
     /// <summary>
     /// Get a cached texture asset as TextureWrapper
     /// </summary>
-    public (bool success, TextureWrapper texture) GetTextureAsset(string textureName, bool debug = false) {
+    public (bool success, ITexture texture) GetTextureAsset(string textureName, bool debug = false) {
         if (!ValidTextureNames.Contains(textureName)) {
             if (debug) Logger.Log($"SkinManager: ✗ Attempted to get invalid texture '{textureName}', returning missing_texture. Valid names: [{string.Join(", ", ValidTextureNames)}]", Logger.LogLevel.Error);
-            var missingResultA = GetTextureAsset("missing_texture");
-            return (false, missingResultA.Item2);
+            var (_, texture) = GetTextureAsset("missing_texture");
+            return (false, texture);
         }
 
         if (_textureAssets.TryGetValue(textureName, out var textureWrapper)) {
@@ -403,13 +405,13 @@ public class SkinManager : IDisposable {
 
         if (debug) Logger.Log($"SkinManager: ✗ Texture '{textureName}' not found in loaded assets. Available: [{string.Join(", ", _textureAssets.Keys)}], returning missing_texture", Logger.LogLevel.Error);
         var missingResultB = GetTextureAsset("missing_texture");
-        return (false, missingResultB.Item2);
+        return (false, missingResultB.texture);
     }
 
     /// <summary>
     /// Get a cached audio asset as SoundWrapper
     /// </summary>
-    public SoundWrapper GetAudioAsset(string soundName, bool debug = false) {
+    public ISound GetAudioAsset(string soundName, bool debug = false) {
         if (!ValidSoundNames.Contains(soundName)) {
             if (debug) Logger.Log($"SkinManager: ✗ Attempted to get invalid sound '{soundName}'. Valid names: [{string.Join(", ", ValidSoundNames)}]", Logger.LogLevel.Error);
         }
@@ -423,7 +425,7 @@ public class SkinManager : IDisposable {
         throw new KeyNotFoundException($"Sound '{soundName}' not found in loaded assets. Call LoadAudioAssets() first.");
     }
 
-    public FontWrapper GetFontAsset(string fontName, bool debug = false) {
+    public IFont GetFontAsset(string fontName, bool debug = false) {
         if (!ValidFontSprites.Contains(fontName)) {
             if (debug) Logger.Log($"SkinManager: ✗ Attempted to get invalid font '{fontName}'. Valid names: [{string.Join(", ", ValidFontSprites)}]", Logger.LogLevel.Error);
         }
