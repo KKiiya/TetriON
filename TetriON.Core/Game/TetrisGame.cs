@@ -382,13 +382,10 @@ public class TetrisGame {
         if (_heldTetromino == null) {
             // First time holding: store current piece and fetch next from bag
             _heldTetromino = _currentTetromino;
-            _heldTetromino.ResetOrientation();
             FetchNextTetromino(); // This updates both _currentTetromino and _nextTetrominos preview
-        } else {
-            (_heldTetromino, _currentTetromino) = (_currentTetromino, _heldTetromino);
-            _currentTetromino.ResetOrientation();
-            _heldTetromino.ResetOrientation();
-        }
+        } else (_heldTetromino, _currentTetromino) = (_currentTetromino, _heldTetromino);
+        _currentTetromino.ResetOrientation();
+        _heldTetromino.ResetOrientation();
 
         ResetPosition();
         _canHold = false;
