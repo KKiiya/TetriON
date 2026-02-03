@@ -118,8 +118,8 @@ public class Grid {
                 // Clear the line
                 for (int x = 0; x < _width; x++) _cells[x, y].Vacate();
 
-                // Move all lines above down
-                for (int row = y; row > _bufferHeight; row--) {
+                // Move all lines above down (including buffer zone)
+                for (int row = y; row > 0; row--) {
                     for (int x = 0; x < _width; x++) {
                         Cell aboveCell = GetCell(x, row - 1);
                         if (aboveCell.IsOccupied) _cells[x, row].Occupy(aboveCell.CellColor, aboveCell.Type, aboveCell.Identifier);
@@ -127,9 +127,9 @@ public class Grid {
                     }
                 }
 
-                // Clear the top line of visible area
+                // Clear the top line (top of buffer zone)
                 for (int x = 0; x < _width; x++) {
-                    _cells[x, _bufferHeight].Vacate();
+                    _cells[x, 0].Vacate();
                 }
 
                 // Since we cleared a line, we need to check the same line again

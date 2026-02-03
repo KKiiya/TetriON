@@ -27,11 +27,12 @@ public class GameInput {
     private InputAction? _cancelAction;
 
     public GameInput(IController controller) {
-        _inputManager = new InputManager(controller);
-        _inputManager.SetARR(0.025f);
-        _inputManager.SetDAS(0.117f);
-        _inputManager.SetDCD(0.033f);
-        _inputManager.SetSDF(18);
+        _inputManager = new InputManager(controller) {
+            ARR = 0.025f,
+            DAS = 0.117f,
+            DCD = 0.033f,
+            SDF = 18
+        };
         SetupInputActions();
     }
 

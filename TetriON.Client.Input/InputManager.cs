@@ -11,7 +11,6 @@ namespace TetriON.Client.Input;
 /// Main input manager that coordinates all input systems and provides unified input handling
 /// </summary>
 public class InputManager : IInputManager {
-    private readonly IController _controller;
     private readonly KeyBindManager _keyBindManager;
     private readonly Dictionary<InputAction, InputState> _actionStates = [];
     private readonly Dictionary<InputAction, float> _actionHoldTimes = [];
@@ -26,6 +25,9 @@ public class InputManager : IInputManager {
     private readonly TouchInput _touch;
     private readonly GamepadInput _gamepad;
     private readonly IPointer _pointer;
+
+
+    public IController Controller { get; }
 
     // Configuration
     public bool EnableMouse { get; set; } = true;
@@ -119,50 +121,6 @@ public class InputManager : IInputManager {
         get => _sdf;
         set => _sdf = Math.Max(1, value);
     }
-
-    // Setter methods for convenience
-
-    /// <summary>
-    /// Sets the DAS (Delayed Auto Shift) time in seconds
-    /// </summary>
-    public void SetDAS(float das) => DAS = das;
-
-    /// <summary>
-    /// Sets the ARR (Auto Repeat Rate) time in seconds
-    /// </summary>
-    public void SetARR(float arr) => ARR = arr;
-
-    /// <summary>
-    /// Sets the DCD (DAS Cut Delay) time in seconds
-    /// </summary>
-    public void SetDCD(float dcd) => DCD = dcd;
-
-    /// <summary>
-    /// Sets the SDF (Soft Drop Factor) multiplier
-    /// </summary>
-    public void SetSDF(int sdf) => SDF = sdf;
-
-    // Getter methods for convenience
-
-    /// <summary>
-    /// Gets the DAS (Delayed Auto Shift) time in seconds
-    /// </summary>
-    public float GetDAS() => DAS;
-
-    /// <summary>
-    /// Gets the ARR (Auto Repeat Rate) time in seconds
-    /// </summary>
-    public float GetARR() => ARR;
-
-    /// <summary>
-    /// Gets the DCD (DAS Cut Delay) time in seconds
-    /// </summary>
-    public float GetDCD() => DCD;
-
-    /// <summary>
-    /// Gets the SDF (Soft Drop Factor) multiplier
-    /// </summary>
-    public int GetSDF() => SDF;
 
     /// <summary>
     /// Checks if an action should trigger based on DAS/ARR timing.
@@ -269,7 +227,7 @@ public class InputManager : IInputManager {
     }
 
     public InputManager(IController controller) {
-        _controller = controller;
+        Controller = controller;
         _keyBindManager = new KeyBindManager();
         _pointer = new Pointer();
 
@@ -293,7 +251,7 @@ public class InputManager : IInputManager {
     /// Updates all input systems
     /// </summary>
     public void Update(float deltaTime) {
-        if (!_controller.Game.IsActive) return;
+        if (!Controller.Game.IsActive) return;
         // Update all enabled input providers
         if (EnableKeyboard) _keyboard.Update(deltaTime);
         if (EnableMouse) _mouse.Update(deltaTime);
@@ -493,7 +451,7 @@ public class InputManager : IInputManager {
     }
 
     private void UpdatePointer(float deltaTime) {
-        if (!_controller.Game.IsActive) return;
+        if (!Controller.Game.IsActive) return;
         _pointer.Update(deltaTime);
 
         // Update pointer from mouse if mouse is active and no touch

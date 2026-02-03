@@ -12,6 +12,7 @@ using TetriON.Shared.Utilities;
 using TetriON.Client.Networking;
 using TetriON.Client.Abstraction;
 using TetriON.Client.Rendering.Info;
+using TetriON.Client.Rendering;
 
 namespace TetriON.Client;
 
@@ -28,13 +29,11 @@ public class ClientController : IController {
     public NetworkManager NetworkManager { get; }
     public StateManager StateManager { get; }
     public ServiceManager ServiceManager { get; }
-    public SpriteBatch SpriteBatch { get; }
     public ISkinManager SkinManager { get; }
+    public IRendererManager RendererManager { get; }
+
+    public SpriteBatch SpriteBatch { get; }
     public GameInput GameInput { get; }
-
-
-    private List<IRenderer> _renderers = [];
-    private List<Action> _postDrawActions = [];
 
     private TetrisGame? _currentGame;
     private GameDisposition? _gameDisposition;
@@ -51,6 +50,7 @@ public class ClientController : IController {
         ServiceManager = new ServiceManager(this);
         SkinManager = new SkinManager(this);
         GameInput = new GameInput(this);
+        RendererManager = new RendererManager(this);
     }
 
     // Lifecycle methods
@@ -80,27 +80,16 @@ public class ClientController : IController {
 
         _currentGame?.Update(gameTime.ElapsedGameTime);
         // Other updates...
-        foreach (var renderer in _renderers) {
-            if (!renderer.IsActive) continue;
-            renderer.Update(deltaTime);
-        }
+        RendererManager.UpdateRenderers(gameTime);
     }
 
     public void Draw() {
         SpriteBatch.Begin();
-        //Logger.Log($"ClientController: Drawing {_renderers.Count} renderers", Logger.LogLevel.Info);
-        foreach (var renderer in _renderers) {
-            //Logger.Log($"ClientController: Drawing {renderer.GetType().Name}", Logger.LogLevel.Info);
-            if (!renderer.IsActive) continue;
-            renderer.Draw();
-        }
+        RendererManager.DrawRenderers();
         SpriteBatch.End();
 
         // Execute post-draw actions once
-        if (_postDrawActions.Count > 0) {
-            foreach (var action in _postDrawActions) action();
-            _postDrawActions.Clear();
-        }
+        RendererManager.DoPostDrawActions();
     }
 
     public void Shutdown() {
@@ -113,10 +102,7 @@ public class ClientController : IController {
 
     private void LoadRenderers() {
         Logger.Log("ClientController: Loading renderers...", Logger.LogLevel.Info);
-        _ = new FPSRenderer(this);
-        _ = new CursorRenderer(this);
-        Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
-        SortRenderers();
+        RendererManager.RegisterRenderers([new FPSRenderer(this), new CursorRenderer(this)]);
     }
 
     public void LoadTestGame() {
@@ -125,14 +111,15 @@ public class ClientController : IController {
         _currentGame = new TetrisGame(settings);
         _gameDisposition = new GameDisposition(_currentGame, 1.0f);
 
-        _ = new BoardRenderer(_currentGame, this, _gameDisposition);
-        _ = new PieceRenderer(_currentGame, this, _gameDisposition);
-        _ = new GhostRenderer(_currentGame, this, _gameDisposition);
-        _ = new NextPieceRenderer(_currentGame, this, _gameDisposition);
-        _ = new HeldPieceRenderer(_currentGame, this, _gameDisposition);
-        _ = new StatsRenderer(_currentGame, this);
+        RendererManager.RegisterRenderers([
+            new BoardRenderer(_currentGame, this, _gameDisposition),
+            new PieceRenderer(_currentGame, this, _gameDisposition),
+            new GhostRenderer(_currentGame, this, _gameDisposition),
+            new NextPieceRenderer(_currentGame, this, _gameDisposition),
+            new HeldPieceRenderer(_currentGame, this, _gameDisposition),
+            new StatsRenderer(_currentGame, this)
+        ]);
 
-        Logger.Log($"ClientController: Added {_renderers.Count} renderers", Logger.LogLevel.Info);
         _currentGame.Start();
         GameInput.LoadForGame(_currentGame);
         Logger.Log("ClientController: Test game started", Logger.LogLevel.Info);
@@ -146,15 +133,5 @@ public class ClientController : IController {
         Logger.Log($"ClientController: Window resized to {newWidth}x{newHeight}", Logger.LogLevel.Info);
 
         // Notify all menus about the resize
-    }
-
-    public void AddRenderer(IRenderer renderer, bool sort = false) {
-        ArgumentNullException.ThrowIfNull(renderer, nameof(renderer));
-        _renderers.Add(renderer);
-        if (sort) SortRenderers();
-    }
-
-    public void SortRenderers() {
-        _renderers.Sort((a, b) => a.ZIndex.CompareTo(b.ZIndex));
     }
 }

@@ -13,7 +13,6 @@ public abstract class Renderer : IRenderer {
     public Renderer(IController controller) {
         Controller = controller;
         Initialize();
-        controller.AddRenderer(this, true);
     }
 
 

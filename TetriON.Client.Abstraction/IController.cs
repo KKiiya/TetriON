@@ -12,6 +12,4 @@ public interface IController {
     ISkinManager SkinManager { get; }
 
     IInputManager InputManager { get; }
-
-    void AddRenderer(IRenderer renderer, bool sortByZIndex = false);
 }
