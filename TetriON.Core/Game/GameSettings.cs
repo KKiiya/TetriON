@@ -29,7 +29,7 @@ public class GameSettings {
     public bool EnableWallKicks { get; set; } = true;
     public bool EnableFloorKicks { get; set; } = true;
     public bool Enable180Spins { get; set; } = true;
-    public string KickType { get; set; } = WallKicks.KickType.SRS;
+    public string KickType { get; set; } = WallKicks.KickType.SRSPlus;
     #endregion
 
 
