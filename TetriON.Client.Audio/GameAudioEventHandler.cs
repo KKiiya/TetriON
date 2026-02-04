@@ -55,14 +55,14 @@ public class GameAudioEventHandler {
                 var currentMusic = _audioManager.GetCurrentMusic();
                 var nextMusic = _audioManager.GetMusic("gameplay1");
                 if (currentMusic != null && nextMusic != null) {
-                    _audioManager.TransitionTo(nextMusic, fadeOutDuration: 1.0f, fadeInDuration: 1.0f, loop: true, volume: 0.07f);
+                    //_audioManager.TransitionTo(nextMusic, fadeOutDuration: 1.0f, fadeInDuration: 1.0f, loop: true, volume: 0.07f);
                 }
             }
         };
 
         _game.OnPieceLock += () => _audioManager.PlaySoundEffect("piece_lock");
 
-        _game.OnGameStart += () => _audioManager.PlayMusic("gameplay", loop: true);
+        //_game.OnGameStart += () => _audioManager.PlayMusic("gameplay", loop: true);
     }
 
     public void Unsubscribe() {
