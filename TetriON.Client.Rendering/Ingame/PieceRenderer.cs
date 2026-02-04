@@ -44,7 +44,19 @@ public class PieceRenderer(TetrisGame tetrisGame, IController controller, GameDi
                     scaledHeight
                 );
 
-                Controller.SpriteBatch.Draw(TileSheet.Texture, destRect, rectangle, Color.White);
+                Color tintColor = Color.White;
+                if (TetrisGame.IsLockDelayActive()) {
+                    // Apply grey tint based on lock delay progress
+                    float lockTimer = TetrisGame.GetLockDelayTimer();
+                    float maxLockDelay = TetrisGame.GetSettings().LockDelay;
+                    float progress = MathHelper.Clamp(lockTimer / maxLockDelay, 0f, 1f);
+
+                    // Interpolate from white (1.0) to grey (0.5) as lock delay progresses
+                    float greyValue = MathHelper.Lerp(1.0f, 0.5f, progress);
+                    tintColor = new Color(greyValue, greyValue, greyValue);
+                }
+
+                Controller.SpriteBatch.Draw(TileSheet.Texture, destRect, rectangle, tintColor);
             }
         }
     }
