@@ -1,14 +1,14 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Input.Touch;
 using TetriON.Client;
+using TetriON.Client.Abstraction;
 
 namespace TetriON.Platform.Desktop;
 
 public class Game1 : Game {
 
-    private ClientController _clientController;
+    private IController _clientController;
     private GraphicsDeviceManager _graphics;
 
     public Game1() {

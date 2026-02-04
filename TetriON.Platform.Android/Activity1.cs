@@ -22,7 +22,7 @@ public class Activity1 : Activity {
     protected override void OnCreate(Bundle bundle) {
         base.OnCreate(bundle);
 
-        _game = new Game1();
+        _game = new Game1(this);
         _view = _game.Services.GetService(typeof(View)) as View;
 
         SetContentView(_view);

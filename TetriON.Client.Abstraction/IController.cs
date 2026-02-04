@@ -12,4 +12,7 @@ public interface IController {
     ISkinManager SkinManager { get; }
 
     IInputManager InputManager { get; }
+    void Initialize();
+    void Update(GameTime gameTime);
+    void Draw();
 }
