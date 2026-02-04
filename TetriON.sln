@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetriON.Client.Abstraction"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetriON.Client.UI", "TetriON.Client.UI\TetriON.Client.UI.csproj", "{0A79A397-FE61-4A1F-AC4F-03108DAEFFA9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TetriON.Client.Audio", "TetriON.Client.Audio\TetriON.Client.Audio.csproj", "{A3EB927C-5BAD-4141-BB05-E29DFBBB267B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,5 +86,9 @@ Global
 		{0A79A397-FE61-4A1F-AC4F-03108DAEFFA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A79A397-FE61-4A1F-AC4F-03108DAEFFA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A79A397-FE61-4A1F-AC4F-03108DAEFFA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3EB927C-5BAD-4141-BB05-E29DFBBB267B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3EB927C-5BAD-4141-BB05-E29DFBBB267B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3EB927C-5BAD-4141-BB05-E29DFBBB267B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3EB927C-5BAD-4141-BB05-E29DFBBB267B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

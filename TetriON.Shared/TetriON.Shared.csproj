@@ -6,4 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\TetriON.Client.Abstraction\TetriON.Client.Abstraction.csproj" />
+    </ItemGroup>
 </Project>

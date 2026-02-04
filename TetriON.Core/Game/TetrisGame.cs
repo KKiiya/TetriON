@@ -65,8 +65,7 @@ public class TetrisGame {
 
 
     #region Events
-    // Define events here (e.g., OnLineClear, OnLevelUp, etc.)
-    public event Action<long>? OnLineClear;
+    public event Action<long, bool>? OnLineClear;
     public event Action<long>? OnLevelUp;
     public event Action<long>? OnScoreChange;
     public event Action<long>? OnComboIncrease;
@@ -81,7 +80,7 @@ public class TetrisGame {
     public event Action? OnPieceHold;
     public event Action? OnPieceSpawn;
     public event Action<MoveDirection>? OnPieceMove;
-    public event Action<RotationDirection>? OnPieceRotate;
+    public event Action<RotationDirection, bool>? OnPieceRotate;
     public event Action? OnHardDrop;
     public event Action? OnSoftDrop;
     #endregion
@@ -383,7 +382,7 @@ public class TetrisGame {
         // Update ghost position after rotation
         UpdateGhostPosition();
 
-        OnPieceRotate?.Invoke(direction);
+        OnPieceRotate?.Invoke(direction, spin);
     }
 
     public void MoveTetromino(MoveDirection direction) {
@@ -402,9 +401,8 @@ public class TetrisGame {
             OnMovementDetected();
             if (_tetrominoPoint.Y > _lowestYReached) _lowestYReached = _tetrominoPoint.Y;
             UpdateGhostPosition();
+            OnPieceMove?.Invoke(direction);
         }
-
-        OnPieceMove?.Invoke(direction);
     }
 
     public void HoldTetromino() {
@@ -461,7 +459,7 @@ public class TetrisGame {
         _lines += linesCleared;
         bool wereCleared = linesCleared > 0;
         if (wereCleared) {
-            OnLineClear?.Invoke(linesCleared);
+            OnLineClear?.Invoke(linesCleared, _wasLastSpin);
             LevelUp();
         }
         if (!wereCleared) {

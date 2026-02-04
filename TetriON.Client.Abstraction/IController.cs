@@ -12,6 +12,11 @@ public interface IController {
     ISkinManager SkinManager { get; }
 
     IInputManager InputManager { get; }
+
+    IAudioManager AudioManager { get; }
+
+    ClientEvents ClientEvents { get; }
+
     void Initialize();
     void Update(GameTime gameTime);
     void Draw();

@@ -13,6 +13,8 @@ public interface ISkinManager : IDisposable {
     (bool success, ITexture texture) GetTextureAsset(string texturename, bool debug = false);
     IFont GetFontAsset(string fontname, bool debug = false);
     ISound GetAudioAsset(string soundname, bool debug = false);
+    string[] GetValidTextureNames();
+    string[] GetValidSoundNames();
     string GetSkinPath();
     void LoadAllAssets();
 }

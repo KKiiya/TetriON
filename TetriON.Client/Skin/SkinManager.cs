@@ -667,7 +667,7 @@ public class SkinManager : ISkinManager, IDisposable {
             }
         }
 
-        return textures.ToArray();
+        return [.. textures];
     }
 
     /// <summary>
@@ -731,14 +731,14 @@ public class SkinManager : ISkinManager, IDisposable {
     /// Get list of all valid texture names that can be loaded
     /// </summary>
     public string[] GetValidTextureNames() {
-        return ValidTextureNames.ToArray();
+        return [.. ValidTextureNames];
     }
 
     /// <summary>
     /// Get list of all valid sound names that can be loaded
     /// </summary>
     public string[] GetValidSoundNames() {
-        return ValidSoundNames.ToArray();
+        return [.. ValidSoundNames];
     }
 
     /// <summary>

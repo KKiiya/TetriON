@@ -13,6 +13,7 @@ using TetriON.Client.Networking;
 using TetriON.Client.Abstraction;
 using TetriON.Client.Rendering.Info;
 using TetriON.Client.Rendering;
+using TetriON.Client.Audio;
 
 namespace TetriON.Client;
 
@@ -31,7 +32,8 @@ public class ClientController : IController {
     public ServiceManager ServiceManager { get; }
     public ISkinManager SkinManager { get; }
     public IRendererManager RendererManager { get; }
-
+    public IAudioManager AudioManager { get; }
+    public ClientEvents ClientEvents { get; }
     public SpriteBatch SpriteBatch { get; }
     public GameInput GameInput { get; }
 
@@ -51,6 +53,8 @@ public class ClientController : IController {
         SkinManager = new SkinManager(this);
         GameInput = new GameInput(this);
         RendererManager = new RendererManager(this);
+        AudioManager = new AudioManager(this);
+        ClientEvents = new ClientEvents(this);
     }
 
     // Lifecycle methods
@@ -65,6 +69,7 @@ public class ClientController : IController {
         ServiceManager.Initialize();
         NetworkManager.Initialize();
         StateManager.Initialize();
+        AudioManager.Initialize();
 
         // Subscribe to window resize events
         Game.Window.ClientSizeChanged += OnWindowResized;
@@ -98,6 +103,8 @@ public class ClientController : IController {
         SkinManager.Dispose();
         ServiceManager.Dispose();
         StateManager.Dispose();
+        AudioManager.Dispose();
+        ClientEvents.Dispose();
     }
 
     private void LoadRenderers() {
@@ -120,6 +127,7 @@ public class ClientController : IController {
             new StatsRenderer(_currentGame, this)
         ]);
 
+        _ = new GameAudioEventHandler(this, _currentGame);
         _currentGame.Start();
         GameInput.LoadForGame(_currentGame);
         Logger.Log("ClientController: Test game started", Logger.LogLevel.Info);

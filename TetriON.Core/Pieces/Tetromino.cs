@@ -74,11 +74,12 @@ public abstract class Tetromino {
 
         // First, try to rotate in place (no wall kick)
         if (grid.CanPlaceTetromino(currentPoint, newMatrix)) {
-            // Rotation successful without wall kick
             SetRotationState(newRotation);
             SetLastKickOffset(new Point(0, 0));
 
-            return (currentPoint, false); // No spin when rotating in place
+            // ✅ Check for spin even on in-place rotation
+            var isSpin = IsSpin(grid, currentPoint);
+            return (currentPoint, isSpin);
         }
 
         // If in-place rotation failed, try wall kicks
@@ -91,7 +92,6 @@ public abstract class Tetromino {
 
             // Check for All-Spin after successful wall kick
             var isSpin = IsSpin(grid, newPosition.Value);
-
             return (newPosition.Value, isSpin);
         }
 
@@ -135,41 +135,39 @@ public abstract class Tetromino {
     #region  Private Methods
     private bool IsSpin(Grid grid, Point pivot) {
         // All-spin detection: check if piece is completely surrounded in all 4 directions
-        // Get all coordinates of the current piece
         var pieceCoords = GetPieceCoordinates(pivot);
 
         // Define the four directions: right, down, left, up
         var directions = new Point[] {
-            new(1, 0),   // Right
-            new(0, 1),   // Down
-            new(-1, 0),  // Left
-            new(0, -1)   // Up
-        };
+        new(1, 0),   // Right
+        new(0, 1),   // Down
+        new(-1, 0),  // Left
+        new(0, -1)   // Up
+    };
 
         // Check if moving the piece in ANY direction would cause a collision
         // If ALL directions are blocked, it's a valid all-spin
         foreach (var direction in directions) {
-            // Check if moving the piece in this direction would be valid
             bool canMoveInThisDirection = true;
+
             foreach (var coord in pieceCoords) {
                 var newX = coord.X + direction.X;
                 var newY = coord.Y + direction.Y;
 
-                // Check bounds first to prevent out of range exception
+                // ✅ Use the same bounds checking as CanPlaceTetromino
                 if (newX < 0 || newX >= grid.GetWidth()) {
                     canMoveInThisDirection = false;
                     break;
                 }
 
-                // Convert to grid coordinates with buffer height
-                var gridY = newY + grid.GetBufferHeight();
-                if (gridY < 0 || gridY >= grid.GetTotalHeight()) {
+                // ✅ Check bounds without buffer adjustment (IsCellEmpty handles it)
+                if (newY < -grid.GetBufferHeight() || newY >= grid.GetHeight()) {
                     canMoveInThisDirection = false;
                     break;
                 }
 
-                // If any mino of the piece would collide, this direction is blocked
-                if (!grid.IsCellEmpty(newX, gridY)) {
+                // ✅ IsCellEmpty already handles buffer height conversion internally
+                if (!grid.IsCellEmpty(newX, newY)) {
                     canMoveInThisDirection = false;
                     break;
                 }
