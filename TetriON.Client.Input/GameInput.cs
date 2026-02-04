@@ -136,21 +136,24 @@ public class GameInput {
     }
 
     private void HandleGameplayInput(float deltaTime) {
-        // Check if actions are active with last-input priority
+        // Check if actions are active and triggered with last-input priority
+        bool leftActive = _inputManager.IsActionActive(_moveLeftAction!);
+        bool rightActive = _inputManager.IsActionActive(_moveRightAction!);
         bool leftTriggered = _inputManager.IsActionTriggeredWithDASAndDCD(_moveLeftAction!);
         bool rightTriggered = _inputManager.IsActionTriggeredWithDASAndDCD(_moveRightAction!);
 
-        if (leftTriggered && rightTriggered) {
+        // Only process triggers for actions that are currently active
+        if (leftActive && rightActive && (leftTriggered || rightTriggered)) {
             // Both pressed: prioritize the most recently pressed
             if (_inputManager.GetActionPressTime(_moveLeftAction!) > _inputManager.GetActionPressTime(_moveRightAction!)) {
-                _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.LEFT);
+                if (leftTriggered) _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.LEFT);
             } else {
-                _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.RIGHT);
+                if (rightTriggered) _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.RIGHT);
             }
-        } else if (leftTriggered) {
+        } else if (leftActive && leftTriggered) {
             _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.LEFT);
             //Logger.Log("Move Left detected", Logger.LogLevel.Info);
-        } else if (rightTriggered) {
+        } else if (rightActive && rightTriggered) {
             _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.RIGHT);
             //Logger.Log("Move Right detected", Logger.LogLevel.Info);
         }
@@ -158,10 +161,7 @@ public class GameInput {
         // Handle soft drop with independent SDF timing
         if (_inputManager.IsActionActive(_moveDownAction!)) {
             // Pause gravity while soft dropping
-            if (_inputManager.IsActionJustPressed(_moveDownAction!)) {
-                _game?.PauseGravity();
-            }
-
+            if (_inputManager.IsActionJustPressed(_moveDownAction!)) _game?.PauseGravity();
             _softDropTimer += deltaTime;
 
             // Trigger on first press or when SDF interval has passed
@@ -173,9 +173,7 @@ public class GameInput {
             }
         } else {
             // Resume gravity when soft drop is released
-            if (_softDropTimer > 0f) {
-                _game?.ResumeGravity();
-            }
+            if (_softDropTimer > 0f) _game?.ResumeGravity();
             _softDropTimer = 0f; // Reset timer when button is released
         }
 
