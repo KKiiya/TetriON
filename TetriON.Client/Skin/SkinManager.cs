@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Media;
 using TetriON.Client.Abstraction;
 using TetriON.Client.Abstraction.Media;
 using TetriON.Client.Media;
@@ -8,7 +9,7 @@ using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.Skin;
 
-public class SkinManager : ISkinManager, IDisposable {
+public class SkinManager : ISkinManager {
 
     private static readonly Dictionary<string, string> Skins = new() {
         ["default"] = "skins/default/",
@@ -17,11 +18,18 @@ public class SkinManager : ISkinManager, IDisposable {
 
     // Cache of available texture files per skin (paths only, no actual textures loaded)
     private readonly Dictionary<string, HashSet<string>> _availableTextures = [];
+
     // Cache of available sound files per skin (paths only, no actual sounds loaded)
     // This will be populated dynamically by scanning the filesystem
     private readonly Dictionary<string, HashSet<string>> _availableSounds = [];
 
-    private readonly Dictionary<string, SoundWrapper> _audioAssets = [];
+    private readonly Dictionary<string, HashSet<string>> _availableSongs = [];
+
+    // Mapping of base song names to their variants (e.g., "gameplay" -> ["gameplay1", "gameplay_tetris"])
+    private readonly Dictionary<string, Dictionary<string, List<string>>> _songVariants = [];
+
+    private readonly Dictionary<string, ISound> _audioAssets = [];
+    private readonly Dictionary<string, ISong> _soundAssets = [];
     private readonly Dictionary<string, ITexture> _textureAssets = [];
     private readonly Dictionary<string, IFont> _fontAssets = [];
 
@@ -33,16 +41,6 @@ public class SkinManager : ISkinManager, IDisposable {
         // === BACKGROUND AND UI ===
         "menu_background", "menu_pattern", "menu_decorations",
         "logo_main", "version_text", "splash", "cursor",
-
-        // === MAIN MENU BUTTONS ===
-        "singleplayer_b", "singleplayer_b_click", "singleplayer_b_hover", "singleplayer_b_disabled",
-        "multiplayer_b", "multiplayer_b_click", "multiplayer_b_hover", "multiplayer_b_disabled",
-        "settings_b", "settings_b_click", "settings_b_hover", "settings_b_disabled",
-        "leaderboard_b", "leaderboard_b_click", "leaderboard_b_hover", "leaderboard_b_disabled",
-        "quit_b", "quit_b_click", "quit_b_hover", "quit_b_disabled",
-
-        // === MODAL SYSTEM ===
-        "modal_panel", "modal_titlebar", "modal_button", "modal_option_button"
     ];
 
     private static readonly HashSet<string> ValidSoundNames = [
@@ -76,6 +74,10 @@ public class SkinManager : ISkinManager, IDisposable {
 
         // === ZENITH MODE ===
         "zenith_levelup", "zenith_speedrun_start", "zenith_speedrun_end"
+    ];
+
+    private static readonly HashSet<string> ValidSongNames = [
+        "menu", "gameplay", "gameover"
     ];
 
     private static readonly HashSet<string> ValidFontSprites = [
@@ -124,8 +126,9 @@ public class SkinManager : ISkinManager, IDisposable {
         Logger.Log($"SkinManager: Loading all assets for skin '{_currentSkin}'...", Logger.LogLevel.Info);
         LoadTextureAssets();
         LoadAudioAssets();
+        LoadSongAssets();
         LoadFontAssets();
-        Logger.Log($"SkinManager: All assets loaded for skin '{_currentSkin}'. Textures: {_textureAssets.Count}, Sounds: {_audioAssets.Count}", Logger.LogLevel.Info);
+        Logger.Log($"SkinManager: All assets loaded for skin '{_currentSkin}'. Textures: {_textureAssets.Count}, Sounds: {_audioAssets.Count}, Songs: {_soundAssets.Count}", Logger.LogLevel.Info);
     }
 
     public string GetSkinPath() {
@@ -216,6 +219,60 @@ public class SkinManager : ISkinManager, IDisposable {
         } catch (Exception ex) {
             Logger.Log($"SkinManager: ✗ Sound '{soundName}' not found in skin '{_currentSkin}', default skin, or Content Pipeline: {ex.Message}", Logger.LogLevel.Warning);
             throw new FileNotFoundException($"Sound '{soundName}' not found in skin '{_currentSkin}', default skin, or Content Pipeline.");
+        }
+    }
+
+    /// <summary>
+    /// Load a custom song from audio file at runtime (returns Song for SongWrapper integration)
+    /// Supports variant names like "gameplay1", "gameplay_tetris" for base name "gameplay"
+    /// Uses Song.FromUri() to load MP3/OGG files from filesystem
+    /// </summary>
+    public Song LoadCustomSong(string songName) {
+        // Try to load from custom skin folder
+        var skinPath = FindSoundFile("skins", _currentSkin, songName);
+        if (skinPath != null && File.Exists(skinPath)) {
+            Logger.Log($"SkinManager: Loading song '{songName}' from current skin '{_currentSkin}' at '{skinPath}'", Logger.LogLevel.Info);
+            try {
+                // Get absolute path and create proper file URI
+                var absolutePath = Path.GetFullPath(skinPath);
+                var uri = new Uri(absolutePath);
+                Logger.Log($"SkinManager: Attempting to load song from URI: {uri}", Logger.LogLevel.Info);
+                Logger.Log($"SkinManager: File exists: {File.Exists(absolutePath)}, File size: {new FileInfo(absolutePath).Length} bytes", Logger.LogLevel.Info);
+                return Song.FromUri(songName, uri);
+            } catch (Exception ex) {
+                Logger.Log($"SkinManager: Failed to load song from file '{skinPath}'", Logger.LogLevel.Warning);
+                Logger.Log($"SkinManager: Exception Type: {ex.GetType().Name}", Logger.LogLevel.Warning);
+                Logger.Log($"SkinManager: Exception Message: {ex.Message}", Logger.LogLevel.Warning);
+                Logger.Log($"SkinManager: Stack Trace: {ex.StackTrace}", Logger.LogLevel.Warning);
+                if (ex.InnerException != null) {
+                    Logger.Log($"SkinManager: Inner Exception: {ex.InnerException.GetType().Name} - {ex.InnerException.Message}", Logger.LogLevel.Warning);
+                }
+                // Continue to try other options
+            }
+        }
+
+        // Try default skin folder
+        var defaultPath = FindSoundFile("skins", "default", songName);
+        if (defaultPath != null && File.Exists(defaultPath)) {
+            Logger.Log($"SkinManager: Loading song '{songName}' from default skin fallback at '{defaultPath}'", Logger.LogLevel.Info);
+            try {
+                var absolutePath = Path.GetFullPath(defaultPath);
+                var uri = new Uri(absolutePath);
+                Logger.Log($"SkinManager: Attempting to load song from URI: {uri}", Logger.LogLevel.Info);
+                return Song.FromUri(songName, uri);
+            } catch (Exception ex) {
+                Logger.Log($"SkinManager: Failed to load song from default skin '{defaultPath}': {ex.Message}", Logger.LogLevel.Warning);
+                // Continue to try Content Pipeline
+            }
+        }
+
+        // Try Content Pipeline as final fallback
+        Logger.Log($"SkinManager: Trying to load song '{songName}' from Content Pipeline...", Logger.LogLevel.Info);
+        try {
+            return _instance.Content.Load<Song>(songName);
+        } catch (Exception ex) {
+            Logger.Log($"SkinManager: ✗ Song '{songName}' not found in skin '{_currentSkin}', default skin, or Content Pipeline: {ex.Message}", Logger.LogLevel.Warning);
+            throw new FileNotFoundException($"Song '{songName}' not found in skin '{_currentSkin}', default skin, or Content Pipeline. File path attempted: {skinPath ?? defaultPath ?? "none"}");
         }
     }
 
@@ -354,6 +411,60 @@ public class SkinManager : ISkinManager, IDisposable {
         Logger.Log($"SkinManager: Audio loading complete. Loaded: {loadedCount}, Skipped: {skippedSounds.Count} [{string.Join(", ", skippedSounds)}]", Logger.LogLevel.Info);
     }
 
+    /// <summary>
+    /// Preload all valid song assets for the current skin into _soundAssets cache
+    /// Loads all variants found during scanning - each variant is loaded with its actual filename as the identifier
+    /// Note: MonoGame songs must be added to Content Pipeline - runtime loading from files is not fully supported
+    /// </summary>
+    public void LoadSongAssets() {
+        Logger.Log($"SkinManager: Loading song assets for skin '{_currentSkin}'...", Logger.LogLevel.Info);
+        Logger.Log($"SkinManager: Note - Songs in MonoGame should be added to the Content Pipeline for reliable loading", Logger.LogLevel.Info);
+
+        // Clear existing song assets
+        var disposedCount = 0;
+        foreach (var songAsset in _soundAssets.Values) {
+            songAsset?.Dispose();
+            disposedCount++;
+        }
+        _soundAssets.Clear();
+
+        if (disposedCount > 0) Logger.Log($"SkinManager: Disposed {disposedCount} previous song assets", Logger.LogLevel.Info);
+
+        // Load all song variants that were found during scanning
+        var loadedCount = 0;
+        var skippedSongs = new List<string>();
+
+        // Iterate through all base song names and load their variants
+        foreach (var songName in ValidSongNames) {
+            var variants = GetSongVariants(songName);
+
+            // Load all variants (this includes exact matches like "gameplay.ogg" as well as "gameplay1.ogg")
+            foreach (var variantName in variants) {
+                try {
+                    var song = LoadCustomSong(variantName);
+                    var songWrapper = new SongWrapper(_controller, song, variantName);
+                    _soundAssets[variantName] = songWrapper;
+                    loadedCount++;
+                    Logger.Log($"SkinManager: ✓ Loaded song '{variantName}' (variant of base '{songName}')", Logger.LogLevel.Info);
+                } catch (FileNotFoundException) {
+                    skippedSongs.Add(variantName);
+                    continue;
+                } catch (Exception ex) {
+                    Logger.Log($"SkinManager: ✗ Failed to load song '{variantName}': {ex.Message}", Logger.LogLevel.Error);
+                    skippedSongs.Add(variantName);
+                    continue;
+                }
+            }
+
+            // If no variants were found, log it
+            if (variants.Length == 0) {
+                skippedSongs.Add(songName);
+            }
+        }
+
+        Logger.Log($"SkinManager: Song loading complete. Loaded: {loadedCount}, Skipped: {skippedSongs.Count} [{string.Join(", ", skippedSongs)}]", Logger.LogLevel.Info);
+    }
+
 
     public void LoadFontAssets() {
         Logger.Log($"SkinManager: Loading font assets for skin '{_currentSkin}'...", Logger.LogLevel.Info);
@@ -425,6 +536,26 @@ public class SkinManager : ISkinManager, IDisposable {
         throw new KeyNotFoundException($"Sound '{soundName}' not found in loaded assets. Call LoadAudioAssets() first.");
     }
 
+    public ISong? GetSongAsset(string songname, bool debug = false) {
+        // First try to get the exact song name (could be a variant like "gameplay1")
+        if (_soundAssets.TryGetValue(songname, out var songWrapper)) {
+            if (debug) Logger.Log($"SkinManager: ✓ Retrieved song asset '{songname}' for skin '{_currentSkin}'", Logger.LogLevel.Info);
+            return songWrapper;
+        }
+
+        // If not found and this is a base name with variants, try to get a random variant
+        if (ValidSongNames.Contains(songname) && HasSongVariants(songname)) {
+            var variantName = GetRandomSongVariant(songname);
+            if (_soundAssets.TryGetValue(variantName, out var variantWrapper)) {
+                if (debug) Logger.Log($"SkinManager: ✓ Retrieved random song variant '{variantName}' for base '{songname}' for skin '{_currentSkin}'", Logger.LogLevel.Info);
+                return variantWrapper;
+            }
+        }
+
+        if (debug) Logger.Log($"SkinManager: ✗ Song '{songname}' not found in loaded assets. Available: [{string.Join(", ", _soundAssets.Keys)}]", Logger.LogLevel.Error);
+        return null;
+    }
+
     public IFont GetFontAsset(string fontName, bool debug = false) {
         if (!ValidFontSprites.Contains(fontName)) {
             if (debug) Logger.Log($"SkinManager: ✗ Attempted to get invalid font '{fontName}'. Valid names: [{string.Join(", ", ValidFontSprites)}]", Logger.LogLevel.Error);
@@ -471,6 +602,9 @@ public class SkinManager : ISkinManager, IDisposable {
 
             // Scan for sound files in this skin folder (paths only)
             ScanSoundsInSkin(skinName, folder);
+
+            // Scan for song files in this skin folder (paths only)
+            ScanSongsInSkin(skinName, folder);
         }
 
         Logger.Log($"SkinManager: Skin scanning complete. Total skins registered: {Skins.Count}", Logger.LogLevel.Info);
@@ -543,6 +677,65 @@ public class SkinManager : ISkinManager, IDisposable {
                         (invalidSounds.Count > 0 ? $", Invalid: {invalidSounds.Count} [{string.Join(", ", invalidSounds)}]" : ""));
     }
 
+    /// <summary>
+    /// Scan for available song files in a specific skin folder (memory efficient - paths only)
+    /// Supports prefix matching: "gameplay1", "gameplay_tetris" match base name "gameplay"
+    /// ValidSongNames are only used as reference points - the file name (without extension) is the actual identifier
+    /// Scans recursively through all subdirectories (e.g., music/ folder)
+    /// </summary>
+    private void ScanSongsInSkin(string skinName, string skinFolder) {
+        if (!_availableSongs.ContainsKey(skinName)) {
+            _availableSongs[skinName] = [];
+        }
+        if (!_songVariants.ContainsKey(skinName)) {
+            _songVariants[skinName] = [];
+        }
+
+        var variantSongs = new List<string>();
+        var invalidSongs = new List<string>();
+        var totalFiles = 0;
+
+        // Scan for various audio formats recursively
+        var audioExtensions = new[] { "*.wav", "*.mp3", "*.ogg" };
+        foreach (var extension in audioExtensions) {
+            var audioFiles = Directory.GetFiles(skinFolder, extension, SearchOption.AllDirectories);
+            totalFiles += audioFiles.Length;
+
+            foreach (var audioFile in audioFiles) {
+                var songName = Path.GetFileNameWithoutExtension(audioFile);
+                var fileExtension = Path.GetExtension(audioFile);
+                var relativePath = Path.GetRelativePath(skinFolder, audioFile);
+
+                // Check if this file name starts with any valid base name
+                var matchedBase = ValidSongNames.FirstOrDefault(validName =>
+                    songName.StartsWith(validName, StringComparison.OrdinalIgnoreCase));
+
+                if (matchedBase != null) {
+                    // This file matches a valid base name (either exact or variant)
+                    // The identifier is ALWAYS the filename, regardless of whether it's exact or variant
+                    _availableSongs[skinName].Add(songName);
+
+                    if (!_songVariants[skinName].ContainsKey(matchedBase)) {
+                        _songVariants[skinName][matchedBase] = [];
+                    }
+                    _songVariants[skinName][matchedBase].Add(songName);
+                    variantSongs.Add($"{songName}{fileExtension} (variant of {matchedBase}, {Path.GetDirectoryName(relativePath)})");
+                } else {
+                    // Only log as invalid if it's in a music-related directory
+                    var dirName = Path.GetDirectoryName(relativePath)?.ToLowerInvariant() ?? "";
+                    if (dirName.Contains("music") || dirName.Contains("song") || dirName.Contains("bgm")) {
+                        invalidSongs.Add($"{songName}{fileExtension} ({Path.GetDirectoryName(relativePath)})");
+                    }
+                }
+            }
+        }
+
+        if (totalFiles > 0 || variantSongs.Count > 0) {
+            Logger.Log($"SkinManager: Skin '{skinName}' - Found {totalFiles} potential song files (including subdirectories). Variants: {variantSongs.Count} [{string.Join(", ", variantSongs)}]" +
+                            (invalidSongs.Count > 0 ? $", Invalid: {invalidSongs.Count} [{string.Join(", ", invalidSongs)}]" : ""), Logger.LogLevel.Info);
+        }
+    }
+
     private void CreateDefaultSkinFolder() {
         var defaultPath = Path.Combine("skins", "default");
         Directory.CreateDirectory(defaultPath);
@@ -598,6 +791,8 @@ public class SkinManager : ISkinManager, IDisposable {
         // Clear cached texture and sound paths
         _availableTextures.Clear();
         _availableSounds.Clear();
+        _availableSongs.Clear();
+        _songVariants.Clear();
 
         // Rescan for new skins and their available assets
         ScanForCustomSkins();
@@ -739,6 +934,94 @@ public class SkinManager : ISkinManager, IDisposable {
     /// </summary>
     public string[] GetValidSoundNames() {
         return [.. ValidSoundNames];
+    }
+
+    /// <summary>
+    /// Get list of all valid song names that can be loaded
+    /// </summary>
+    public string[] GetValidSongNames() {
+        return [.. ValidSongNames];
+    }
+
+    /// <summary>
+    /// Get all variants for a specific base song name (e.g., "gameplay" -> ["gameplay1", "gameplay_tetris"])
+    /// Returns empty array if no variants exist
+    /// </summary>
+    public string[] GetSongVariants(string baseName) {
+        if (_songVariants.ContainsKey(_currentSkin) &&
+            _songVariants[_currentSkin].ContainsKey(baseName)) {
+            return [.. _songVariants[_currentSkin][baseName]];
+        }
+
+        // Check default skin as fallback
+        if (_songVariants.ContainsKey("default") &&
+            _songVariants["default"].ContainsKey(baseName)) {
+            return [.. _songVariants["default"][baseName]];
+        }
+
+        return [];
+    }
+
+    /// <summary>
+    /// Get a random variant of a song (e.g., randomly pick from "gameplay1", "gameplay_tetris")
+    /// Falls back to exact match if no variants exist
+    /// </summary>
+    public string GetRandomSongVariant(string baseName) {
+        var variants = GetSongVariants(baseName);
+        if (variants.Length > 0) {
+            var random = new Random();
+            return variants[random.Next(variants.Length)];
+        }
+        return baseName; // Return base name if no variants
+    }
+
+    /// <summary>
+    /// Check if a song has variants available
+    /// </summary>
+    public bool HasSongVariants(string baseName) {
+        return GetSongVariants(baseName).Length > 0;
+    }
+
+    /// <summary>
+    /// Get list of available songs for the current skin (memory efficient)
+    /// </summary>
+    public string[] GetAvailableSongs() {
+        var songs = new HashSet<string>();
+
+        // Add songs from current skin
+        if (_availableSongs.ContainsKey(_currentSkin)) {
+            foreach (var song in _availableSongs[_currentSkin]) {
+                songs.Add(song);
+            }
+        }
+
+        // Add songs from default skin as fallback options
+        if (_availableSongs.ContainsKey("default")) {
+            foreach (var song in _availableSongs["default"]) {
+                songs.Add(song);
+            }
+        }
+
+        return songs.ToArray();
+    }
+
+    /// <summary>
+    /// Check if a custom song exists for the current skin (uses cached paths - no file I/O)
+    /// </summary>
+    public bool HasCustomSong(string songName) {
+        // Check current skin first
+        if (_availableSongs.ContainsKey(_currentSkin) &&
+            _availableSongs[_currentSkin].Contains(songName)) {
+            return true;
+        }
+
+        // Check default skin as fallback
+        if (_availableSongs.ContainsKey("default") &&
+            _availableSongs["default"].Contains(songName)) {
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>

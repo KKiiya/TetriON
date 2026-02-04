@@ -49,9 +49,23 @@ public class GameAudioEventHandler {
             else if (combo >= 15) _audioManager.PlaySoundEffect("combo_15");
         };
 
-        _game.OnLevelUp += (level) => _audioManager.PlaySoundEffect("levelup");
+        _game.OnLevelUp += (level) => {
+            _audioManager.PlaySoundEffect("levelup");
+            if (level == 6) {
+                var currentMusic = _audioManager.GetCurrentMusic();
+                currentMusic?.FadeOut(TimeSpan.FromSeconds(0.5f));
+                if (currentMusic != null) {
+                    currentMusic.OnFadeOutComplete += (s, e) => {
+                        _audioManager.PlayMusic("gameplay1", loop: true);
+                        Logger.Log("GameAudioEventHandler: Level 6 reached, switched to gameplay1 music.", Logger.LogLevel.Info);
+                    };
+                }
+            }
+        };
 
         _game.OnPieceLock += () => _audioManager.PlaySoundEffect("piece_lock");
+
+        _game.OnGameStart += () => _audioManager.PlayMusic("gameplay", loop: true);
     }
 
     public void Unsubscribe() {

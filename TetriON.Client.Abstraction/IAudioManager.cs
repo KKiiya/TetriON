@@ -1,3 +1,6 @@
+using Microsoft.Xna.Framework;
+using TetriON.Client.Abstraction.Media;
+
 namespace TetriON.Client.Abstraction;
 
 /// <summary>
@@ -26,19 +29,9 @@ public interface IAudioManager : IDisposable {
     void PlayMusic(string musicName, bool loop = true, float volume = 1.0f);
 
     /// <summary>
-    /// Stop currently playing music
+    /// Get the currently playing music track, or null if no music is playing
     /// </summary>
-    void StopMusic();
-
-    /// <summary>
-    /// Pause currently playing music
-    /// </summary>
-    void PauseMusic();
-
-    /// <summary>
-    /// Resume paused music
-    /// </summary>
-    void ResumeMusic();
+    ISong? GetCurrentMusic();
 
     /// <summary>
     /// Set the master volume for sound effects
@@ -58,5 +51,5 @@ public interface IAudioManager : IDisposable {
     /// <summary>
     /// Update audio system (called every frame)
     /// </summary>
-    void Update();
+    void Update(float deltaTime);
 }

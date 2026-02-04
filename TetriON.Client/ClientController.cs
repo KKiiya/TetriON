@@ -82,6 +82,7 @@ public class ClientController : IController {
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         InputManager.Update(deltaTime);
         GameInput.Update(deltaTime);
+        AudioManager.Update(deltaTime);
 
         _currentGame?.Update(gameTime.ElapsedGameTime);
         // Other updates...

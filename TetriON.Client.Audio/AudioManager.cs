@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using TetriON.Client.Abstraction;
 using TetriON.Client.Abstraction.Media;
 using TetriON.Client.Media;
@@ -10,11 +11,10 @@ namespace TetriON.Client.Audio;
 /// </summary>
 public class AudioManager(IController controller) : IAudioManager {
     private readonly Dictionary<string, ISound> _soundEffects = [];
-    private readonly Dictionary<string, SongWrapper> _musicTracks = [];
-    private SongWrapper? _currentMusic;
-
-    private float _soundEffectVolume = 0.5f;
-    private float _musicVolume = 0.7f;
+    private readonly Dictionary<string, ISong> _musicTracks = [];
+    private ISong? _currentMusic; private float _lastDeltaTime;
+    private float _soundEffectVolume = 0.07f;
+    private float _musicVolume = 0.07f;
     private bool _isMuted = false;
 
     public IController Controller { get; } = controller;
@@ -40,10 +40,14 @@ public class AudioManager(IController controller) : IAudioManager {
 
     private void LoadMusicTracks() {
         _musicTracks.Clear();
-        // TODO: Load music track assets
-        // Example:
-        // _musicTracks["menu"] = new SongWrapper("Music/menu_theme");
-        // _musicTracks["gameplay"] = new SongWrapper("Music/gameplay_theme");
+
+        foreach (var songName in SkinManager.GetValidSongNames()) {
+            var song = SkinManager.GetSongAsset(songName);
+            if (song != null) {
+                // Store with the base name so PlayMusic("gameplay") works
+                _musicTracks[songName] = song;
+            }
+        }
     }
 
     public void PlaySoundEffect(string soundName, float volume = 1.0f) {
@@ -56,27 +60,31 @@ public class AudioManager(IController controller) : IAudioManager {
     }
 
     public void PlayMusic(string musicName, bool loop = true, float volume = 1.0f) {
+        // First check if we have this song cached
         if (_musicTracks.TryGetValue(musicName, out var music)) {
-            StopMusic();
+            _currentMusic?.Stop();
             _currentMusic = music;
 
             float finalVolume = _isMuted ? 0f : _musicVolume * volume;
             _currentMusic.SetRepeat(loop);
             _currentMusic.Play(finalVolume);
+        } else {
+            // If not cached, try to get it from SkinManager (handles variants)
+            var song = SkinManager.GetSongAsset(musicName, debug: true);
+            if (song != null) {
+                _musicTracks[musicName] = song; // Cache it even if null to avoid repeated lookups
+                _currentMusic?.Stop();
+                _currentMusic = song;
+
+                float finalVolume = _isMuted ? 0f : _musicVolume * volume;
+                _currentMusic.SetRepeat(loop);
+                _currentMusic.Play(finalVolume);
+            }
         }
     }
 
-    public void StopMusic() {
-        _currentMusic?.Stop();
-        _currentMusic = null;
-    }
-
-    public void PauseMusic() {
-        _currentMusic?.Pause();
-    }
-
-    public void ResumeMusic() {
-        _currentMusic?.Resume();
+    public void GetCurrentMusic(out ISong? music) {
+        music = _currentMusic;
     }
 
     public float SoundEffectVolume {
@@ -98,23 +106,35 @@ public class AudioManager(IController controller) : IAudioManager {
         get => _isMuted;
         set {
             _isMuted = value;
-            if (_currentMusic != null) {
-                _currentMusic.SetVolume(_isMuted ? 0f : _musicVolume);
-            }
+            _currentMusic?.SetVolume(_isMuted ? 0f : _musicVolume);
         }
     }
 
-    public void Update() {
-        // Update audio system if needed
+    public void Update(float deltaTime) {
+        _lastDeltaTime = deltaTime;
+        // Update current music for fade effects
+        _currentMusic?.Update(deltaTime);
     }
 
     public void Dispose() {
-        StopMusic();
+        _currentMusic?.Stop();
         foreach (var sound in _soundEffects.Values) {
             sound.Dispose();
         }
         _soundEffects.Clear();
         _musicTracks.Clear();
+        GC.SuppressFinalize(this);
+    }
+
+    public ISong? GetCurrentMusic() {
+        return _currentMusic;
+    }
+
+    public void Update(GameTime gameTime) {
+        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        _lastDeltaTime = deltaTime;
+        // Update current music for fade effects
+        _currentMusic?.Update(deltaTime);
     }
 
     ~AudioManager() {

@@ -4,10 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Media;
 using TetriON.Client.Abstraction;
+using TetriON.Client.Abstraction.Media;
 
 namespace TetriON.Client.Media;
 
-public class SongWrapper : IDisposable {
+public class SongWrapper : ISong {
     private readonly IController _controller;
     private readonly Song _song;
     private readonly string _path;
@@ -16,6 +17,16 @@ public class SongWrapper : IDisposable {
     // Static tracking for MediaPlayer state since it's a singleton
     private static SongWrapper? _currentlyPlaying;
     private static readonly object _mediaPlayerLock = new();
+
+    // Fade state tracking
+    private bool _isFading;
+    private float _fadeStartVolume;
+    private float _fadeTargetVolume;
+    private float _fadeElapsedTime;
+    private float _fadeDuration;
+
+    // Event for fade out completion
+    public event EventHandler? OnFadeOutComplete;
 
     public SongWrapper(IController controller, string path) {
         if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("Path cannot be null or empty", nameof(path));
@@ -30,90 +41,23 @@ public class SongWrapper : IDisposable {
         }
     }
 
-    public void Play() {
-        ObjectDisposedException.ThrowIf(_disposed, nameof(SongWrapper));
-
-        lock (_mediaPlayerLock) {
-            try {
-                MediaPlayer.Play(_song);
-                _currentlyPlaying = this;
-            } catch (Exception ex) {
-                System.Diagnostics.Debug.WriteLine($"SongWrapper: Failed to play song '{_path}': {ex.Message}");
-                throw;
-            }
-        }
+    public SongWrapper(IController controller, Song song, string name) {
+        _controller = controller ?? throw new ArgumentNullException(nameof(controller));
+        _song = song ?? throw new ArgumentNullException(nameof(song));
+        _path = name ?? throw new ArgumentNullException(nameof(name));
     }
 
-    public void Play(float volume) {
+    public void Play(float volume = 1.0f, TimeSpan? startTime = default, bool loop = true) {
         ObjectDisposedException.ThrowIf(_disposed, nameof(SongWrapper));
 
         lock (_mediaPlayerLock) {
             try {
                 MediaPlayer.Volume = Math.Clamp(volume, 0f, 1f);
-                MediaPlayer.Play(_song);
-                _currentlyPlaying = this;
-            } catch (Exception ex) {
-                System.Diagnostics.Debug.WriteLine($"SongWrapper: Failed to play song '{_path}' with volume {volume}: {ex.Message}");
-                throw;
-            }
-        }
-    }
-
-    public void Play(TimeSpan startTime) {
-        ObjectDisposedException.ThrowIf(_disposed, nameof(SongWrapper));
-
-        lock (_mediaPlayerLock) {
-            try {
+                MediaPlayer.IsRepeating = loop;
                 MediaPlayer.Play(_song, startTime);
                 _currentlyPlaying = this;
             } catch (Exception ex) {
-                System.Diagnostics.Debug.WriteLine($"SongWrapper: Failed to play song '{_path}' at {startTime}: {ex.Message}");
-                throw;
-            }
-        }
-    }
-
-    public void Play(TimeSpan startTime, bool repeat) {
-        ObjectDisposedException.ThrowIf(_disposed, nameof(SongWrapper));
-
-        lock (_mediaPlayerLock) {
-            try {
-                MediaPlayer.IsRepeating = repeat;
-                MediaPlayer.Play(_song, startTime);
-                _currentlyPlaying = this;
-            } catch (Exception ex) {
-                System.Diagnostics.Debug.WriteLine($"SongWrapper: Failed to play song '{_path}' at {startTime} with repeat {repeat}: {ex.Message}");
-                throw;
-            }
-        }
-    }
-
-    public void Play(float volume, TimeSpan startTime) {
-        ObjectDisposedException.ThrowIf(_disposed, nameof(SongWrapper));
-
-        lock (_mediaPlayerLock) {
-            try {
-                MediaPlayer.Volume = Math.Clamp(volume, 0f, 1f);
-                MediaPlayer.Play(_song, startTime);
-                _currentlyPlaying = this;
-            } catch (Exception ex) {
-                System.Diagnostics.Debug.WriteLine($"SongWrapper: Failed to play song '{_path}' with volume {volume} at {startTime}: {ex.Message}");
-                throw;
-            }
-        }
-    }
-
-    public void Play(float volume, TimeSpan startTime, bool repeat) {
-        ObjectDisposedException.ThrowIf(_disposed, nameof(SongWrapper));
-
-        lock (_mediaPlayerLock) {
-            try {
-                MediaPlayer.Volume = Math.Clamp(volume, 0f, 1f);
-                MediaPlayer.IsRepeating = repeat;
-                MediaPlayer.Play(_song, startTime);
-                _currentlyPlaying = this;
-            } catch (Exception ex) {
-                System.Diagnostics.Debug.WriteLine($"SongWrapper: Failed to play song '{_path}' with volume {volume} at {startTime} with repeat {repeat}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"SongWrapper: Failed to play song '{_path}' with volume {volume} at {startTime} with repeat {loop}: {ex.Message}");
                 throw;
             }
         }
@@ -220,29 +164,49 @@ public class SongWrapper : IDisposable {
     }
 
     /// <summary>
-    /// Fades out the current song over the specified duration
+    /// Fades out the current song over the specified duration (non-blocking)
+    /// Call Update() in your game loop to process the fade
     /// </summary>
     public void FadeOut(TimeSpan duration) {
         if (_disposed || !IsPlaying()) return;
 
-        // Note: This is a simple implementation. For a real fade, you'd need to implement
-        // a coroutine or timer-based system to gradually reduce volume
         lock (_mediaPlayerLock) {
-            try {
-                var steps = 20;
-                var stepDuration = duration.TotalMilliseconds / steps;
-                var currentVolume = MediaPlayer.Volume;
-                var volumeStep = currentVolume / steps;
+            if (_currentlyPlaying != this) return;
 
-                // This is a synchronous fade - in a real implementation, you'd want this async
-                for (int i = 0; i < steps; i++) {
-                    MediaPlayer.Volume = Math.Max(0f, currentVolume - (volumeStep * i));
-                    System.Threading.Thread.Sleep((int)stepDuration);
+            _isFading = true;
+            _fadeStartVolume = MediaPlayer.Volume;
+            _fadeTargetVolume = 0f;
+            _fadeElapsedTime = 0f;
+            _fadeDuration = (float)duration.TotalSeconds;
+        }
+    }
+
+    /// <summary>
+    /// Update the fade effect - call this from your game's Update loop
+    /// </summary>
+    public void Update(float deltaTime) {
+        if (_disposed || !_isFading) return;
+
+        lock (_mediaPlayerLock) {
+            if (_currentlyPlaying != this || !IsPlaying()) {
+                _isFading = false;
+                return;
+            }
+
+            _fadeElapsedTime += deltaTime;
+            var progress = Math.Clamp(_fadeElapsedTime / _fadeDuration, 0f, 1f);
+
+            // Linear interpolation from start to target volume
+            var currentVolume = _fadeStartVolume + ((_fadeTargetVolume - _fadeStartVolume) * progress);
+            MediaPlayer.Volume = Math.Clamp(currentVolume, 0f, 1f);
+
+            // When fade completes
+            if (progress >= 1f) {
+                _isFading = false;
+                if (_fadeTargetVolume <= 0f) {
+                    Stop();
+                    OnFadeOutComplete?.Invoke(this, EventArgs.Empty);
                 }
-
-                Stop();
-            } catch (Exception ex) {
-                System.Diagnostics.Debug.WriteLine($"SongWrapper: Failed to fade out song '{_path}': {ex.Message}");
             }
         }
     }
@@ -278,6 +242,7 @@ public class SongWrapper : IDisposable {
     // Properties
     public string GetPath() => _path;
     public bool IsDisposed => _disposed;
+
     public Song? GetSong() => _disposed ? null : _song;
 
     #region IDisposable Implementation
