@@ -34,6 +34,26 @@ public interface IAudioManager : IDisposable {
     ISong? GetCurrentMusic();
 
     /// <summary>
+    /// Get a music track by name, or null if it doesn't exist
+    /// </summary>
+    /// <param name="musicName"></param>
+    /// <returns></returns>
+    ISong? GetMusic(string musicName);
+
+    void FadeTo(ISong music, float duration, bool loop = true, float volume = 1.0f);
+
+    /// <summary>
+    /// Transition from the current music to a new track with fade out and fade in and will
+    /// play last part of the old track before switching to the new track.
+    /// </summary>
+    /// <param name="music"></param>
+    /// <param name="fadeOutDuration"></param>
+    /// <param name="fadeInDuration"></param>
+    /// <param name="loop"></param>
+    /// <param name="volume"></param>
+    void TransitionTo(ISong music, float fadeOutDuration, float fadeInDuration, bool loop = true, float volume = 1.0f);
+
+    /// <summary>
     /// Set the master volume for sound effects
     /// </summary>
     float SoundEffectVolume { get; set; }

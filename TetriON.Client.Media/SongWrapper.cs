@@ -279,6 +279,26 @@ public class SongWrapper : ISong {
         }
     }
 
+    public void FadeIn(TimeSpan duration, float targetVolume = 1) {
+        if (_disposed) return;
+
+        lock (_mediaPlayerLock) {
+            try {
+                MediaPlayer.Volume = 0f;
+                MediaPlayer.Play(_song);
+                _currentlyPlaying = this;
+
+                _isFading = true;
+                _fadeStartVolume = 0f;
+                _fadeTargetVolume = Math.Clamp(targetVolume, 0f, 1f);
+                _fadeElapsedTime = 0f;
+                _fadeDuration = (float)duration.TotalSeconds;
+            } catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine($"SongWrapper: Failed to fade in song '{_path}' with target volume {targetVolume} over {duration}: {ex.Message}");
+            }
+        }
+    }
+
     ~SongWrapper() {
         Dispose(false);
     }

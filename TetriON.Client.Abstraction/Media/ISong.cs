@@ -11,6 +11,7 @@ public interface ISong : IDisposable {
     bool IsPlaying();
     bool IsPaused();
     void FadeOut(TimeSpan duration);
+    void FadeIn(TimeSpan duration, float targetVolume = 1.0f);
     event EventHandler? OnFadeOutComplete;
     void Update(float deltaTime);
     void SetVolume(float volume);

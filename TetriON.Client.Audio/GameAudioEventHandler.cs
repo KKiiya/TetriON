@@ -51,14 +51,11 @@ public class GameAudioEventHandler {
 
         _game.OnLevelUp += (level) => {
             _audioManager.PlaySoundEffect("levelup");
-            if (level == 6) {
+            if (level == 5) {
                 var currentMusic = _audioManager.GetCurrentMusic();
-                currentMusic?.FadeOut(TimeSpan.FromSeconds(0.5f));
-                if (currentMusic != null) {
-                    currentMusic.OnFadeOutComplete += (s, e) => {
-                        _audioManager.PlayMusic("gameplay1", loop: true);
-                        Logger.Log("GameAudioEventHandler: Level 6 reached, switched to gameplay1 music.", Logger.LogLevel.Info);
-                    };
+                var nextMusic = _audioManager.GetMusic("gameplay1");
+                if (currentMusic != null && nextMusic != null) {
+                    _audioManager.TransitionTo(nextMusic, fadeOutDuration: 1.0f, fadeInDuration: 1.0f, loop: true, volume: 0.07f);
                 }
             }
         };

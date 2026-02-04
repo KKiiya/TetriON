@@ -12,7 +12,9 @@ namespace TetriON.Client.Audio;
 public class AudioManager(IController controller) : IAudioManager {
     private readonly Dictionary<string, ISound> _soundEffects = [];
     private readonly Dictionary<string, ISong> _musicTracks = [];
-    private ISong? _currentMusic; private float _lastDeltaTime;
+    private ISong? _currentMusic;
+    private ISong? _transitioningMusic; // Song that is fading out during a transition
+    private float _lastDeltaTime;
     private float _soundEffectVolume = 0.07f;
     private float _musicVolume = 0.07f;
     private bool _isMuted = false;
@@ -114,6 +116,8 @@ public class AudioManager(IController controller) : IAudioManager {
         _lastDeltaTime = deltaTime;
         // Update current music for fade effects
         _currentMusic?.Update(deltaTime);
+        // Update transitioning music for fade out effects
+        _transitioningMusic?.Update(deltaTime);
     }
 
     public void Dispose() {
@@ -135,6 +139,93 @@ public class AudioManager(IController controller) : IAudioManager {
         _lastDeltaTime = deltaTime;
         // Update current music for fade effects
         _currentMusic?.Update(deltaTime);
+        // Update transitioning music for fade out effects
+        _transitioningMusic?.Update(deltaTime);
+    }
+
+    public void FadeTo(ISong music, float duration, bool loop = true, float volume = 1) {
+        if (_isMuted) return;
+
+        // If the new music is the same as current, just ensure it's playing
+        if (music == _currentMusic) {
+            if (_currentMusic != null && !_currentMusic.IsPlaying()) {
+                _currentMusic.Play(_musicVolume * volume);
+            }
+            return;
+        }
+
+        // Start fading out current music
+        if (_currentMusic != null && _currentMusic.IsPlaying()) {
+            _currentMusic.FadeOut(TimeSpan.FromSeconds(duration));
+        }
+
+        // Start fading in new music
+        _currentMusic = music;
+        _currentMusic.SetRepeat(loop);
+        _currentMusic.FadeIn(TimeSpan.FromSeconds(duration), _musicVolume * volume);
+    }
+
+    public ISong? GetMusic(string musicName) {
+        if (_musicTracks.TryGetValue(musicName, out var music)) {
+            return music;
+        } else {
+            var song = SkinManager.GetSongAsset(musicName, debug: true);
+            if (song != null) {
+                _musicTracks[musicName] = song; // Cache it even if null to avoid repeated lookups
+                return song;
+            }
+        }
+        return null;
+    }
+
+    public void TransitionTo(ISong music, float fadeOutDuration, float fadeInDuration, bool loop = true, float volume = 1.0f) {
+        if (_isMuted) return;
+
+        // If the new music is the same as current, just ensure it's playing
+        if (music == _currentMusic) {
+            if (_currentMusic != null && !_currentMusic.IsPlaying()) {
+                _currentMusic.Play(_musicVolume * volume);
+            }
+            return;
+        }
+
+        ISong? oldMusic = _currentMusic;
+
+        // Start fading out current music if it's playing
+        if (oldMusic != null && oldMusic.IsPlaying()) {
+            // Keep the old music as transitioning so it gets updated during fade out
+            _transitioningMusic = oldMusic;
+            // Set the new music as current
+            _currentMusic = music;
+
+            oldMusic.FadeOut(TimeSpan.FromSeconds(fadeOutDuration));
+
+            // Set up event handler to switch to new music after fade out completes
+            EventHandler? fadeOutHandler = null;
+            fadeOutHandler = (sender, e) => {
+                // Unsubscribe to avoid memory leaks
+                if (oldMusic != null) {
+                    oldMusic.OnFadeOutComplete -= fadeOutHandler;
+                }
+
+                // Stop the old music explicitly (it should already be stopped by FadeOut)
+                oldMusic?.Stop();
+
+                // Clear the transitioning reference
+                _transitioningMusic = null;
+
+                // Start the new music with fade in
+                music.SetRepeat(loop);
+                music.FadeIn(TimeSpan.FromSeconds(fadeInDuration), _musicVolume * volume);
+            };
+
+            oldMusic.OnFadeOutComplete += fadeOutHandler;
+        } else {
+            // No current music playing, just start the new one with fade in
+            _currentMusic = music;
+            _currentMusic.SetRepeat(loop);
+            _currentMusic.FadeIn(TimeSpan.FromSeconds(fadeInDuration), _musicVolume * volume);
+        }
     }
 
     ~AudioManager() {
