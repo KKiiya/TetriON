@@ -37,7 +37,7 @@ public class GameAudioEventHandler {
         _game.OnLineClear += (lines, isSpin) => {
             if (isSpin) _audioManager.PlaySoundEffect("clearspin");
             else {
-                if (lines == 1) _audioManager.PlaySoundEffect("clearline");
+                if (lines >= 1 && lines <= 3) _audioManager.PlaySoundEffect("clearline");
                 else if (lines >= 4) _audioManager.PlaySoundEffect("clearquad");
             }
         };
@@ -55,6 +55,15 @@ public class GameAudioEventHandler {
     }
 
     public void Unsubscribe() {
-        // TODO: Unsubscribe from all events when cleaning up
+        Logger.Log("GameAudioEventHandler: Unsubscribing from game events...", Logger.LogLevel.Info);
+        _game.OnPieceMove -= null;
+        _game.OnPieceRotate -= null;
+        _game.OnPieceHold -= null;
+        _game.OnHardDrop -= null;
+        _game.OnLineClear -= null;
+        _game.OnPerfectClear -= null;
+        _game.OnComboIncrease -= null;
+        _game.OnLevelUp -= null;
+        _game.OnPieceLock -= null;
     }
 }
