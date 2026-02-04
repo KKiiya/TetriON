@@ -11,6 +11,7 @@ public class GhostRenderer(TetrisGame tetrisGame, IController controller, GameDi
     protected ITexture TileSheet => Controller.SkinManager.GetTextureAsset("ghost_tiles").texture;
     private readonly float GhostAlpha = 0.3f;
     private readonly GameDisposition _gameDisposition = gameDisposition;
+    private bool IsGray = true;
 
 
     public override void Draw() {
@@ -20,6 +21,7 @@ public class GhostRenderer(TetrisGame tetrisGame, IController controller, GameDi
         var location = TetrisGame.GetGhostTetrominoPoint();
         var matrix = currentPiece.GetMatrix();
         var id = currentPiece.GetId();
+        if (IsGray) id = 0x0A; // Use gray tile for ghost
 
         var position = new Point((id - GridSizing.TileSpacing) * 31, 0);
         var rectangle = new Rectangle(position.X, position.Y, GridSizing.BaseTileWidth, GridSizing.BaseTileHeight);

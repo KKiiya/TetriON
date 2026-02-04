@@ -50,6 +50,6 @@ public class PieceRenderer(TetrisGame tetrisGame, IController controller, GameDi
     }
 
     public override void Initialize() {
-        ZIndex = 5;
+        ZIndex = 6;
     }
 }

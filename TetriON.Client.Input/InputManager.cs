@@ -39,7 +39,6 @@ public class InputManager : IInputManager {
     private float _das = 0.133f; // Delayed Auto Shift - initial delay before repeat starts
     private float _arr = 0.0f;   // Auto Repeat Rate - time between repeats (0 = instant)
     private float _dcd = 0.0f;   // DAS Cut Delay - delay when changing direction during DAS
-    private int _sdf = 20;       // Soft Drop Factor - multiplier for soft drop speed
 
     /// <summary>
     /// Current active input device (automatically detected)
@@ -110,16 +109,6 @@ public class InputManager : IInputManager {
     public float DCD {
         get => _dcd;
         set => _dcd = Math.Max(0f, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the SDF (Soft Drop Factor) multiplier.
-    /// This multiplies the soft drop speed (higher = faster).
-    /// Typical values: 5 - 40
-    /// </summary>
-    public int SDF {
-        get => _sdf;
-        set => _sdf = Math.Max(1, value);
     }
 
     /// <summary>

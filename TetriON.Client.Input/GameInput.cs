@@ -26,13 +26,20 @@ public class GameInput {
     private InputAction? _confirmAction;
     private InputAction? _cancelAction;
 
+    private float _sdfInterval; // Actual time interval between soft drops in seconds
+    public float SDF {
+        get => _sdfInterval > 0 ? 1f / _sdfInterval : 0f;
+        set => _sdfInterval = value > 0 ? 1f / value : 0f;
+    } // Soft Drop Factor - drops per second (converted to time interval internally)
+    private float _softDropTimer = 0f;
+
     public GameInput(IController controller) {
         _inputManager = new InputManager(controller) {
             ARR = 0.025f,
             DAS = 0.117f,
-            DCD = 0.033f,
-            SDF = 18
+            DCD = 0.033f
         };
+        SDF = 9999f; // 20 drops per second
         SetupInputActions();
     }
 
@@ -66,15 +73,12 @@ public class GameInput {
     private void SetupBindings() {
         // Movement bindings (Keyboard + Gamepad)
         _inputManager.KeyBindManager.BindKey(_moveLeftAction!, Keys.Left);
-        _inputManager.KeyBindManager.BindKey(_moveLeftAction!, Keys.A);
         _inputManager.KeyBindManager.BindButton(_moveLeftAction!, Buttons.DPadLeft);
 
         _inputManager.KeyBindManager.BindKey(_moveRightAction!, Keys.Right);
-        _inputManager.KeyBindManager.BindKey(_moveRightAction!, Keys.D);
         _inputManager.KeyBindManager.BindButton(_moveRightAction!, Buttons.DPadRight);
 
         _inputManager.KeyBindManager.BindKey(_moveDownAction!, Keys.Down);
-        _inputManager.KeyBindManager.BindKey(_moveDownAction!, Keys.S);
         _inputManager.KeyBindManager.BindButton(_moveDownAction!, Buttons.DPadDown);
 
         // Rotation bindings
@@ -127,11 +131,11 @@ public class GameInput {
         _inputManager.Update(deltaTime);
 
         // Example: Check actions
-        HandleGameplayInput();
-        HandlePointerInput();
+        HandleGameplayInput(deltaTime);
+        HandlePointerInput(deltaTime);
     }
 
-    private void HandleGameplayInput() {
+    private void HandleGameplayInput(float deltaTime) {
         // Check if actions are active with last-input priority
         bool leftTriggered = _inputManager.IsActionTriggeredWithDASAndDCD(_moveLeftAction!);
         bool rightTriggered = _inputManager.IsActionTriggeredWithDASAndDCD(_moveRightAction!);
@@ -151,11 +155,30 @@ public class GameInput {
             //Logger.Log("Move Right detected", Logger.LogLevel.Info);
         }
 
+        // Handle soft drop with independent SDF timing
+        if (_inputManager.IsActionActive(_moveDownAction!)) {
+            // Pause gravity while soft dropping
+            if (_inputManager.IsActionJustPressed(_moveDownAction!)) {
+                _game?.PauseGravity();
+            }
 
-        if (_inputManager.IsActionTriggeredWithDASAndDCD(_moveDownAction!)) {
-            _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.DOWN);
-            //Logger.Log("Move Down active", Logger.LogLevel.Info);
+            _softDropTimer += deltaTime;
+
+            // Trigger on first press or when SDF interval has passed
+            if (_inputManager.IsActionJustPressed(_moveDownAction!) || _softDropTimer >= _sdfInterval) {
+                _game?.MoveTetromino(Core.Pieces.Tetromino.MoveDirection.DOWN);
+                if (_softDropTimer >= _sdfInterval) _softDropTimer -= _sdfInterval; // Maintain timing precision
+
+                //Logger.Log("Move Down active", Logger.LogLevel.Info);
+            }
+        } else {
+            // Resume gravity when soft drop is released
+            if (_softDropTimer > 0f) {
+                _game?.ResumeGravity();
+            }
+            _softDropTimer = 0f; // Reset timer when button is released
         }
+
 
         if (_inputManager.IsActionJustPressed(_rotateLeftAction!)) {
             _game?.RotateTetromino(Core.Pieces.Tetromino.RotationDirection.CCW);
@@ -209,7 +232,7 @@ public class GameInput {
         }
     }
 
-    private void HandlePointerInput() {
+    private void HandlePointerInput(float deltaTime) {
         var pointer = _inputManager.Pointer;
 
         // Track pointer for UI hover effects

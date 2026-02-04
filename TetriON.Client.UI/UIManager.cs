@@ -7,11 +7,10 @@ namespace TetriON.Client.UI;
 
 public class UIManager(IController controller) : IUIManager {
 
-    public IController Controller => controller;
 
+    private readonly GumService _gumService = GumService.Default;
     public bool IsInitialized { get; private set; }
-
-    private GumService _gumService = GumService.Default;
+    public IController Controller => controller;
 
     public void Initialize() {
         _gumService.Initialize(controller.Game, DefaultVisualsVersion.V3);

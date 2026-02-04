@@ -32,6 +32,7 @@ public class TetrisGame {
     private bool _previousLineClear;
     private int _lastDropDistance;
     private bool _wasLastHardDrop;
+    private bool _isGravityPaused; // Whether gravity is currently paused (e.g., during soft drop)
     #endregion
 
 
@@ -56,6 +57,10 @@ public class TetrisGame {
     private int _comboCount;
     private float _gravity; // Current gravity in Gs
     private float _gravityAccumulator; // Accumulated gravity over time
+    private float _piecePerSecond; // Placement speed
+    private float _playTime; // Total play time
+    private DateTime _gameStartTime; // When the game started
+    private int _piecesLocked; // Total number of pieces locked
     #endregion
 
 
@@ -207,9 +212,33 @@ public class TetrisGame {
         return _lastClearWasDifficult && _backToBackCount > 0;
     }
 
+    public float GetPiecePerSecond() {
+        return _piecePerSecond;
+    }
+
+    public int GetPiecesLocked() {
+        return _piecesLocked;
+    }
+
+    public TimeSpan GetElapsedTime() {
+        if (!_running) return TimeSpan.Zero;
+        return DateTime.Now - _gameStartTime;
+    }
 
     public bool IsRunning() {
         return _running;
+    }
+
+    public bool IsGravityPaused() {
+        return _isGravityPaused;
+    }
+
+    public void PauseGravity() {
+        _isGravityPaused = true;
+    }
+
+    public void ResumeGravity() {
+        _isGravityPaused = false;
     }
     #endregion
 
@@ -221,6 +250,9 @@ public class TetrisGame {
         _lastUpdateTime = TimeSpan.Zero;
         _gravity = Gravity.GetGravity((int)_level);
         _bagGenerator.Reset();
+        _gameStartTime = DateTime.Now;
+        _piecesLocked = 0;
+        _piecePerSecond = 0f;
         FetchNextTetromino();  // This already fills _nextTetrominos
         SpawnNextPiece();
         OnGameStart?.Invoke();
@@ -233,8 +265,8 @@ public class TetrisGame {
         _lastUpdateTime += elapsedTime;
         float deltaTime = (float)elapsedTime.TotalSeconds;
 
-        // Apply gravity if enabled
-        if (_settings.EnableGravity && _currentTetromino != null) {
+        // Apply gravity if enabled and not paused
+        if (_settings.EnableGravity && _currentTetromino != null && !_isGravityPaused) {
             // Gravity is stored in G units (cells per frame at 60 FPS)
             // Convert to cells per second by multiplying by 60
             _gravityAccumulator += _gravity * 60f * deltaTime;
@@ -416,6 +448,14 @@ public class TetrisGame {
         // Lock the piece in place on the grid
         var coords = _currentTetromino.GetPieceCoordinates(_tetrominoPoint);
         foreach (var coord in coords) _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.GetColor(), Cell.CellType.Normal, _currentTetromino.GetId());
+
+        // Calculate elapsed time and pieces per second
+        _piecesLocked++;
+        TimeSpan elapsedTime = DateTime.Now - _gameStartTime;
+        double totalSeconds = elapsedTime.TotalSeconds;
+        if (totalSeconds > 0) {
+            _piecePerSecond = (float)(_piecesLocked / totalSeconds);
+        }
 
         int linesCleared = _grid.ClearLines();
         _lines += linesCleared;

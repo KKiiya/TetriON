@@ -20,8 +20,5 @@ public interface IInputManager : IDisposable {
     // Delayed Cut Delay (DCD)
     float DCD { get; set; }
 
-    // Soft Drop Factor (SDF)
-    int SDF { get; set; }
-
     void Update(float deltaTime);
 }
