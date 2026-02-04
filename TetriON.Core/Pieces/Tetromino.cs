@@ -154,19 +154,16 @@ public abstract class Tetromino {
                 var newX = coord.X + direction.X;
                 var newY = coord.Y + direction.Y;
 
-                // ✅ Use the same bounds checking as CanPlaceTetromino
                 if (newX < 0 || newX >= grid.GetWidth()) {
                     canMoveInThisDirection = false;
                     break;
                 }
 
-                // ✅ Check bounds without buffer adjustment (IsCellEmpty handles it)
                 if (newY < -grid.GetBufferHeight() || newY >= grid.GetHeight()) {
                     canMoveInThisDirection = false;
                     break;
                 }
 
-                // ✅ IsCellEmpty already handles buffer height conversion internally
                 if (!grid.IsCellEmpty(newX, newY)) {
                     canMoveInThisDirection = false;
                     break;

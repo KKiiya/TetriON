@@ -95,37 +95,23 @@ public class T : Tetromino {
 
 
     private static bool CheckTSpin(Grid grid, Point pivot) {
-        //TetriON.DebugLog($"CheckTSpin: pivot=({pivot.X},{pivot.Y}), from={fromRotation}, to={toRotation}, kick=({kickOffset.X},{kickOffset.Y})");
-
-        // Standard T-spin corner positions relative to pivot (current rotation only)
-        // Using standard Tetris T-spin detection: check 4 corners around the T pivot
         var corners = new Point[] {
-            new(-1, -1), // Top-left (A)
-            new(1, -1),  // Top-right (B)
-            new(-1, 1),  // Bottom-left (C)
-            new(1, 1)    // Bottom-right (D)
-        };
+        new(-1, -1), // Top-left (A)
+        new(1, -1),  // Top-right (B)
+        new(-1, 1),  // Bottom-left (C)
+        new(1, 1)    // Bottom-right (D)
+    };
 
-        // Check which corners are filled (blocked)
         var filled = new bool[4];
         for (int i = 0; i < 4; i++) {
             var checkX = pivot.X + corners[i].X;
             var checkY = pivot.Y + corners[i].Y;
+
             filled[i] = !grid.IsCellEmpty(checkX, checkY);
         }
 
-        //TetriON.DebugLog($"CheckTSpin: corner fills=[{string.Join(",", filled)}] (TL,TR,BL,BR)");
-
-        // T-spin detection with Mini T-Spin support
         int filledCount = filled.Count(f => f);
-
-        // Regular T-Spin: 3 or 4 corners filled
-        if (filledCount >= 3) {
-            //TetriON.DebugLog($"CheckTSpin: {filledCount}/4 corners filled, Regular T-spin=true");
-            return true;
-        }
-        //TetriON.DebugLog($"CheckTSpin: {filledCount}/4 corners filled, not a T-spin");
-        return false;
+        return filledCount >= 3;
     }
 
     /// <summary>

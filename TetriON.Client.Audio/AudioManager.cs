@@ -13,7 +13,7 @@ public class AudioManager(IController controller) : IAudioManager {
     private readonly Dictionary<string, SongWrapper> _musicTracks = [];
     private SongWrapper? _currentMusic;
 
-    private float _soundEffectVolume = 1.0f;
+    private float _soundEffectVolume = 0.5f;
     private float _musicVolume = 0.7f;
     private bool _isMuted = false;
 
