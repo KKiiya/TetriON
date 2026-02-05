@@ -74,7 +74,7 @@ public class ClientController : IController {
         // Subscribe to window resize events
         Game.Window.ClientSizeChanged += OnWindowResized;
 
-        LoadTestGame();
+        //LoadTestGame();
         LoadRenderers();
     }
 
@@ -108,6 +108,7 @@ public class ClientController : IController {
         ClientEvents.Dispose();
     }
 
+    // Temporary method to load a test game and renderers
     private void LoadRenderers() {
         Logger.Log("ClientController: Loading renderers...", Logger.LogLevel.Info);
         RendererManager.RegisterRenderers([new FPSRenderer(this), new CursorRenderer(this)]);

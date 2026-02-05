@@ -20,4 +20,6 @@ public interface IController {
     void Initialize();
     void Update(GameTime gameTime);
     void Draw();
+
+    void LoadTestGame();
 }
