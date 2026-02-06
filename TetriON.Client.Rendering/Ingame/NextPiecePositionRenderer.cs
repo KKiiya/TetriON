@@ -63,8 +63,8 @@ public class NextPiecePositionRenderer(TetrisGame game, IController controller, 
         _pulsateTime += deltaTime;
 
         // Pulsate transparency between 0.5 and 1.0 over a 1 second cycle
-        float pulsateSpeed = 2f; // Speed of pulsation (2 cycles per second)
-        _transparency = 0.5f + 0.5f * (float)Math.Sin(_pulsateTime * pulsateSpeed * Math.PI);
+        float pulsateSpeed = 2.5f; // Speed of pulsation (1 cycle per second)
+        _transparency = 0.8f + 0.2f * (float)Math.Sin(_pulsateTime * pulsateSpeed * Math.PI);
     }
 
     public override void Initialize() {
