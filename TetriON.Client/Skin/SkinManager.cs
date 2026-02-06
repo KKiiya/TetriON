@@ -40,7 +40,8 @@ public class SkinManager : ISkinManager {
 
         // === BACKGROUND AND UI ===
         "menu_background", "menu_pattern", "menu_decorations",
-        "logo_main", "version_text", "splash", "cursor",
+        "logo_main", "version_text", "splash", "cursor", "title",
+        "panel"
     ];
 
     private static readonly HashSet<string> ValidSoundNames = [

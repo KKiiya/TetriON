@@ -43,7 +43,7 @@ public class GameSettings {
 
     #region Piece Generation
     public BagType PieceBagType { get; set; } = BagType.SevenBag;
-    public int PreviewPieceCount { get; set; } = 5; // Number of next pieces to show
+    public int PreviewPieceCount { get; set; } = 4; // Number of next pieces to show
     public bool EnableHoldPiece { get; set; } = true;
     public bool AllowInitialHold { get; set; } = true; // Hold before piece locks on spawn
     public bool InfiniteHold { get; set; } = false; // Can hold multiple times per piece

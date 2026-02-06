@@ -264,6 +264,13 @@ public class TetrisGame {
         _lastUpdateTime += elapsedTime;
         float deltaTime = (float)elapsedTime.TotalSeconds;
 
+        // Update pieces per second continuously
+        TimeSpan elapsed = DateTime.Now - _gameStartTime;
+        double totalSeconds = elapsed.TotalSeconds;
+        if (totalSeconds > 0) {
+            _piecePerSecond = (float)(_piecesLocked / totalSeconds);
+        }
+
         // Apply gravity if enabled and not paused
         if (_settings.EnableGravity && _currentTetromino != null && !_isGravityPaused) {
             // Gravity is stored in G units (cells per frame at 60 FPS)
@@ -447,13 +454,8 @@ public class TetrisGame {
         var coords = _currentTetromino.GetPieceCoordinates(_tetrominoPoint);
         foreach (var coord in coords) _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.GetColor(), Cell.CellType.Normal, _currentTetromino.GetId());
 
-        // Calculate elapsed time and pieces per second
+        // Increment pieces locked count
         _piecesLocked++;
-        TimeSpan elapsedTime = DateTime.Now - _gameStartTime;
-        double totalSeconds = elapsedTime.TotalSeconds;
-        if (totalSeconds > 0) {
-            _piecePerSecond = (float)(_piecesLocked / totalSeconds);
-        }
 
         int linesCleared = _grid.ClearLines();
         _lines += linesCleared;

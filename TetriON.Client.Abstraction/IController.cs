@@ -15,6 +15,8 @@ public interface IController {
 
     IAudioManager AudioManager { get; }
 
+    IUIManager UIManager { get; }
+
     ClientEvents ClientEvents { get; }
 
     void Initialize();

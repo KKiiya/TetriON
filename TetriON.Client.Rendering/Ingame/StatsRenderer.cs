@@ -17,6 +17,7 @@ public class StatsRenderer(TetrisGame tetrisGame, IController controller) : Game
                            $"Combo: {TetrisGame.GetComboCount()}\n" +
                            $"Lock count: {remainingRotations}\n" +
                            $"\n" +
+                           $"Pieces PS: {TetrisGame.GetPiecePerSecond()}\n" +
                            $"Time: {FormatElapsedTime(TetrisGame.GetElapsedTime())}";
         _font.Draw(statsText, new Vector2(10, 50), Color.White, 0.5f);
     }

@@ -14,6 +14,7 @@ using TetriON.Client.Abstraction;
 using TetriON.Client.Rendering.Info;
 using TetriON.Client.Rendering;
 using TetriON.Client.Audio;
+using TetriON.Client.UI;
 
 namespace TetriON.Client;
 
@@ -33,6 +34,7 @@ public class ClientController : IController {
     public ISkinManager SkinManager { get; }
     public IRendererManager RendererManager { get; }
     public IAudioManager AudioManager { get; }
+    public IUIManager UIManager { get; }
     public ClientEvents ClientEvents { get; }
     public SpriteBatch SpriteBatch { get; }
     public GameInput GameInput { get; }
@@ -54,6 +56,7 @@ public class ClientController : IController {
         GameInput = new GameInput(this);
         RendererManager = new RendererManager(this);
         AudioManager = new AudioManager(this);
+        UIManager = new UIManager(this);
         ClientEvents = new ClientEvents(this);
     }
 
@@ -70,11 +73,12 @@ public class ClientController : IController {
         NetworkManager.Initialize();
         StateManager.Initialize();
         AudioManager.Initialize();
+        //UIManager.Initialize();
 
         // Subscribe to window resize events
         Game.Window.ClientSizeChanged += OnWindowResized;
 
-        //LoadTestGame();
+        LoadTestGame();
         LoadRenderers();
     }
 
@@ -83,6 +87,7 @@ public class ClientController : IController {
         InputManager.Update(deltaTime);
         GameInput.Update(deltaTime);
         AudioManager.Update(deltaTime);
+        //UIManager.Update(gameTime);
 
         _currentGame?.Update(gameTime.ElapsedGameTime);
         // Other updates...
@@ -92,6 +97,7 @@ public class ClientController : IController {
     public void Draw() {
         SpriteBatch.Begin();
         RendererManager.DrawRenderers();
+        //UIManager.Draw();
         SpriteBatch.End();
 
         // Execute post-draw actions once
