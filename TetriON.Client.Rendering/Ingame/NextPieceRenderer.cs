@@ -27,7 +27,7 @@ public class NextPieceRenderer(TetrisGame tetrisGame, IController controller, Ga
         var primaryContainerSize = (int)(4 * GridSizing.BaseTileWidth * primaryNextSize);
 
         // Draw up to 4 next pieces (first one larger, rest smaller)
-        var maxNextToShow = System.Math.Min(nextPieces.Length, 4);
+        var maxNextToShow = Math.Min(nextPieces.Length, 4);
 
         for (int i = 0; i < maxNextToShow; i++) {
             if (nextPieces[i] == null) continue;

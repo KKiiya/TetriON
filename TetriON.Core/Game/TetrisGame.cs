@@ -33,6 +33,8 @@ public class TetrisGame {
     private int _lastDropDistance;
     private bool _wasLastHardDrop;
     private bool _isGravityPaused; // Whether gravity is currently paused (e.g., during soft drop)
+    private bool _isAlmostTopOut; // Whether the piece is in the top 2 rows, used for special game over conditions in some modes
+    private bool _isGhostInDanger; // Whether the ghost piece is currently in the danger zone
     #endregion
 
 
@@ -58,7 +60,6 @@ public class TetrisGame {
     private float _gravity; // Current gravity in Gs
     private float _gravityAccumulator; // Accumulated gravity over time
     private float _piecePerSecond; // Placement speed
-    private float _playTime; // Total play time
     private DateTime _gameStartTime; // When the game started
     private int _piecesLocked; // Total number of pieces locked
     #endregion
@@ -83,6 +84,9 @@ public class TetrisGame {
     public event Action<RotationDirection, bool>? OnPieceRotate;
     public event Action? OnHardDrop;
     public event Action? OnSoftDrop;
+    public event Action? OnGhostInDanger;
+    public event Action? OnGhostSafe;
+    public event Action? OnAlmostTopOut;
     #endregion
 
     public TetrisGame(GameSettings settings) {
@@ -239,6 +243,14 @@ public class TetrisGame {
     public void ResumeGravity() {
         _isGravityPaused = false;
     }
+
+    public bool IsAlmostTopOut() {
+        return _isAlmostTopOut;
+    }
+
+    public bool IsGhostInDanger() {
+        return _isGhostInDanger;
+    }
     #endregion
 
 
@@ -255,6 +267,11 @@ public class TetrisGame {
         FetchNextTetromino();  // This already fills _nextTetrominos
         SpawnNextPiece();
         OnGameStart?.Invoke();
+    }
+
+    public void Restart() {
+        Finish();
+        Start();
     }
 
     public void Update(TimeSpan elapsedTime) {
@@ -305,6 +322,7 @@ public class TetrisGame {
             ghostPoint.Y++;
         }
         _ghostTetrominoPoint = ghostPoint;
+        CheckAlmostTopOut();
     }
 
 
@@ -336,6 +354,7 @@ public class TetrisGame {
 
         // Calculate initial ghost position
         UpdateGhostPosition();
+        CheckAlmostTopOut();
 
         System.Diagnostics.Debug.WriteLine($"TetrisGame.SpawnNextPiece: Piece spawned successfully. Piece={_currentTetromino?.GetShape()}, Pos=({_tetrominoPoint.X},{_tetrominoPoint.Y})");
         OnPieceSpawn?.Invoke();
@@ -533,17 +552,20 @@ public class TetrisGame {
     }
 
     public void ResetPosition() {
+        _tetrominoPoint = GetSpawnPosition(_currentTetromino);
+    }
+
+    public Point GetSpawnPosition(Tetromino? piece = null) {
         var startX = (_settings.GridWidth / 2) - 2;
-        if (_currentTetromino?.GetType() == typeof(O)) startX += 1; // Center O piece
-        _tetrominoPoint = new Point(startX, _grid.GetSpawnOffset());
-        System.Diagnostics.Debug.WriteLine($"TetrisGame.ResetPosition: Set position to ({startX}, 0) for piece {_currentTetromino?.GetShape()}");
+        if (piece?.GetType() == typeof(O)) startX += 1; // Center O piece
+        return new Point(startX, _grid.GetSpawnOffset());
     }
 
     public void Finish() {
         _running = false;
         _currentTetromino = null;
         _heldTetromino = null;
-        _tetrominoPoint = new Point(0, 0);
+        _tetrominoPoint = GetSpawnPosition();
         _level = 0;
         _score = 0;
         _lines = 0;
@@ -648,6 +670,61 @@ public class TetrisGame {
         if (wasSpin && linesCleared > 0) return true;
 
         return false;
+    }
+
+    /// <summary>
+    /// Checks if the ghost piece is in danger of topping out.
+    /// Updates _isAlmostTopOut and triggers events:
+    /// - OnGhostInDanger: When ghost position enters danger zone
+    /// - OnGhostSafe: When ghost position leaves danger zone
+    /// - OnAlmostTopOut: When overall almost top out state becomes true
+    /// Conditions:
+    /// 1. Ghost position is in the top 2-3 rows (danger zone)
+    /// 2. Grid is almost covered (blocks in top 3 rows of visible area)
+    /// </summary>
+    private void CheckAlmostTopOut() {
+        if (_currentTetromino == null) return;
+
+        bool wasAlmostTopOut = _isAlmostTopOut;
+        bool wasGhostInDanger = _isGhostInDanger;
+        _isAlmostTopOut = false;
+        _isGhostInDanger = false;
+
+        // Check if ghost position is in danger zone (top 3 rows of visible area)
+        // Visible area starts at y=0 (after buffer zone), so top 3 rows are 0, 1, 2
+        int dangerZoneThreshold = 2;
+        if (_ghostTetrominoPoint.Y <= dangerZoneThreshold) {
+            _isGhostInDanger = true;
+            _isAlmostTopOut = true;
+        }
+
+        // Check if grid is almost covered (blocks present in top 3 rows)
+        int visibleTopRows = 3;
+        for (int y = 0; y < visibleTopRows; y++) {
+            for (int x = 0; x < _grid.GetWidth(); x++) {
+                if (!_grid.IsCellEmpty(x, y)) {
+                    _isAlmostTopOut = true;
+                    break;
+                }
+            }
+            if (_isAlmostTopOut) break;
+        }
+
+        // Trigger events based on state changes
+        // OnAlmostTopOut: Fires when entering almost top out state (either condition)
+        if (_isAlmostTopOut && !wasAlmostTopOut) {
+            OnAlmostTopOut?.Invoke();
+        }
+
+        // OnGhostInDanger: Fires when ghost position enters danger zone
+        if (_isGhostInDanger && !wasGhostInDanger) {
+            OnGhostInDanger?.Invoke();
+        }
+
+        // OnGhostSafe: Fires when ghost position leaves danger zone
+        if (!_isGhostInDanger && wasGhostInDanger) {
+            OnGhostSafe?.Invoke();
+        }
     }
     #endregion
 }
