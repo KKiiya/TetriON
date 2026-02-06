@@ -132,12 +132,14 @@ public class ClientController : IController {
             new GhostRenderer(_currentGame, this, _gameDisposition),
             new NextPieceRenderer(_currentGame, this, _gameDisposition),
             new HeldPieceRenderer(_currentGame, this, _gameDisposition),
-            new StatsRenderer(_currentGame, this)
+            new StatsRenderer(_currentGame, this),
+            new NextPiecePositionRenderer(_currentGame, this, _gameDisposition)
         ]);
 
         _ = new GameAudioEventHandler(this, _currentGame);
         _currentGame.Start();
         GameInput.LoadForGame(_currentGame);
+        _currentGame.OnGameOver += () => _currentGame.Restart();
         Logger.Log("ClientController: Test game started", Logger.LogLevel.Info);
     }
 
