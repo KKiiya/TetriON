@@ -3,6 +3,7 @@ using Gum.Forms.Controls;
 using Microsoft.Xna.Framework;
 using MonoGameGum;
 using TetriON.Client.Abstraction;
+using TetriON.Client.UI.MainMenu.Screens;
 
 namespace TetriON.Client.UI;
 
@@ -15,6 +16,7 @@ public class UIManager(IController controller) : IUIManager {
 
     public void Initialize() {
         _gumService.Initialize(controller.Game, DefaultVisualsVersion.V3);
+        new MainMenuRuntime(controller).AddToRoot();
         IsInitialized = true;
     }
 

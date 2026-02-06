@@ -73,12 +73,12 @@ public class ClientController : IController {
         NetworkManager.Initialize();
         StateManager.Initialize();
         AudioManager.Initialize();
-        //UIManager.Initialize();
+        UIManager.Initialize();
 
         // Subscribe to window resize events
         Game.Window.ClientSizeChanged += OnWindowResized;
 
-        LoadTestGame();
+        //LoadTestGame();
         LoadRenderers();
     }
 
@@ -87,7 +87,7 @@ public class ClientController : IController {
         InputManager.Update(deltaTime);
         GameInput.Update(deltaTime);
         AudioManager.Update(deltaTime);
-        //UIManager.Update(gameTime);
+        UIManager.Update(gameTime);
 
         _currentGame?.Update(gameTime.ElapsedGameTime);
         // Other updates...
@@ -97,7 +97,7 @@ public class ClientController : IController {
     public void Draw() {
         SpriteBatch.Begin();
         RendererManager.DrawRenderers();
-        //UIManager.Draw();
+        UIManager.Draw();
         SpriteBatch.End();
 
         // Execute post-draw actions once
