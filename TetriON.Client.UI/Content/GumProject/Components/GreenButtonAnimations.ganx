@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ElementAnimationsSave xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Animations>
+    <AnimationSave>
+      <Loops>false</Loops>
+      <Name>OnHover</Name>
+      <States>
+        <AnimatedStateSave>
+          <StateName>PopOut/Normal</StateName>
+          <Time>0</Time>
+          <InterpolationType>Cubic</InterpolationType>
+          <Easing>Out</Easing>
+        </AnimatedStateSave>
+        <AnimatedStateSave>
+          <StateName>PopOut/Extended</StateName>
+          <Time>1</Time>
+          <InterpolationType>Sinusoidal</InterpolationType>
+          <Easing>Out</Easing>
+        </AnimatedStateSave>
+      </States>
+      <Animations />
+      <Events />
+    </AnimationSave>
+    <AnimationSave>
+      <Loops>false</Loops>
+      <Name>OnUnhover</Name>
+      <States>
+        <AnimatedStateSave>
+          <StateName>PopIn/Extended</StateName>
+          <Time>0</Time>
+          <InterpolationType>Sinusoidal</InterpolationType>
+          <Easing>Out</Easing>
+        </AnimatedStateSave>
+        <AnimatedStateSave>
+          <StateName>PopIn/Retracted</StateName>
+          <Time>1</Time>
+          <InterpolationType>Cubic</InterpolationType>
+          <Easing>Out</Easing>
+        </AnimatedStateSave>
+      </States>
+      <Animations />
+      <Events />
+    </AnimationSave>
+  </Animations>
+</ElementAnimationsSave>

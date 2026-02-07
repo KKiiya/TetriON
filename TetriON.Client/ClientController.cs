@@ -151,5 +151,6 @@ public class ClientController : IController {
         Logger.Log($"ClientController: Window resized to {newWidth}x{newHeight}", Logger.LogLevel.Info);
 
         // Notify all menus about the resize
+        UIManager.HandleResize(newWidth, newHeight);
     }
 }

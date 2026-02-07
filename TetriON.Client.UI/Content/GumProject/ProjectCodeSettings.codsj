@@ -1,12 +1,12 @@
 {
   "CommonUsingStatements": "using Gum.Converters;\r\nusing Gum.DataTypes;\r\nusing Gum.Managers;\r\nusing Gum.Wireframe;\r\n\r\nusing RenderingLibrary.Graphics;\r\n\r\nusing System.Linq;\r\n",
-  "CodeProjectRoot": "..\\..\\TetriON.Client.UI.csproj\\",
-  "RootNamespace": "TetriON.Client.UI.MainMenu",
+  "CodeProjectRoot": "..\\..\\",
+  "RootNamespace": "TetriON.Client.UI.Gum",
   "AppendFolderToNamespace": true,
   "InheritanceLocation": 1,
   "ObjectInstantiationType": 0,
   "DefaultScreenBase": "Gum.Wireframe.BindableGue",
-  "OutputLibrary": 4,
+  "OutputLibrary": 5,
   "AdjustPixelValuesForDensity": false,
   "BaseTypesNotCodeGenerated": "",
   "GenerateGumDataTypes": false

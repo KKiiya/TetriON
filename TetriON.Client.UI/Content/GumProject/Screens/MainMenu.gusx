@@ -4,6 +4,11 @@
   <State>
     <Name>Default</Name>
     <Variable>
+      <Type>AnimationCategory</Type>
+      <Name>AnimationCategoryState</Name>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
       <Type>ChildrenLayout</Type>
       <Name>ButtonContainer.ChildrenLayout</Name>
       <Value xsi:type="xsd:int">1</Value>
@@ -207,6 +212,47 @@
       <Value />
     </VariableList>
   </State>
+  <Category>
+    <Name>AnimationCategory</Name>
+    <State>
+      <Name>AllHovered</Name>
+      <Variable>
+        <Type>string</Type>
+        <Name>GreenButtonInstance.Parent</Name>
+        <Value xsi:type="xsd:string">ButtonContainer</Value>
+        <SetsValue>true</SetsValue>
+      </Variable>
+      <Variable>
+        <Type>PopOut</Type>
+        <Name>GreenButtonInstance.PopOutState</Name>
+        <Value xsi:type="xsd:string">Normal</Value>
+        <SetsValue>true</SetsValue>
+      </Variable>
+      <Variable>
+        <Type>PopOut</Type>
+        <Name>GreenButtonInstance1.PopOutState</Name>
+        <Value xsi:type="xsd:string">Normal</Value>
+        <SetsValue>true</SetsValue>
+      </Variable>
+      <Variable>
+        <Type>PopOut</Type>
+        <Name>GreenButtonInstance2.PopOutState</Name>
+        <Value xsi:type="xsd:string">Normal</Value>
+        <SetsValue>true</SetsValue>
+      </Variable>
+      <Variable>
+        <Type>PopOut</Type>
+        <Name>GreenButtonInstance3.PopOutState</Name>
+        <Value xsi:type="xsd:string">Normal</Value>
+        <SetsValue>true</SetsValue>
+      </Variable>
+    </State>
+  </Category>
+  <Instance>
+    <Name>GreenButtonInstance</Name>
+    <BaseType>GreenButton</BaseType>
+    <DefinedByBase>false</DefinedByBase>
+  </Instance>
   <Instance>
     <Name>ButtonContainer</Name>
     <BaseType>Container</BaseType>
@@ -219,11 +265,6 @@
   </Instance>
   <Instance>
     <Name>GreenButtonInstance2</Name>
-    <BaseType>GreenButton</BaseType>
-    <DefinedByBase>false</DefinedByBase>
-  </Instance>
-  <Instance>
-    <Name>GreenButtonInstance</Name>
     <BaseType>GreenButton</BaseType>
     <DefinedByBase>false</DefinedByBase>
   </Instance>

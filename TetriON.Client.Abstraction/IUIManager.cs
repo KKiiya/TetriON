@@ -7,6 +7,7 @@ public interface IUIManager {
     bool IsInitialized { get; }
 
     void Initialize();
+    void HandleResize(int width, int height);
     void Update(GameTime gameTime);
     void Draw();
 }

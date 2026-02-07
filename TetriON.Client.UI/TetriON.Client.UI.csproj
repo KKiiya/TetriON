@@ -9,6 +9,7 @@
     <ItemGroup>
         <ProjectReference Include="..\TetriON.Client.Abstraction\TetriON.Client.Abstraction.csproj" />
         <ProjectReference Include="..\TetriON.Client.Media\TetriON.Client.Media.csproj" />
+        <ProjectReference Include="..\TetriON.Client.Input\TetriON.Client.Input.csproj" />
     </ItemGroup>
 
     <ItemGroup>

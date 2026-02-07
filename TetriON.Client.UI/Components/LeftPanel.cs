@@ -7,13 +7,10 @@ using RenderingLibrary.Graphics;
 
 using System.Linq;
 
-namespace TetriON.Client.UI.MainMenu.Screens
-{
-    partial class MainMenuRuntime
-    {
-        partial void CustomInitialize()
-        {
-        
+namespace TetriON.Client.UI.Gum.Components {
+    partial class LeftPanel {
+        partial void CustomInitialize() {
+
         }
     }
 }
