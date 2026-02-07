@@ -16,7 +16,6 @@ public class UIManager(IController controller) : IUIManager {
 
     public void Initialize() {
         _gumService.Initialize(controller.Game, DefaultVisualsVersion.V3);
-        new MainMenuRuntime(controller).AddToRoot();
         IsInitialized = true;
     }
 

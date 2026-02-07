@@ -1,0 +1,713 @@
+{
+  "UserEvents": {
+    "c0a7ac847a09460162a4fa9d6e450d3932ad5aea66d168a978e5dcb0737e7872": [
+      {
+        "NewName": "Buttons",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 0,
+        "TimestampUtc": "2026-02-02T22:12:46.2472374Z"
+      },
+      {
+        "NewName": "Button",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 0,
+        "TimestampUtc": "2026-02-02T22:14:02.1861955Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "Button",
+        "ElementType": "Components",
+        "EventType": 1,
+        "TimestampUtc": "2026-02-02T22:14:07.9464376Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "Buttons",
+        "ElementType": "Screens",
+        "EventType": 1,
+        "TimestampUtc": "2026-02-05T12:22:58.1638031Z"
+      },
+      {
+        "NewName": "MainMenu",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 0,
+        "TimestampUtc": "2026-02-05T12:23:06.136425Z"
+      },
+      {
+        "NewName": "LeftPanel",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 0,
+        "TimestampUtc": "2026-02-05T13:33:44.7277889Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T13:34:24.6651534Z"
+      },
+      {
+        "NewName": "MainMenu.LeftPanelInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T13:35:17.022474Z"
+      },
+      {
+        "NewName": "MainMenu.SpriteInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T13:35:57.2586442Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "MainMenu.Sprite SpriteInstance in MainMenu",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T13:36:00.4654543Z"
+      },
+      {
+        "NewName": "MainMenu.LeftPanelInstance1",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T13:36:02.22159Z"
+      },
+      {
+        "NewName": "MainMenu.SpriteInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T13:36:27.0216333Z"
+      },
+      {
+        "NewName": "MainMenu.LeftPanelInstance2",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T13:36:38.0758861Z"
+      },
+      {
+        "NewName": "GreenButton",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 0,
+        "TimestampUtc": "2026-02-05T13:38:39.0324923Z"
+      },
+      {
+        "NewName": "GreenButton (Container).SpriteInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T13:38:43.6256523Z"
+      },
+      {
+        "NewName": "MainMenu.SpriteInstance1",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T13:54:38.337798Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "MainMenu.Sprite SpriteInstance1 in MainMenu",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T13:54:45.2048283Z"
+      },
+      {
+        "NewName": "MainMenu.GreenButtonInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T13:54:52.475943Z"
+      },
+      {
+        "NewName": "MainMenu.GreenButtonInstance1",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T13:55:21.58529Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "MainMenu.GreenButton GreenButtonInstance1 in MainMenu",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T13:55:24.8163636Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "MainMenu.GreenButton GreenButtonInstance in MainMenu",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T13:55:26.9042411Z"
+      },
+      {
+        "NewName": "Menu",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 0,
+        "TimestampUtc": "2026-02-05T13:55:31.7803712Z"
+      },
+      {
+        "NewName": "Menu.LeftPanelInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T13:55:35.1010765Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "Menu.LeftPanel LeftPanelInstance in Menu",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T13:55:42.193165Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "Menu",
+        "ElementType": "Screens",
+        "EventType": 1,
+        "TimestampUtc": "2026-02-05T13:55:47.609104Z"
+      },
+      {
+        "NewName": "GreenButton",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 0,
+        "TimestampUtc": "2026-02-05T14:54:36.4141682Z"
+      },
+      {
+        "NewName": "GreenButton (Container).SpriteInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T14:54:40.952665Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "GreenButton (Container).Sprite SpriteInstance in GreenButton (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T15:07:54.1103136Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "GreenButton",
+        "ElementType": "Components",
+        "EventType": 1,
+        "TimestampUtc": "2026-02-05T15:07:56.4110656Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "GreenButton (Container).Sprite SpriteInstance in GreenButton (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T15:31:28.0034101Z"
+      },
+      {
+        "NewName": "GreenButton (Container).SpriteInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:32:16.3756909Z"
+      },
+      {
+        "NewName": "MainMenu.GreenButtonInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:35:18.0249724Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "MainMenu.LeftPanel LeftPanelInstance2 in MainMenu",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T15:44:08.9615928Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "MainMenu.Sprite SpriteInstance in MainMenu",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T15:44:10.2879353Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "MainMenu.LeftPanel LeftPanelInstance1 in MainMenu",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T15:44:11.9629955Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "MainMenu",
+        "ElementType": "Screens",
+        "EventType": 1,
+        "TimestampUtc": "2026-02-05T15:44:13.9883689Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance1",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:44.4571507Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance2",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:45.2979035Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance3",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:45.7869356Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance4",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:45.9933118Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance5",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:46.2814518Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance6",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:46.5122172Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance7",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:46.7598995Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance8",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:46.9598677Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance9",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:47.2083579Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance10",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:47.4355993Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance11",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:47.6543622Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance12",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:47.9094335Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance13",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:48.1334159Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance14",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:48.3562041Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance15",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T15:44:48.5681764Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:01.9636925Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance1 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:01.9646226Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance2 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:01.9756587Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance3 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:01.9833243Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance4 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:01.9972612Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance5 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:02.0093253Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance6 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:02.0200137Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance7 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:02.0286026Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance8 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:02.0401046Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance9 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:02.0491812Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance10 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:02.0570391Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance11 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:02.0691258Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance12 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:02.0770195Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance13 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:02.0859521Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance14 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:02.0934681Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance15 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:04:02.101597Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel",
+        "ElementType": "Components",
+        "EventType": 1,
+        "TimestampUtc": "2026-02-05T16:04:12.8670126Z"
+      },
+      {
+        "NewName": "LeftPanel",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 0,
+        "TimestampUtc": "2026-02-05T16:24:19.528331Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T16:24:22.269803Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance1",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T16:25:01.2733945Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance2",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T16:25:01.7292336Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance3",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T16:25:01.9563734Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance4",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T16:25:02.1664763Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance5",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T16:25:02.4652648Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).SpriteInstance6",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T16:25:02.6738259Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance1 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:27:40.9530882Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance2 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:27:40.9539564Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance3 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:27:40.9651034Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance4 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:27:40.9732693Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance5 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:27:40.9869251Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Sprite SpriteInstance6 in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T16:27:41.0010483Z"
+      },
+      {
+        "NewName": "MainMenu",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 0,
+        "TimestampUtc": "2026-02-05T16:34:35.8220455Z"
+      },
+      {
+        "NewName": "MainMenu.LeftPanelInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T16:34:37.7231325Z"
+      },
+      {
+        "NewName": "MainMenu.GreenButtonInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T17:52:15.9882311Z"
+      },
+      {
+        "NewName": "LeftPanel (Container).ButtonContainer",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T17:59:09.4250941Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LeftPanel (Container).Container ButtonContainer in LeftPanel (Container)",
+        "ElementType": "Components",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T18:01:16.4566506Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "MainMenu.LeftPanel LeftPanelInstance in MainMenu",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T23:32:38.2321304Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "MainMenu.GreenButton GreenButtonInstance in MainMenu",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T23:35:35.0399569Z"
+      },
+      {
+        "NewName": "MainMenu.LeftPanelInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T23:35:39.0951911Z"
+      },
+      {
+        "NewName": "MainMenu.GreenButtonInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T23:37:06.2550439Z"
+      },
+      {
+        "NewName": "GreenButton (Container).TextInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T23:42:12.4482893Z"
+      },
+      {
+        "NewName": "MainMenu.ButtonContainer",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T23:48:49.3904553Z"
+      },
+      {
+        "NewName": "MainMenu.GreenButtonInstance1",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T23:49:25.7168791Z"
+      },
+      {
+        "NewName": "MainMenu.GreenButtonInstance2",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T23:49:28.6960456Z"
+      },
+      {
+        "NewName": "MainMenu.GreenButtonInstance3",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T23:49:31.7170512Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "MainMenu.GreenButton GreenButtonInstance in MainMenu",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-02-05T23:49:35.4677472Z"
+      },
+      {
+        "NewName": "MainMenu.GreenButtonInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-05T23:50:36.0940442Z"
+      },
+      {
+        "NewName": "Title",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 0,
+        "TimestampUtc": "2026-02-06T00:10:44.9477585Z"
+      },
+      {
+        "NewName": "Title (Container).SpriteInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-06T00:11:00.364576Z"
+      },
+      {
+        "NewName": "MainMenu.TitleInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-02-06T00:15:53.95754Z"
+      }
+    ]
+  }
+}
