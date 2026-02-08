@@ -223,26 +223,26 @@
         <SetsValue>true</SetsValue>
       </Variable>
       <Variable>
-        <Type>PopOut</Type>
-        <Name>GreenButtonInstance.PopOutState</Name>
+        <Type>Pop</Type>
+        <Name>GreenButtonInstance.PopState</Name>
         <Value xsi:type="xsd:string">Normal</Value>
         <SetsValue>true</SetsValue>
       </Variable>
       <Variable>
-        <Type>PopOut</Type>
-        <Name>GreenButtonInstance1.PopOutState</Name>
+        <Type>Pop</Type>
+        <Name>GreenButtonInstance1.PopState</Name>
         <Value xsi:type="xsd:string">Normal</Value>
         <SetsValue>true</SetsValue>
       </Variable>
       <Variable>
-        <Type>PopOut</Type>
-        <Name>GreenButtonInstance2.PopOutState</Name>
+        <Type>Pop</Type>
+        <Name>GreenButtonInstance2.PopState</Name>
         <Value xsi:type="xsd:string">Normal</Value>
         <SetsValue>true</SetsValue>
       </Variable>
       <Variable>
-        <Type>PopOut</Type>
-        <Name>GreenButtonInstance3.PopOutState</Name>
+        <Type>Pop</Type>
+        <Name>GreenButtonInstance3.PopState</Name>
         <Value xsi:type="xsd:string">Normal</Value>
         <SetsValue>true</SetsValue>
       </Variable>

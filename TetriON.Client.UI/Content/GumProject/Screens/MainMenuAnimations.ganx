@@ -26,12 +26,12 @@
           <Time>1.5</Time>
         </AnimationReferenceSave>
         <AnimationReferenceSave>
-          <Name>GreenButtonInstance3.OnHover</Name>
-          <Time>1.75</Time>
+          <Name>GreenButtonInstance.OnUnhover</Name>
+          <Time>1.5</Time>
         </AnimationReferenceSave>
         <AnimationReferenceSave>
-          <Name>GreenButtonInstance.OnUnhover</Name>
-          <Time>2</Time>
+          <Name>GreenButtonInstance3.OnHover</Name>
+          <Time>1.75</Time>
         </AnimationReferenceSave>
         <AnimationReferenceSave>
           <Name>GreenButtonInstance1.OnUnhover</Name>

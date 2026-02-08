@@ -33,56 +33,7 @@ partial class GreenButton : global::Gum.Forms.Controls.FrameworkElement {
             return gue;
         });
     }
-    public enum PopOut {
-        Extended,
-        Normal,
-    }
-    public enum PopIn {
-        Extended,
-        Retracted,
-    }
 
-    private PopOut? _popOutState;
-    public PopOut? PopOutState {
-        get => _popOutState;
-        set {
-            _popOutState = value;
-            var appliedDynamically = false;
-            if (!appliedDynamically) {
-                switch (value) {
-                    case PopOut.Extended:
-                        this.Visual.X = 5f;
-                        this.Visual.XUnits = global::Gum.Converters.GeneralUnitType.Percentage;
-                        break;
-                    case PopOut.Normal:
-                        this.Visual.X = 0f;
-                        this.Visual.XUnits = global::Gum.Converters.GeneralUnitType.PixelsFromSmall;
-                        break;
-                }
-            }
-        }
-    }
-
-    private PopIn? _popInState;
-    public PopIn? PopInState {
-        get => _popInState;
-        set {
-            _popInState = value;
-            var appliedDynamically = false;
-            if (!appliedDynamically) {
-                switch (value) {
-                    case PopIn.Extended:
-                        this.Visual.X = 5f;
-                        this.Visual.XUnits = global::Gum.Converters.GeneralUnitType.Percentage;
-                        break;
-                    case PopIn.Retracted:
-                        this.Visual.X = 0f;
-                        this.Visual.XUnits = global::Gum.Converters.GeneralUnitType.Percentage;
-                        break;
-                }
-            }
-        }
-    }
     public TextRuntime TextInstance { get; protected set; }
     public SpriteRuntime SpriteInstance { get; protected set; }
 
@@ -90,6 +41,8 @@ partial class GreenButton : global::Gum.Forms.Controls.FrameworkElement {
     #region Animation Fields
     public AnimationRuntime OnHover { get; protected set; }
     public AnimationRuntime OnUnhover { get; protected set; }
+    public AnimationRuntime OnClick { get; protected set; }
+    public AnimationRuntime OnHide { get; protected set; }
     #endregion
     public GreenButton(InteractiveGue visual) : base(visual) {
         InitializeInstances();
@@ -125,75 +78,6 @@ partial class GreenButton : global::Gum.Forms.Controls.FrameworkElement {
         if (SpriteInstance.ElementSave != null) SpriteInstance.SetInitialState();
         SpriteInstance.Name = "SpriteInstance";
         base.RefreshInternalVisualReferences();
-
-        OnHover = new AnimationRuntime();
-        if (Visual.Animations == null) Visual.Animations = new List<AnimationRuntime>();
-        Visual.Animations.Add(OnHover);
-        OnHover.Name = "OnHover";
-
-        var popOutCategory = new StateSaveCategory();
-        popOutCategory.Name = "PopOut";
-        Visual.AddCategory(popOutCategory);
-
-        var popInCategory = new StateSaveCategory();
-        popInCategory.Name = "PopIn";
-        Visual.AddCategory(popInCategory);
-
-        var hoverNormalState = new StateSave();
-        hoverNormalState.Name = "Normal";
-        hoverNormalState.SetValue("X", 0f);
-        hoverNormalState.SetValue("XUnits", global::Gum.Converters.GeneralUnitType.Percentage);
-        popOutCategory.States.Add(hoverNormalState);
-
-        var hoverExtendedState = new StateSave();
-        hoverExtendedState.Name = "Extended";
-        hoverExtendedState.SetValue("X", 5f);
-        hoverExtendedState.SetValue("XUnits", global::Gum.Converters.GeneralUnitType.Percentage);
-        popOutCategory.States.Add(hoverExtendedState);
-
-        var firstKeyframeHover = new KeyframeRuntime();
-        OnHover.Keyframes.Add(firstKeyframeHover);
-        firstKeyframeHover.Time = 0f;
-        firstKeyframeHover.InterpolationType = InterpolationType.Cubic;
-        firstKeyframeHover.Easing = Easing.Out;
-        firstKeyframeHover.StateName = popOutCategory.Name + "/" + hoverNormalState.Name;
-
-        var secondKeyframeHover = new KeyframeRuntime();
-        OnHover.Keyframes.Add(secondKeyframeHover);
-        secondKeyframeHover.Time = 1f;
-        secondKeyframeHover.InterpolationType = InterpolationType.Sinusoidal;
-        secondKeyframeHover.Easing = Easing.Out;
-        secondKeyframeHover.StateName = popOutCategory.Name + "/" + hoverExtendedState.Name;
-
-        OnUnhover = new AnimationRuntime();
-        Visual.Animations.Add(OnUnhover);
-        OnUnhover.Name = "OnUnhover";
-
-        var unhoverExtendedState = new StateSave();
-        unhoverExtendedState.Name = "Extended";
-        unhoverExtendedState.SetValue("X", 5f);
-        unhoverExtendedState.SetValue("XUnits", global::Gum.Converters.GeneralUnitType.Percentage);
-        popInCategory.States.Add(unhoverExtendedState);
-
-        var unhoverRetractedState = new StateSave();
-        unhoverRetractedState.Name = "Retracted";
-        unhoverRetractedState.SetValue("X", 0f);
-        unhoverRetractedState.SetValue("XUnits", global::Gum.Converters.GeneralUnitType.Percentage);
-        popInCategory.States.Add(unhoverRetractedState);
-
-        var firstKeyframeUnhover = new KeyframeRuntime();
-        OnUnhover.Keyframes.Add(firstKeyframeUnhover);
-        firstKeyframeUnhover.Time = 0f;
-        firstKeyframeUnhover.InterpolationType = InterpolationType.Cubic;
-        firstKeyframeUnhover.Easing = Easing.Out;
-        firstKeyframeUnhover.StateName = popInCategory.Name + "/" + unhoverExtendedState.Name;
-
-        var secondKeyframeUnhover = new KeyframeRuntime();
-        OnUnhover.Keyframes.Add(secondKeyframeUnhover);
-        secondKeyframeUnhover.Time = 1f;
-        secondKeyframeUnhover.InterpolationType = InterpolationType.Sinusoidal;
-        secondKeyframeUnhover.Easing = Easing.Out;
-        secondKeyframeUnhover.StateName = popInCategory.Name + "/" + unhoverRetractedState.Name;
     }
     protected virtual void AssignParents() {
         SpriteInstance.AddChild(TextInstance);

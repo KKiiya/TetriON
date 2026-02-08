@@ -1,12 +1,10 @@
 using Gum.Forms;
-using Gum.Forms.Controls;
 using Microsoft.Xna.Framework;
 using MonoGameGum;
 using TetriON.Client.Abstraction;
 using TetriON.Client.Input;
 using TetriON.Client.UI.Gum.Components;
 using TetriON.Client.UI.Gum.Screens;
-using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.UI;
 
@@ -19,14 +17,15 @@ public class UIManager(IController controller) : IUIManager {
     public bool IsInitialized { get; private set; }
     public IController Controller => controller;
 
-    private GreenButton? _greenButton;
+    private Title? _title;
 
     public void Initialize() {
         _gumService.Initialize(controller.Game, DefaultVisualsVersion.V3);
 
         MainMenu mainMenu = new();
         mainMenu.AddToRoot();
-        _greenButton = mainMenu.GreenButtonInstance;
+        _title = mainMenu.TitleInstance;
+        _title?.PlayFloatingAnimation();
         HandleMainMenuInput(mainMenu);
         _uiInputHandler = new UIInputHandler(_inputManager);
         _uiInputHandler.AddElement(mainMenu);
@@ -41,7 +40,6 @@ public class UIManager(IController controller) : IUIManager {
     public void Update(GameTime gameTime) {
         _gumService.Update(gameTime);
         _uiInputHandler.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
-
     }
 
     public void Draw() {
@@ -72,6 +70,18 @@ public class UIManager(IController controller) : IUIManager {
 
             button.Unhovered += (s, e) => {
                 button.PlayUnhoverAnimation();
+            };
+
+            button.Clicked += (s, e) => {
+                button.PlayClickHideAnimation();
+                int delayMult = 1;
+                foreach (var otherButton in _buttons) {
+                    if (otherButton != button) {
+                        delayMult++;
+                        otherButton.PlayHideAnimation(delayMult * 100);
+                        otherButton.IsHidden = true;
+                    }
+                }
             };
         }
     }

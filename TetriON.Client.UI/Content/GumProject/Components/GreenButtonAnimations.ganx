@@ -6,13 +6,13 @@
       <Name>OnHover</Name>
       <States>
         <AnimatedStateSave>
-          <StateName>PopOut/Normal</StateName>
+          <StateName>Pop/Normal</StateName>
           <Time>0</Time>
           <InterpolationType>Cubic</InterpolationType>
           <Easing>Out</Easing>
         </AnimatedStateSave>
         <AnimatedStateSave>
-          <StateName>PopOut/Extended</StateName>
+          <StateName>Pop/Extended</StateName>
           <Time>1</Time>
           <InterpolationType>Sinusoidal</InterpolationType>
           <Easing>Out</Easing>
@@ -26,13 +26,13 @@
       <Name>OnUnhover</Name>
       <States>
         <AnimatedStateSave>
-          <StateName>PopIn/Extended</StateName>
+          <StateName>Pop/Extended</StateName>
           <Time>0</Time>
           <InterpolationType>Sinusoidal</InterpolationType>
           <Easing>Out</Easing>
         </AnimatedStateSave>
         <AnimatedStateSave>
-          <StateName>PopIn/Retracted</StateName>
+          <StateName>Pop/Normal</StateName>
           <Time>1</Time>
           <InterpolationType>Cubic</InterpolationType>
           <Easing>Out</Easing>
