@@ -8,6 +8,7 @@ namespace TetriON.Client.Rendering.Ingame;
 public class HeldPieceRenderer(TetrisGame tetrisGame, IController controller, GameDisposition gameDisposition) : GameRenderer(tetrisGame, controller) {
 
     private readonly GameDisposition _gameDisposition = gameDisposition;
+    private readonly Dictionary<int, Rectangle> _tileRectangles = [];
     private ITexture TileSheet => Controller.SkinManager.GetTextureAsset("tiles").texture;
 
     public override void Draw() {
@@ -17,8 +18,9 @@ public class HeldPieceRenderer(TetrisGame tetrisGame, IController controller, Ga
         var matrix = heldPiece.GetRotations()[0];
         var id = heldPiece.GetId();
         if (!TetrisGame.CanHold()) id = 0x0B;
-        var position = new Point((id - GridSizing.TileSpacing) * 31, 0);
-        var rectangle = new Rectangle(position.X, position.Y, GridSizing.BaseTileWidth, GridSizing.BaseTileHeight);
+        var position = _tileRectangles.ContainsKey(id) ? _tileRectangles[id].Location : new Point((id - GridSizing.TileSpacing) * 31, 0);
+        var rectangle = _tileRectangles.ContainsKey(id) ? _tileRectangles[id] : new Rectangle(position.X, position.Y, GridSizing.BaseTileWidth, GridSizing.BaseTileHeight);
+        if (!_tileRectangles.ContainsKey(id)) _tileRectangles[id] = rectangle;
         var scaledWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
 

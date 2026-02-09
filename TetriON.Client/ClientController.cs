@@ -15,6 +15,7 @@ using TetriON.Client.Rendering.Info;
 using TetriON.Client.Rendering;
 using TetriON.Client.Audio;
 using TetriON.Client.UI;
+using MonoGame.Extended.Graphics;
 
 namespace TetriON.Client;
 
@@ -97,7 +98,12 @@ public class ClientController : IController {
     public void Draw() {
         SpriteBatch.Begin();
         RendererManager.DrawRenderers();
+        SpriteBatch.End();
+
         UIManager.Draw();
+
+        SpriteBatch.Begin();
+        RendererManager.DrawSpecialRenderers();
         SpriteBatch.End();
 
         // Execute post-draw actions once
@@ -117,7 +123,8 @@ public class ClientController : IController {
     // Temporary method to load a test game and renderers
     private void LoadRenderers() {
         Logger.Log("ClientController: Loading renderers...", Logger.LogLevel.Info);
-        RendererManager.RegisterRenderers([new FPSRenderer(this), new CursorRenderer(this)]);
+        RendererManager.RegisterRenderers([new FPSRenderer(this), new AnimatedBackgroundRenderer(this)]);
+        RendererManager.RegisterSpecialRenderers([new CursorRenderer(this)]);
     }
 
     public void LoadTestGame() {

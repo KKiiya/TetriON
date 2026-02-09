@@ -10,6 +10,7 @@ namespace TetriON.Client.Rendering;
 public class RendererManager(IController controller) : IRendererManager {
 
     private readonly List<IRenderer> _renderers = [];
+    private readonly List<IRenderer> _specialRenderers = [];
     private readonly List<Action> _postDrawActions = [];
     public IController Controller => controller;
 
@@ -26,12 +27,22 @@ public class RendererManager(IController controller) : IRendererManager {
         }
     }
 
+    public void DrawSpecialRenderers() {
+        foreach (var renderer in _specialRenderers) {
+            if (renderer.IsActive) renderer.Draw();
+        }
+    }
+
     public List<IRenderer> GetActiveRenderers() {
-        return _renderers.Where(r => r.IsActive).ToList();
+        return [.. _renderers.Where(r => r.IsActive)];
     }
 
     public List<Action> GetPostDrawActions() {
         return _postDrawActions;
+    }
+
+    public List<IRenderer> GetSpecialRenderers() {
+        return [.. _specialRenderers.Where(r => r.IsActive)];
     }
 
     public void RegisterRenderers(IRenderer[] renderers, bool reorder = true) {
@@ -39,9 +50,19 @@ public class RendererManager(IController controller) : IRendererManager {
         if (reorder) _renderers.Sort((a, b) => a.ZIndex.CompareTo(b.ZIndex));
     }
 
+    public void RegisterSpecialRenderers(IRenderer[] renderer, bool reorder = true) {
+        _specialRenderers.AddRange(renderer);
+        if (reorder) _specialRenderers.Sort((a, b) => a.ZIndex.CompareTo(b.ZIndex));
+    }
+
     public void UnregisterRenderers(IRenderer[] renderers, bool reorder = true) {
         foreach (var renderer in renderers) _renderers.Remove(renderer);
         if (reorder) _renderers.Sort((a, b) => a.ZIndex.CompareTo(b.ZIndex));
+    }
+
+    public void UnregisterSpecialRenderers(IRenderer[] renderers, bool reorder = true) {
+        foreach (var renderer in renderers) _specialRenderers.Remove(renderer);
+        if (reorder) _specialRenderers.Sort((a, b) => a.ZIndex.CompareTo(b.ZIndex));
     }
 
     public void UpdateRenderers(GameTime gameTime) {

@@ -91,7 +91,7 @@ partial class GreenButton {
         if (IsHidden) return;
         IsHidden = true; // Prevent multiple clicks while animation is playing
         Visual?.PlayAnimation(OnClick);
-        await Task.Delay(700);
+        await Task.Delay(300); // Wait for click animation to finish before starting hide animation
         Visual?.PlayAnimation(OnClickHide);
         IsHidden = true;
 
@@ -199,7 +199,7 @@ partial class GreenButton {
 
         var secondKeyframeHide = new KeyframeRuntime();
         OnHide.Keyframes.Add(secondKeyframeHide);
-        secondKeyframeHide.Time = 0.5f;
+        secondKeyframeHide.Time = 0.3f;
         secondKeyframeHide.InterpolationType = InterpolationType.Sinusoidal;
         secondKeyframeHide.Easing = Easing.In;
         secondKeyframeHide.StateName = hideCategory.Name + "/" + hiddenState.Name;
@@ -241,17 +241,10 @@ partial class GreenButton {
 
         var secondKeyframeClick = new KeyframeRuntime();
         OnClick.Keyframes.Add(secondKeyframeClick);
-        secondKeyframeClick.Time = 0.3f;
+        secondKeyframeClick.Time = 0.25f;
         secondKeyframeClick.InterpolationType = InterpolationType.Sinusoidal;
         secondKeyframeClick.Easing = Easing.Out;
         secondKeyframeClick.StateName = clickCategory.Name + "/" + clickedState.Name;
-
-        var thirdKeyframeClick = new KeyframeRuntime();
-        OnClick.Keyframes.Add(thirdKeyframeClick);
-        thirdKeyframeClick.Time = 0.6f;
-        thirdKeyframeClick.InterpolationType = InterpolationType.Cubic;
-        thirdKeyframeClick.Easing = Easing.Out;
-        thirdKeyframeClick.StateName = clickCategory.Name + "/" + normalState.Name;
     }
 
     private void CreateHideFromClickAnimations() {
@@ -290,7 +283,7 @@ partial class GreenButton {
 
         var secondKeyframeClickHide = new KeyframeRuntime();
         OnClickHide.Keyframes.Add(secondKeyframeClickHide);
-        secondKeyframeClickHide.Time = 1f;
+        secondKeyframeClickHide.Time = 1.5f;
         secondKeyframeClickHide.InterpolationType = InterpolationType.Sinusoidal;
         secondKeyframeClickHide.Easing = Easing.Out;
         secondKeyframeClickHide.StateName = clickHideCategory.Name + "/" + hiddenState.Name;

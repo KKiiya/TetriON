@@ -21,4 +21,6 @@ public abstract class Renderer : IRenderer {
     public virtual void Update(float deltaTime) { }
 
     public virtual void Initialize() { }
+
+    public virtual void HandleResize(int width, int height) { }
 }

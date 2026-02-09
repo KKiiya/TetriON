@@ -73,6 +73,7 @@ partial class MainMenu {
                     }
                 }
                 LeftPanelInstance.PlayHideAnimation(delayMult * 100);
+                TitleInstance.PlayHideAnimation(delayMult * 100);
                 switch (button.Name) {
                     case "GreenButtonInstance":
                         UIManager.Controller.LoadTestGame();
