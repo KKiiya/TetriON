@@ -64,6 +64,11 @@ public class Pointer : IPointer {
     public Vector2 Velocity { get; set; }
 
     /// <summary>
+    /// Current state of the pointer (for UI interactions)
+    /// </summary>
+    public PointerState State { get; set; }
+
+    /// <summary>
     /// Updates the pointer state for a new frame
     /// </summary>
     public void Update(float deltaTime) {
@@ -97,6 +102,7 @@ public class Pointer : IPointer {
         HoldTime = 0f;
         TravelDistance = 0f;
         Velocity = Vector2.Zero;
+        State = PointerState.Default;
     }
 
     /// <summary>
@@ -106,6 +112,7 @@ public class Pointer : IPointer {
         IsActive = false;
         JustDeactivated = true;
         HoldTime = 0f;
+        State = PointerState.Default;
     }
 
     /// <summary>

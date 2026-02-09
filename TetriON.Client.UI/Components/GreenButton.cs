@@ -1,12 +1,21 @@
 using FlatRedBall.Glue.StateInterpolation;
 using Gum.DataTypes.Variables;
+using Gum.Graphics.Animation;
 using Gum.StateAnimation.Runtime;
 using RenderingLibrary;
-using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.UI.Gum.Components;
 
 partial class GreenButton {
+
+    #region Animation Fields
+    public AnimationRuntime OnHover { get; protected set; }
+    public AnimationRuntime OnUnhover { get; protected set; }
+    public AnimationRuntime OnClick { get; protected set; }
+    public AnimationRuntime OnHide { get; protected set; }
+    public AnimationRuntime OnClickHide { get; protected set; }
+    #endregion
+
     public event EventHandler Clicked;
     public event EventHandler Hovered;
     public event EventHandler Unhovered;
@@ -17,6 +26,7 @@ partial class GreenButton {
         CreateHoverAnimations();
         CreateHideAnimations();
         CreateClickAnimations();
+        CreateHideFromClickAnimations();
     }
 
     public void OnClicked() {
@@ -57,6 +67,11 @@ partial class GreenButton {
         }
     }
 
+    public void LoadSource(UIManager uIManager) {
+        var currentSkin = uIManager.Controller.SkinManager.GetSkinPath();
+        SpriteInstance.SourceFileName = @"../" + currentSkin + @"/ButtonPress.achx";
+    }
+
     public void PlayHoverAnimation() {
         if (IsHidden) return;
         Visual?.PlayAnimation(OnHover);
@@ -74,16 +89,20 @@ partial class GreenButton {
 
     async public void PlayClickHideAnimation() {
         if (IsHidden) return;
+        IsHidden = true; // Prevent multiple clicks while animation is playing
         Visual?.PlayAnimation(OnClick);
         await Task.Delay(700);
-        Visual?.PlayAnimation(OnHide);
+        Visual?.PlayAnimation(OnClickHide);
         IsHidden = true;
+
     }
 
     async public void PlayHideAnimation(int delay = 0) {
         if (IsHidden) return;
         if (delay > 0) await Task.Delay(delay);
         Visual?.PlayAnimation(OnHide);
+        SpriteInstance.Animate = false;
+        IsHidden = true;
     }
 
     private void CreateHoverAnimations() {
@@ -233,5 +252,47 @@ partial class GreenButton {
         thirdKeyframeClick.InterpolationType = InterpolationType.Cubic;
         thirdKeyframeClick.Easing = Easing.Out;
         thirdKeyframeClick.StateName = clickCategory.Name + "/" + normalState.Name;
+    }
+
+    private void CreateHideFromClickAnimations() {
+        if (Visual.Animations == null) Visual.Animations = [];
+
+        OnClickHide = new AnimationRuntime() {
+            Name = "OnClickHide"
+        };
+        Visual.Animations.Add(OnClickHide);
+
+        var clickHideCategory = new StateSaveCategory {
+            Name = "ClickHide"
+        };
+        Visual.AddCategory(clickHideCategory);
+
+        var visibleState = new StateSave {
+            Name = "Visible"
+        };
+        visibleState.SetValue("X", 10f);
+        visibleState.SetValue("XUnits", global::Gum.Converters.GeneralUnitType.Percentage);
+        clickHideCategory.States.Add(visibleState);
+
+        var hiddenState = new StateSave {
+            Name = "Hidden"
+        };
+        hiddenState.SetValue("X", -100f);
+        hiddenState.SetValue("XUnits", global::Gum.Converters.GeneralUnitType.Percentage);
+        clickHideCategory.States.Add(hiddenState);
+
+        var firstKeyframeClickHide = new KeyframeRuntime();
+        OnClickHide.Keyframes.Add(firstKeyframeClickHide);
+        firstKeyframeClickHide.Time = 0f;
+        firstKeyframeClickHide.InterpolationType = InterpolationType.Cubic;
+        firstKeyframeClickHide.Easing = Easing.Out;
+        firstKeyframeClickHide.StateName = clickHideCategory.Name + "/" + visibleState.Name;
+
+        var secondKeyframeClickHide = new KeyframeRuntime();
+        OnClickHide.Keyframes.Add(secondKeyframeClickHide);
+        secondKeyframeClickHide.Time = 1f;
+        secondKeyframeClickHide.InterpolationType = InterpolationType.Sinusoidal;
+        secondKeyframeClickHide.Easing = Easing.Out;
+        secondKeyframeClickHide.StateName = clickHideCategory.Name + "/" + hiddenState.Name;
     }
 }

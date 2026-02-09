@@ -28,6 +28,18 @@
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
+      <Type>bool</Type>
+      <Name>SpriteInstance.Animate</Name>
+      <Value xsi:type="xsd:boolean">false</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>string</Type>
+      <Name>SpriteInstance.CurrentChainName</Name>
+      <Value xsi:type="xsd:string">ButtonPress</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
       <Type>float</Type>
       <Name>SpriteInstance.Height</Name>
       <Value xsi:type="xsd:float">100</Value>
@@ -55,7 +67,7 @@
     <Variable>
       <Type>int</Type>
       <Name>SpriteInstance.TextureHeight</Name>
-      <Value xsi:type="xsd:int">63</Value>
+      <Value xsi:type="xsd:int">64</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>

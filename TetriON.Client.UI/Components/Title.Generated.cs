@@ -63,7 +63,6 @@ partial class Title : global::Gum.Forms.Controls.FrameworkElement {
     private void ApplyDefaultVariables() {
         this.SpriteInstance.Height = 100f;
         this.SpriteInstance.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
-        this.SpriteInstance.SourceFileName = @"title.png";
         this.SpriteInstance.Width = 100f;
         this.SpriteInstance.WidthUnits = global::Gum.DataTypes.DimensionUnitType.MaintainFileAspectRatio;
 

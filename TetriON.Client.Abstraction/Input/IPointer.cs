@@ -14,6 +14,7 @@ public interface IPointer {
     bool JustActivated { get; }
     bool JustDeactivated { get; }
     PointerSource Source { get; }
+    PointerState State { get; set; }
     float HoldTime { get; }
     Vector2 StartPosition { get; }
     float TravelDistance { get; }
@@ -30,4 +31,12 @@ public enum PointerSource {
     Mouse,
     Touch,
     Stylus
+}
+
+public enum PointerState {
+    Default,
+    Dragging,
+    Hovering,
+    Pressed,
+    Textbox
 }

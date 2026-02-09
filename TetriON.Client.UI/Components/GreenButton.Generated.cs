@@ -38,12 +38,6 @@ partial class GreenButton : global::Gum.Forms.Controls.FrameworkElement {
     public SpriteRuntime SpriteInstance { get; protected set; }
 
 
-    #region Animation Fields
-    public AnimationRuntime OnHover { get; protected set; }
-    public AnimationRuntime OnUnhover { get; protected set; }
-    public AnimationRuntime OnClick { get; protected set; }
-    public AnimationRuntime OnHide { get; protected set; }
-    #endregion
     public GreenButton(InteractiveGue visual) : base(visual) {
         InitializeInstances();
         CustomInitialize();
@@ -106,9 +100,8 @@ partial class GreenButton : global::Gum.Forms.Controls.FrameworkElement {
 
         this.SpriteInstance.Height = 100f;
         this.SpriteInstance.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
-        this.SpriteInstance.SourceFileName = @"ButtonPress.achx";
         this.SpriteInstance.TextureAddress = global::Gum.Managers.TextureAddress.Custom;
-        this.SpriteInstance.TextureHeight = 63;
+        this.SpriteInstance.TextureHeight = 64;
         this.SpriteInstance.TextureLeft = 0;
         this.SpriteInstance.TextureTop = 0;
         this.SpriteInstance.TextureWidth = 320;

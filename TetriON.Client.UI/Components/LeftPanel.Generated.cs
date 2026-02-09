@@ -70,7 +70,6 @@ partial class LeftPanel : global::Gum.Forms.Controls.FrameworkElement {
         this.SpriteInstance.Height = -0f;
         this.SpriteInstance.HeightUnits = global::Gum.DataTypes.DimensionUnitType.RelativeToParent;
         this.SpriteInstance.MinWidth = 80f;
-        this.SpriteInstance.SourceFileName = @"Panel.png";
         this.SpriteInstance.Width = 60f;
         this.SpriteInstance.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
         this.SpriteInstance.X = 0f;
