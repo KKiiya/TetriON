@@ -5,6 +5,7 @@ namespace TetriON.Client.UI.Gum.Screens;
 
 partial class MainMenu {
 
+    private UIManager UIManager { get; set; }
     private UISpriteHandler UISpriteHandler { get; set; }
     public bool AllowInput { get; set; } = true;
 
@@ -13,6 +14,7 @@ partial class MainMenu {
     }
 
     public void LoadSources(UIManager uiManager) {
+        UIManager = uiManager;
         GreenButtonInstance.LoadSource(uiManager);
         GreenButtonInstance1.LoadSource(uiManager);
         GreenButtonInstance2.LoadSource(uiManager);
@@ -71,6 +73,20 @@ partial class MainMenu {
                     }
                 }
                 LeftPanelInstance.PlayHideAnimation(delayMult * 100);
+                switch (button.Name) {
+                    case "GreenButtonInstance":
+                        UIManager.Controller.LoadTestGame();
+                        break;
+                    case "GreenButtonInstance1":
+                        //UIManager.Controller.ShowOptions();
+                        break;
+                    case "GreenButtonInstance2":
+                        //UIManager.Controller.ShowCredits();
+                        break;
+                    case "GreenButtonInstance3":
+                        //UIManager.Controller.ExitGame();
+                        break;
+                }
             };
         }
     }
