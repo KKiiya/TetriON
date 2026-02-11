@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework;
 using MonoGameGum;
 using TetriON.Client.Abstraction;
 using TetriON.Client.Input;
-using TetriON.Client.UI.Gum.Components;
 using TetriON.Client.UI.Gum.Screens;
 
 namespace TetriON.Client.UI;
@@ -41,5 +40,15 @@ public class UIManager(IController controller) : IUIManager {
 
     public void Draw() {
         _gumService.Draw();
+    }
+
+    public void SwitchToMenu(MenuType menuType) {
+
+    }
+
+    public enum MenuType {
+        MainMenu,
+        Settings,
+        Pause
     }
 }
