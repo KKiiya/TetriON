@@ -15,7 +15,6 @@ using TetriON.Client.Rendering.Info;
 using TetriON.Client.Rendering;
 using TetriON.Client.Audio;
 using TetriON.Client.UI;
-using MonoGame.Extended.Graphics;
 
 namespace TetriON.Client;
 
@@ -137,10 +136,12 @@ public class ClientController : IController {
             new BoardRenderer(_currentGame, this, _gameDisposition),
             new PieceRenderer(_currentGame, this, _gameDisposition),
             new GhostRenderer(_currentGame, this, _gameDisposition),
+            new ShineLockRenderer(_currentGame, this, _gameDisposition),
             new NextPieceRenderer(_currentGame, this, _gameDisposition),
             new HeldPieceRenderer(_currentGame, this, _gameDisposition),
             new StatsRenderer(_currentGame, this),
-            new NextPiecePositionRenderer(_currentGame, this, _gameDisposition)
+            new NextPiecePositionRenderer(_currentGame, this, _gameDisposition),
+            new ShineLockRenderer(_currentGame, this, _gameDisposition)
         ]);
 
         _ = new GameAudioEventHandler(this, _currentGame);
