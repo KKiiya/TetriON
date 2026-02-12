@@ -13,32 +13,20 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
     private Texture2DAtlas? shineAtlas;
     private readonly GameDisposition _gameDisposition = gameDisposition;
 
-    private const float FrameDuration = 0.05f; // 20 FPS animation
-    private const float Opacity = 0.75f; // Overall opacity of the shine effect
-    private const int TotalFrames = 15;
+    private const float FrameDuration = 0.016f; // 60 FPS animation
+    private const float Opacity = 0.25f; // Overall opacity of the shine effect
+    private const int TotalFrames = 28;
 
     private readonly List<ShineAnimation> _activeShines = [];
-    private readonly List<System.Drawing.Point> _cellsToShine = [];
+    private bool[][]? _lastPieceMatrix;
 
     public override void Initialize() {
-        shineAtlas = Texture2DAtlas.Create("Shine", shineSheet.Texture, 30, 30, 15);
+        shineAtlas = Texture2DAtlas.Create("Shine", shineSheet.Texture, 30, 30, TotalFrames);
         ZIndex = 7; // Render above piece (6) but below UI
 
         // Subscribe to lock event - capture piece position BEFORE lock
         TetrisGame.OnPieceLock += OnPieceLocked;
-    }
-
-    private void OnPieceLocked() {
-        // Create shine animations for the cells that were just captured
-        foreach (var cell in _cellsToShine) {
-            _activeShines.Add(new ShineAnimation {
-                GridX = cell.X,
-                GridY = cell.Y,
-                Frame = 0,
-                Timer = 0f
-            });
-        }
-        _cellsToShine.Clear();
+        TetrisGame.OnLineClear += OnLineClear;
     }
 
     public override void Draw() {
@@ -65,23 +53,11 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
     }
 
     public override void Update(float deltaTime) {
-        // Capture cells at the landing position (where the piece will lock)
-        // Use ghost position for hard drops, actual position otherwise
-        _cellsToShine.Clear();
         var currentPiece = TetrisGame.GetCurrentTetromino();
-        if (currentPiece != null) {
-            // Always use ghost position since that's where the piece will lock
-            var lockPosition = TetrisGame.GetGhostTetrominoPoint();
-            var matrix = currentPiece.GetMatrix();
 
-            // Calculate actual cell positions where piece will lock
-            for (int y = 0; y < matrix.Length; y++) {
-                for (int x = 0; x < matrix[y].Length; x++) {
-                    if (matrix[y][x]) {
-                        _cellsToShine.Add(new System.Drawing.Point(lockPosition.X + x, lockPosition.Y + y));
-                    }
-                }
-            }
+        if (currentPiece != null) {
+            // Store the matrix for use in OnPieceLocked
+            _lastPieceMatrix = currentPiece.GetMatrix();
         }
 
         // Update all active shine animations
@@ -95,11 +71,36 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
                 shine.Frame++;
 
                 // Remove animation when it completes all frames
-                if (shine.Frame >= TotalFrames) {
-                    _activeShines.RemoveAt(i);
+                if (shine.Frame >= TotalFrames) _activeShines.RemoveAt(i);
+            }
+        }
+    }
+
+    private void OnPieceLocked(bool wereCleared, System.Drawing.Point lockPosition) {
+        // Don't show shine if lines were cleared, as those cells will disappear immediately
+        if (wereCleared) return;
+
+        // Use the actual lock position from the event to ensure accuracy
+        // This prevents offset issues when pieces are moved quickly before hard drop
+        if (_lastPieceMatrix == null) return;
+
+        // Recalculate cell positions using the actual lock position
+        for (int y = 0; y < _lastPieceMatrix.Length; y++) {
+            for (int x = 0; x < _lastPieceMatrix[y].Length; x++) {
+                if (_lastPieceMatrix[y][x]) {
+                    _activeShines.Add(new ShineAnimation {
+                        GridX = lockPosition.X + x,
+                        GridY = lockPosition.Y + y,
+                        Frame = 0,
+                        Timer = 0f
+                    });
                 }
             }
         }
+    }
+
+    private void OnLineClear(long linesCleared, bool wasSpin) {
+        _activeShines.Clear();
     }
 
     private class ShineAnimation {

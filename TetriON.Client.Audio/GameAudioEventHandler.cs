@@ -60,7 +60,7 @@ public class GameAudioEventHandler {
             }
         };
 
-        _game.OnPieceLock += () => _audioManager.PlaySoundEffect("piece_lock");
+        _game.OnPieceLock += (_, _) => _audioManager.PlaySoundEffect("piece_lock");
 
         //_game.OnGameStart += () => _audioManager.PlayMusic("gameplay", loop: true);
     }

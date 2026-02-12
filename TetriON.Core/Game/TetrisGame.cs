@@ -66,27 +66,28 @@ public class TetrisGame {
 
 
     #region Events
-    public event Action<long, bool>? OnLineClear;
-    public event Action<long>? OnLevelUp;
-    public event Action<long>? OnScoreChange;
-    public event Action<long>? OnComboIncrease;
-    public event Action<long>? OnBackToBackIncrease;
-    public event Action<long>? OnBackToBackEnd;
-    public event Action<long>? OnPerfectClear;
-    public event Action<int>? OnAttackSent;
-    public event Action<int>? OnAttackReceived;
-    public event Action? OnGameOver;
-    public event Action? OnGameStart;
-    public event Action? OnPieceLock;
-    public event Action? OnPieceHold;
-    public event Action? OnPieceSpawn;
-    public event Action<MoveDirection>? OnPieceMove;
     public event Action<RotationDirection, bool>? OnPieceRotate;
+
+    public event Action<long>? OnBackToBackIncrease;
+    public event Action<MoveDirection>? OnPieceMove;
+    public event Action<bool, Point>? OnPieceLock;
+    public event Action<long, bool>? OnLineClear;
+    public event Action<long>? OnBackToBackEnd;
+    public event Action<int>? OnAttackReceived;
+    public event Action<long>? OnComboIncrease;
+    public event Action<long>? OnPerfectClear;
+    public event Action<long>? OnScoreChange;
+    public event Action<int>? OnAttackSent;
+    public event Action<long>? OnLevelUp;
+    public event Action? OnGhostInDanger;
+    public event Action? OnAlmostTopOut;
+    public event Action? OnPieceSpawn;
+    public event Action? OnPieceHold;
+    public event Action? OnGameStart;
+    public event Action? OnGameOver;
     public event Action? OnHardDrop;
     public event Action? OnSoftDrop;
-    public event Action? OnGhostInDanger;
     public event Action? OnGhostSafe;
-    public event Action? OnAlmostTopOut;
     #endregion
 
     public TetrisGame(GameSettings settings) {
@@ -444,6 +445,7 @@ public class TetrisGame {
         _heldTetromino.ResetOrientation();
 
         ResetPosition();
+        ResetLockDelay();
         _canHold = false;
         OnPieceHold?.Invoke();
     }
@@ -471,6 +473,7 @@ public class TetrisGame {
 
         // Lock the piece in place on the grid
         var coords = _currentTetromino.GetPieceCoordinates(_tetrominoPoint);
+        var lockPosition = _tetrominoPoint;
         foreach (var coord in coords) _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.GetColor(), Cell.CellType.Normal, _currentTetromino.GetId());
 
         // Increment pieces locked count
@@ -496,7 +499,7 @@ public class TetrisGame {
 
         if (wereCleared) _previousLineClear = true;
         _wasLastHardDrop = false;
-        OnPieceLock?.Invoke();
+        OnPieceLock?.Invoke(wereCleared, lockPosition);
     }
 
     public long CalculateScore(int linesCleared, bool wasLastHardDrop = false) {

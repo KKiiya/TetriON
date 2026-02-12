@@ -24,3 +24,11 @@ public abstract class Renderer : IRenderer {
 
     public virtual void HandleResize(int width, int height) { }
 }
+
+public enum PerformanceLevel {
+    LOWEST,
+    LOW,
+    MEDIUM,
+    HIGH,
+    HIGHEST,
+}
