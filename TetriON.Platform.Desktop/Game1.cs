@@ -14,6 +14,7 @@ public class Game1 : Game {
     public Game1() {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
+        Window.Title = "TetriON";
         Window.AllowUserResizing = true;
         Window.AllowAltF4 = true;
         Window.ClientSizeChanged += (_, _) => {
