@@ -17,6 +17,8 @@ public interface IController {
 
     IUIManager UIManager { get; }
 
+    IParticleManager ParticleManager { get; }
+
     ClientEvents ClientEvents { get; }
 
     void Initialize();
