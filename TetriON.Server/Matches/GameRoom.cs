@@ -8,8 +8,8 @@ namespace TetriON.Server.Matches;
 /// </summary>
 public class GameRoom {
     public string RoomId { get; set; }
-    public List<string> PlayerIds { get; set; }
-    public GameRoomState State { get; set; }
+    public List<string> Players { get; set; }
+    public RoomStatus Stat { get; set; }
 
     public GameRoom() {
         PlayerIds = [];
@@ -18,8 +18,11 @@ public class GameRoom {
     // TODO: Implement game room logic
 }
 
-public enum GameRoomState {
-    Waiting,
-    Playing,
-    Finished
+public enum RoomStatus {
+    WaitingForPlayers,  // Lobby, matchmaking filling the room
+    Starting,           // Countdown before game begins
+    InProgress,         // Game is actively running
+    Paused,             // All players dropped, holding state for reconnection
+    Finished,           // Game ended naturally, showing results screen
+    Closing,            // Room is being cleaned up and removed from server
 }
