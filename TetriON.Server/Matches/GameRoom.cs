@@ -12,7 +12,6 @@ public class GameRoom {
     public RoomStatus Stat { get; set; }
 
     public GameRoom() {
-        PlayerIds = [];
     }
 
     // TODO: Implement game room logic
