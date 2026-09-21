@@ -1,5 +1,6 @@
 using System.Drawing;
 using TetriON.Core.Game;
+using TetriON.Core.Rules;
 using static TetriON.Core.Board.Cell;
 
 namespace TetriON.Core.Board;

@@ -1,5 +1,7 @@
 using System.Drawing;
 
+namespace TetriON.Core.Rules;
+
 public static class WallKicks {
 
     public static class KickType {
