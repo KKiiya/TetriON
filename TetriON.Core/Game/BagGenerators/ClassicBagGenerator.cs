@@ -15,7 +15,7 @@ public class ClassicBagGenerator : IBagGenerator {
     public ClassicBagGenerator(int? seed = null) {
         _random = seed.HasValue ? new Random(seed.Value) : new Random();
         _lastPiece = null;
-        _upcomingPieces = new List<Tetromino>();
+        _upcomingPieces = [];
         GenerateUpcoming(14); // Generate preview buffer
     }
 
