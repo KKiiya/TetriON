@@ -161,6 +161,7 @@ public class ClientController : IController {
         // Initialize particle handlers
         var gameParticleHandler = new GameHandler(_currentGame, ParticleManager, _gameDisposition);
         gameParticleHandler.Initialize();
+
         _currentGame.Start();
         GameInput.LoadForGame(_currentGame);
         _gameOverHandler = (s, e) => {

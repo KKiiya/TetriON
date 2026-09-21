@@ -1,12 +1,9 @@
 {
-    // Enable formatting for C#
-    "csharp.format.enable": true,
-
-    // Use the official C# formatter
-    "editor.defaultFormatter": "ms-dotnettools.csharp",
-
-    // Format on save (optional but convenient)
-    "editor.formatOnSave": true,
+    "[csharp]": {
+        "csharp.format.enable": true,
+        "editor.defaultFormatter": "ms-dotnettools.csharp",
+        "editor.formatOnSave": true
+    },
     "cSpell.words": [
         "Tetri"
     ]
