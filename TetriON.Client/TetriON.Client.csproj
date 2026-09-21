@@ -13,6 +13,7 @@
     <ProjectReference Include="..\TetriON.Client.Media\TetriON.Client.Media.csproj" />
     <ProjectReference Include="..\TetriON.Client.Audio\TetriON.Client.Audio.csproj" />
     <ProjectReference Include="..\TetriON.Client.Input\TetriON.Client.Input.csproj" />
+    <ProjectReference Include="..\TetriON.Client.Particles\TetriON.Client.Particles.csproj" />
     <ProjectReference Include="..\TetriON.Client.Rendering\TetriON.Client.Rendering.csproj" />
     <ProjectReference Include="..\TetriON.Client.Networking\TetriON.Client.Networking.csproj" />
     <ProjectReference Include="..\TetriON.Client.Abstraction\TetriON.Client.Abstraction.csproj" />
@@ -20,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="MonoGame.Extended" Version="5.3.1" />
-    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.*" />
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.5.1" />
   </ItemGroup>
 
 </Project>

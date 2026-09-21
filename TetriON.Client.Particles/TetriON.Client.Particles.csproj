@@ -7,6 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\TetriON.Core\TetriON.Core.csproj" />
+        <ProjectReference Include="..\TetriON.Client.Rendering\TetriON.Client.Rendering.csproj" />
         <ProjectReference Include="..\TetriON.Client.Abstraction\TetriON.Client.Abstraction.csproj" />
     </ItemGroup>
 

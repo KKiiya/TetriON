@@ -15,6 +15,8 @@ using TetriON.Client.Rendering.Info;
 using TetriON.Client.Rendering;
 using TetriON.Client.Audio;
 using TetriON.Client.UI;
+using TetriON.Client.Particles;
+using TetriON.Client.Particles.Handlers;
 
 namespace TetriON.Client;
 
@@ -39,6 +41,8 @@ public class ClientController : IController {
     public SpriteBatch SpriteBatch { get; }
     public GameInput GameInput { get; }
 
+    public IParticleManager ParticleManager { get; }
+
     private TetrisGame? _currentGame;
     private GameDisposition? _gameDisposition;
     private GameAudioEventHandler? _audioHandler;
@@ -60,6 +64,7 @@ public class ClientController : IController {
         AudioManager = new AudioManager(this);
         UIManager = new UIManager(this);
         ClientEvents = new ClientEvents(this);
+        ParticleManager = new ParticleManager(this);
     }
 
     // Lifecycle methods
@@ -90,7 +95,7 @@ public class ClientController : IController {
         GameInput.Update(deltaTime);
         AudioManager.Update(deltaTime);
         UIManager.Update(gameTime);
-
+        ParticleManager.Update(deltaTime);
         _currentGame?.Update(gameTime.ElapsedGameTime);
         // Other updates...
         RendererManager.UpdateRenderers(gameTime);
@@ -99,6 +104,7 @@ public class ClientController : IController {
     public void Draw() {
         SpriteBatch.Begin();
         RendererManager.DrawRenderers();
+        ParticleManager.Draw();
         SpriteBatch.End();
 
         UIManager.Draw();
@@ -151,6 +157,10 @@ public class ClientController : IController {
         _audioHandler?.Dispose();
         if (_currentGame != null && _gameOverHandler != null) _currentGame.Raised -= _gameOverHandler;
         _audioHandler = new GameAudioEventHandler(this, _currentGame);
+
+        // Initialize particle handlers
+        var gameParticleHandler = new GameHandler(_currentGame, ParticleManager, _gameDisposition);
+        gameParticleHandler.Initialize();
         _currentGame.Start();
         GameInput.LoadForGame(_currentGame);
         _gameOverHandler = (s, e) => {

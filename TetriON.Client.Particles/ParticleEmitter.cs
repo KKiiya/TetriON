@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Xna.Framework;
 
 namespace TetriON.Client.Particles;
@@ -7,8 +6,7 @@ namespace TetriON.Client.Particles;
 /// Emitter that spawns particles with configurable properties
 /// Provides fine control over particle behavior and appearance
 /// </summary>
-public class ParticleEmitter
-{
+public class ParticleEmitter {
     private static readonly Random _random = new();
 
     /// <summary>
@@ -38,6 +36,11 @@ public class ParticleEmitter
     public Vector2 Velocity { get; set; } = Vector2.Zero;
 
     /// <summary>
+    /// Additional acceleration applied to particles (e.g., gravity)
+    /// </summary>
+    public Vector2 Acceleration { get; set; } = Vector2.Zero;
+
+    /// <summary>
     /// Random velocity variation range (min, max)
     /// </summary>
     public Vector2 VelocityVariation { get; set; } = new Vector2(-50f, 50f);
@@ -57,6 +60,11 @@ public class ParticleEmitter
     /// Base speed for particles
     /// </summary>
     public float Speed { get; set; } = 100f;
+
+    /// <summary>
+    /// Damping applied to particle velocity (0 = no damping, 1 = full stop)
+    /// </summary>
+    public float Damping { get; set; } = 0f;
 
     /// <summary>
     /// Random speed variation (min, max)
@@ -125,15 +133,12 @@ public class ParticleEmitter
     /// <summary>
     /// Emit particles with the configured properties
     /// </summary>
-    public void EmitParticles(Particle[] particlePool, int count)
-    {
+    public void EmitParticles(Particle[] particlePool, int count) {
         if (ParticleType == null) return;
 
         int emitted = 0;
-        for (int i = 0; i < particlePool.Length && emitted < count; i++)
-        {
-            if (!particlePool[i].IsActive)
-            {
+        for (int i = 0; i < particlePool.Length && emitted < count; i++) {
+            if (!particlePool[i].IsActive) {
                 ConfigureParticle(particlePool[i]);
                 emitted++;
             }
@@ -143,8 +148,7 @@ public class ParticleEmitter
     /// <summary>
     /// Configure a particle with randomized properties based on emitter settings
     /// </summary>
-    private void ConfigureParticle(Particle particle)
-    {
+    private void ConfigureParticle(Particle particle) {
         if (ParticleType == null) return;
 
         // Calculate velocity based on angle and speed
@@ -172,8 +176,7 @@ public class ParticleEmitter
 
         particle.RotationSpeed = RotationSpeed + RandomRange(RotationSpeedVariation.X, RotationSpeedVariation.Y);
 
-        if (Lifetime > 0f)
-        {
+        if (Lifetime > 0f) {
             particle.Lifetime = Lifetime + RandomRange(LifetimeVariation.X, LifetimeVariation.Y);
         }
 
@@ -183,16 +186,14 @@ public class ParticleEmitter
     /// <summary>
     /// Generate a random float in the given range
     /// </summary>
-    private static float RandomRange(float min, float max)
-    {
+    private static float RandomRange(float min, float max) {
         return min + (float)_random.NextDouble() * (max - min);
     }
 
     /// <summary>
     /// Randomize a color with HSV variation
     /// </summary>
-    private static Color RandomizeColor(Color baseColor, Vector3 variation)
-    {
+    private static Color RandomizeColor(Color baseColor, Vector3 variation) {
         // Simple implementation - can be extended for full HSV if needed
         int r = Math.Clamp(baseColor.R + (int)RandomRange(-variation.X * 255, variation.X * 255), 0, 255);
         int g = Math.Clamp(baseColor.G + (int)RandomRange(-variation.Y * 255, variation.Y * 255), 0, 255);
