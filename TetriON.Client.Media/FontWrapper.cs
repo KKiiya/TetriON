@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using TetriON.Client.Abstraction;
 using TetriON.Client.Abstraction.Media;
 
 namespace TetriON.Client.Media;

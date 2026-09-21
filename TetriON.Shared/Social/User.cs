@@ -1,4 +1,3 @@
-
 namespace TetriON.Shared.Social;
 
 public class User {

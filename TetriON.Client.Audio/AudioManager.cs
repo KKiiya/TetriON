@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using TetriON.Client.Abstraction;
 using TetriON.Client.Abstraction.Media;
-using TetriON.Client.Media;
 
 namespace TetriON.Client.Audio;
 

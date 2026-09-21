@@ -1,5 +1,3 @@
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using TetriON.Client.Abstraction;
 
 namespace TetriON.Client.Rendering;

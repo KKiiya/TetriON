@@ -2,7 +2,6 @@ using Microsoft.Xna.Framework;
 using TetriON.Client.Abstraction;
 using TetriON.Client.Rendering.Data;
 using TetriON.Core.Game;
-using TetriON.Shared.Utilities;
 
 namespace TetriON.Client.Rendering.Ingame;
 

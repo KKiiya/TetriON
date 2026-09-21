@@ -1,5 +1,3 @@
-using System;
-
 namespace TetriON.Platform.Android;
 
 /// <summary>

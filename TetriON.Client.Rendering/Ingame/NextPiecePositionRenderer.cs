@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using TetriON.Client.Abstraction;
+using TetriON.Client.Abstraction.Media;
 using TetriON.Client.Rendering.Data;
 using TetriON.Core.Game;
 

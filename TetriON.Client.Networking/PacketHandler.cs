@@ -1,5 +1,3 @@
-using System;
-
 namespace TetriON.Client.Networking;
 
 /// <summary>

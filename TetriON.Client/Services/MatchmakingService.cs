@@ -1,6 +1,3 @@
-using System;
-using System.Threading.Tasks;
-
 namespace TetriON.Client.Services;
 
 /// <summary>

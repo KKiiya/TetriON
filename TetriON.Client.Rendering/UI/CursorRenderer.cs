@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using TetriON.Client.Abstraction;
-using TetriON.Client.Abstraction.Input;
+using TetriON.Client.Abstraction.Media;
 using TetriON.Client.Input;
 
 namespace TetriON.Client.Rendering.UI;

@@ -1,9 +1,9 @@
 using Microsoft.Xna.Framework;
 using MonoGame.Extended.Graphics;
 using TetriON.Client.Abstraction;
+using TetriON.Client.Abstraction.Media;
 using TetriON.Client.Rendering.Data;
 using TetriON.Core.Game;
-using static TetriON.Core.Pieces.Tetromino;
 using Point = Microsoft.Xna.Framework.Point;
 
 namespace TetriON.Client.Rendering.Ingame;

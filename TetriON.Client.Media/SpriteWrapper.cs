@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using TetriON.Client.Abstraction;
+using TetriON.Client.Abstraction.Media;
 
 namespace TetriON.Client.Media;
 

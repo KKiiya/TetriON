@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using TetriON.Client.Abstraction;
+using TetriON.Client.Abstraction.Media;
 using TetriON.Client.Rendering.Data;
 using TetriON.Core.Game;
 
@@ -49,6 +50,7 @@ public class NextPieceRenderer(TetrisGame tetrisGame, IController controller, Ga
             }
 
             // Get piece matrix and calculate centering
+            if (nextPieces[i] == null) continue;
             var matrix = nextPieces[i].Rotations[0];
             var id = nextPieces[i].Id;
             var pieceWidth = matrix[0].Length * pieceScaledTileSize;

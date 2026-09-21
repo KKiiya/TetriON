@@ -1,6 +1,5 @@
 using FlatRedBall.Glue.StateInterpolation;
 using Gum.DataTypes.Variables;
-using Gum.Graphics.Animation;
 using Gum.StateAnimation.Runtime;
 using RenderingLibrary;
 

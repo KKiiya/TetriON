@@ -1,5 +1,3 @@
-using System;
-
 namespace TetriON.Server.Ticking;
 
 /// <summary>
