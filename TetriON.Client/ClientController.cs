@@ -145,8 +145,7 @@ public class ClientController : IController {
             new NextPieceRenderer(_currentGame, this, _gameDisposition),
             new HeldPieceRenderer(_currentGame, this, _gameDisposition),
             new StatsRenderer(_currentGame, this),
-            new NextPiecePositionRenderer(_currentGame, this, _gameDisposition),
-            new ShineLockRenderer(_currentGame, this, _gameDisposition)
+            new NextPiecePositionRenderer(_currentGame, this, _gameDisposition)
         ]);
 
         _audioHandler?.Dispose();
