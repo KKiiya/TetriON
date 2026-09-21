@@ -10,7 +10,6 @@ public class NextPiecePositionRenderer(TetrisGame game, IController controller, 
 
 
     private readonly GameDisposition _gameDisposition = disposition;
-    private readonly Dictionary<int, Rectangle> _tileRectangles = [];
     private ITexture TileSheet => Controller.SkinManager.GetTextureAsset("tiles").texture;
 
     private float _transparency = 1f;
@@ -35,9 +34,7 @@ public class NextPiecePositionRenderer(TetrisGame game, IController controller, 
 
         // Use tile ID 12 from the tile sheet (danger indicator)
         const int dangerTileId = 12;
-        var position = _tileRectangles.ContainsKey(dangerTileId) ? _tileRectangles[dangerTileId].Location : new Point((dangerTileId - GridSizing.TileSpacing) * 31, 0);
-        var rectangle = _tileRectangles.ContainsKey(dangerTileId) ? _tileRectangles[dangerTileId] : new Rectangle(position.X, position.Y, GridSizing.BaseTileWidth, GridSizing.BaseTileHeight);
-        if (!_tileRectangles.ContainsKey(dangerTileId)) _tileRectangles[dangerTileId] = rectangle;
+        var rectangle = TileAtlas.GetSourceRect(dangerTileId);
         var scaledWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
 

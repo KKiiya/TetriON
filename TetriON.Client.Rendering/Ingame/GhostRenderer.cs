@@ -10,10 +10,9 @@ namespace TetriON.Client.Rendering.Ingame;
 public class GhostRenderer(TetrisGame tetrisGame, IController controller, GameDisposition gameDisposition) : GameRenderer(tetrisGame, controller) {
 
     protected ITexture TileSheet => Controller.SkinManager.GetTextureAsset("ghost_tiles").texture;
-    private readonly Dictionary<int, Rectangle> _tileRectangles = [];
     private readonly float GhostAlpha = 0.3f;
     private readonly GameDisposition _gameDisposition = gameDisposition;
-    private bool IsGray = true;
+    private readonly bool IsGray = true;
 
 
     public override void Draw() {
@@ -25,9 +24,7 @@ public class GhostRenderer(TetrisGame tetrisGame, IController controller, GameDi
         var id = currentPiece.Id;
         if (IsGray) id = 0x0A; // Use gray tile for ghost
 
-        var position = _tileRectangles.ContainsKey(id) ? _tileRectangles[id].Location : new Point((id - GridSizing.TileSpacing) * 31, 0);
-        var rectangle = _tileRectangles.ContainsKey(id) ? _tileRectangles[id] : new Rectangle(position.X, position.Y, GridSizing.BaseTileWidth, GridSizing.BaseTileHeight);
-        if (!_tileRectangles.ContainsKey(id)) _tileRectangles[id] = rectangle;
+        var rectangle = TileAtlas.GetSourceRect(id);
         var scaledWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
 

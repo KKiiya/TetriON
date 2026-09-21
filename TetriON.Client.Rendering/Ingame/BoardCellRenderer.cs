@@ -44,15 +44,8 @@ public class BoardCellRenderer(TetrisGame tetrisGame, IController controller) : 
     }
 
     private void DrawCell(int x, int y, byte tileId, int scaledTileWidth, int scaledTileHeight) {
-        // Calculate source rectangle based on tile ID
-        // Assuming tiles are arranged horizontally in the sprite sheet with 31px spacing
-        var position = new Point((tileId - GridSizing.TileSpacing) * 31, 0);
-        var sourceRect = new Rectangle(
-            position.X,
-            position.Y,
-            GridSizing.BaseTileWidth,
-            GridSizing.BaseTileHeight
-        );
+        // Single source of truth for sheet layout (see TileAtlas)
+        var sourceRect = TileAtlas.GetSourceRect(tileId);
 
         // Calculate destination rectangle on screen
         var destRect = new Rectangle(

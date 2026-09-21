@@ -10,7 +10,6 @@ namespace TetriON.Client.Rendering.Ingame;
 public class PieceRenderer(TetrisGame tetrisGame, IController controller, GameDisposition gameDisposition) : GameRenderer(tetrisGame, controller) {
 
     protected ITexture TileSheet => Controller.SkinManager.GetTextureAsset("tiles").texture;
-    private readonly Dictionary<int, Rectangle> _tileRectangles = [];
     protected readonly GameDisposition _gameDisposition = gameDisposition;
 
     public override void Draw() {
@@ -30,9 +29,7 @@ public class PieceRenderer(TetrisGame tetrisGame, IController controller, GameDi
 
         //Logger.Log($"PieceRenderer: Drawing piece ID {id} at grid position ({location.X}, {location.Y}), board offset ({boardLocation.X}, {boardLocation.Y})", Logger.LogLevel.Info);
 
-        var position = _tileRectangles.ContainsKey(id) ? _tileRectangles[id].Location : new Point((id - GridSizing.TileSpacing) * 31, 0);
-        var rectangle = _tileRectangles.ContainsKey(id) ? _tileRectangles[id] : new Rectangle(position.X, position.Y, GridSizing.BaseTileWidth, GridSizing.BaseTileHeight);
-        if (!_tileRectangles.ContainsKey(id)) _tileRectangles[id] = rectangle;
+        var rectangle = TileAtlas.GetSourceRect(id);
         var scaledWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
 
