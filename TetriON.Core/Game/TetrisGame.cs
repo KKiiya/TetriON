@@ -11,7 +11,7 @@ namespace TetriON.Core.Game;
 public class TetrisGame {
 
     private bool _running;
-    private TimeSpan _lastUpdateTime;
+    private TimeSpan _elapsedTime;
 
 
     #region Game Properties
@@ -22,7 +22,7 @@ public class TetrisGame {
 
     #region Game State Properties
     private readonly Grid _grid;
-    private readonly Tetromino[] _nextTetrominos;
+    private readonly Tetromino?[] _nextTetrominos;
     private Point _tetrominoPoint;
     private Point _ghostTetrominoPoint;
     private Tetromino? _currentTetromino;
@@ -60,34 +60,18 @@ public class TetrisGame {
     private float _gravity; // Current gravity in Gs
     private float _gravityAccumulator; // Accumulated gravity over time
     private float _piecePerSecond; // Placement speed
-    private DateTime _gameStartTime; // When the game started
     private int _piecesLocked; // Total number of pieces locked
     #endregion
 
 
     #region Events
-    public event Action<RotationDirection, bool>? OnPieceRotate;
+    /// <summary>
+    /// Single game-event stream. Subscribe once instead of 20 Action events.
+    /// Serializable for networking/replay; sender is the TetrisGame instance.
+    /// </summary>
+    public event EventHandler<GameEvent>? Raised;
 
-    public event Action<long>? OnBackToBackIncrease;
-    public event Action<MoveDirection>? OnPieceMove;
-    public event Action<bool, Point>? OnPieceLock;
-    public event Action<long, bool>? OnLineClear;
-    public event Action<long>? OnBackToBackEnd;
-    public event Action<int>? OnAttackReceived;
-    public event Action<long>? OnComboIncrease;
-    public event Action<long>? OnPerfectClear;
-    public event Action<long>? OnScoreChange;
-    public event Action<int>? OnAttackSent;
-    public event Action<long>? OnLevelUp;
-    public event Action? OnGhostInDanger;
-    public event Action? OnAlmostTopOut;
-    public event Action? OnPieceSpawn;
-    public event Action? OnPieceHold;
-    public event Action? OnGameStart;
-    public event Action? OnGameOver;
-    public event Action? OnHardDrop;
-    public event Action? OnSoftDrop;
-    public event Action? OnGhostSafe;
+    private void Raise(GameEvent e) => Raised?.Invoke(this, e);
     #endregion
 
     public TetrisGame(GameSettings settings) {
@@ -100,7 +84,7 @@ public class TetrisGame {
         _score = 0;
         _lines = 0;
         _targetLines = settings.LinesPerLevel;
-        _lastUpdateTime = TimeSpan.Zero;
+        _elapsedTime = TimeSpan.Zero;
         _bagGenerator = BagGeneratorFactory.CreateBagGenerator(settings.PieceBagType);
 
         // Initialize next tetrominos
@@ -123,8 +107,8 @@ public class TetrisGame {
         _currentTetromino = tetromino;
     }
 
-    public Tetromino[] GetNextTetrominos() {
-        return _nextTetrominos;
+    public Tetromino?[] GetNextTetrominos() {
+        return [.. _nextTetrominos];
     }
 
     public Tetromino? GetHeldTetromino() {
@@ -149,7 +133,7 @@ public class TetrisGame {
 
     public void AddScore(long score) {
         _score += score;
-        OnScoreChange?.Invoke(_score);
+        Raise(new GameEvent(GameEventType.ScoreChange, Number: _score));
     }
 
     public void SetScore(long score) {
@@ -225,8 +209,7 @@ public class TetrisGame {
     }
 
     public TimeSpan GetElapsedTime() {
-        if (!_running) return TimeSpan.Zero;
-        return DateTime.Now - _gameStartTime;
+        return _elapsedTime;
     }
 
     public bool IsRunning() {
@@ -259,15 +242,14 @@ public class TetrisGame {
     // Additional game logic methods would go here
     public void Start() {
         _running = true;
-        _lastUpdateTime = TimeSpan.Zero;
+        _elapsedTime = TimeSpan.Zero;
         _gravity = Gravity.GetGravity((int)_level);
         _bagGenerator.Reset();
-        _gameStartTime = DateTime.Now;
         _piecesLocked = 0;
         _piecePerSecond = 0f;
         FetchNextTetromino();  // This already fills _nextTetrominos
         SpawnNextPiece();
-        OnGameStart?.Invoke();
+        Raise(new GameEvent(GameEventType.GameStart));
     }
 
     public void Restart() {
@@ -279,15 +261,12 @@ public class TetrisGame {
         if (!_running) return;
         //Logger.Log("TetrisGame: Updating...", Logger.LogLevel.Info);
 
-        _lastUpdateTime += elapsedTime;
+        _elapsedTime += elapsedTime; // paused => early-return, no accumulation
         float deltaTime = (float)elapsedTime.TotalSeconds;
 
         // Update pieces per second continuously
-        TimeSpan elapsed = DateTime.Now - _gameStartTime;
-        double totalSeconds = elapsed.TotalSeconds;
-        if (totalSeconds > 0) {
-            _piecePerSecond = (float)(_piecesLocked / totalSeconds);
-        }
+        double totalSeconds = _elapsedTime.TotalSeconds;
+        if (totalSeconds > 0) _piecePerSecond = (float)(_piecesLocked / totalSeconds);
 
         // Apply gravity if enabled and not paused
         if (_settings.EnableGravity && _currentTetromino != null && !_isGravityPaused) {
@@ -349,7 +328,7 @@ public class TetrisGame {
         // Check if piece can spawn (game over if it can't)
         if (_currentTetromino != null && !_currentTetromino.CanFitAt(_grid, _tetrominoPoint)) {
             _running = false;
-            OnGameOver?.Invoke();
+            Raise(new GameEvent(GameEventType.GameOver));
             return;
         }
 
@@ -358,7 +337,7 @@ public class TetrisGame {
         CheckAlmostTopOut();
 
         System.Diagnostics.Debug.WriteLine($"TetrisGame.SpawnNextPiece: Piece spawned successfully. Piece={_currentTetromino?.GetShape()}, Pos=({_tetrominoPoint.X},{_tetrominoPoint.Y})");
-        OnPieceSpawn?.Invoke();
+        Raise(new GameEvent(GameEventType.PieceSpawn));
     }
 
     public void UpdateGravity() {
@@ -369,7 +348,7 @@ public class TetrisGame {
         else {
             if (ShouldLockTetromino()) {
                 LockPiece();
-                OnSoftDrop?.Invoke();
+                Raise(new GameEvent(GameEventType.SoftDrop));
             }
         }
     }
@@ -388,7 +367,7 @@ public class TetrisGame {
 
         // Lock piece in place
         LockPiece();
-        OnHardDrop?.Invoke();
+        Raise(new GameEvent(GameEventType.HardDrop));
     }
 
     public void RotateTetromino(RotationDirection direction) {
@@ -409,7 +388,7 @@ public class TetrisGame {
         // Update ghost position after rotation
         UpdateGhostPosition();
 
-        OnPieceRotate?.Invoke(direction, spin);
+        Raise(new GameEvent(GameEventType.PieceRotate, RotationDirection: direction, Flag: spin));
     }
 
     public void MoveTetromino(MoveDirection direction) {
@@ -428,7 +407,7 @@ public class TetrisGame {
             OnMovementDetected();
             if (_tetrominoPoint.Y > _lowestYReached) _lowestYReached = _tetrominoPoint.Y;
             UpdateGhostPosition();
-            OnPieceMove?.Invoke(direction);
+            Raise(new GameEvent(GameEventType.PieceMove, MoveDirection: direction));
         }
     }
 
@@ -447,7 +426,7 @@ public class TetrisGame {
         ResetPosition();
         ResetLockDelay();
         _canHold = false;
-        OnPieceHold?.Invoke();
+        Raise(new GameEvent(GameEventType.PieceHold));
     }
 
     public bool ShouldLevelUp() {
@@ -465,7 +444,7 @@ public class TetrisGame {
         _level++;
         _targetLines += _settings.LinesPerLevel;
         _gravity = Gravity.GetGravity((int)_level);
-        OnLevelUp?.Invoke(_level);
+        Raise(new GameEvent(GameEventType.LevelUp, Number: _level));
     }
 
     public void LockPiece() {
@@ -483,7 +462,7 @@ public class TetrisGame {
         _lines += linesCleared;
         bool wereCleared = linesCleared > 0;
         if (wereCleared) {
-            OnLineClear?.Invoke(linesCleared, _wasLastSpin);
+            Raise(new GameEvent(GameEventType.LineClear, Number: linesCleared, Flag: _wasLastSpin));
             LevelUp();
         }
         if (!wereCleared) {
@@ -499,7 +478,7 @@ public class TetrisGame {
 
         if (wereCleared) _previousLineClear = true;
         _wasLastHardDrop = false;
-        OnPieceLock?.Invoke(wereCleared, lockPosition);
+        Raise(new GameEvent(GameEventType.PieceLock, Flag: wereCleared, Position: lockPosition));
     }
 
     public long CalculateScore(int linesCleared, bool wasLastHardDrop = false) {
@@ -514,11 +493,11 @@ public class TetrisGame {
         if (_grid.IsClear()) {
             long perfectClearBonus = Scoring.GetPerfectClearPoints(linesCleared, applyB2B);
             totalPoints += perfectClearBonus;
-            OnPerfectClear?.Invoke(linesCleared);
+            Raise(new GameEvent(GameEventType.PerfectClear, Number: linesCleared));
         } else {
             if (_previousLineClear) {
                 _comboCount++;
-                OnComboIncrease?.Invoke(_comboCount);
+                Raise(new GameEvent(GameEventType.ComboIncrease, Number: _comboCount));
             } else _comboCount = 0;
             long lineClearPoints = Scoring.GetLineClearPoints(linesCleared, applyB2B);
             long comboPoints = Scoring.GetComboPoints(_comboCount);
@@ -528,10 +507,10 @@ public class TetrisGame {
         if (isDifficultClear) {
             _lastClearWasDifficult = true;
             _backToBackCount++;
-            OnBackToBackIncrease?.Invoke(_backToBackCount);
+            Raise(new GameEvent(GameEventType.BackToBackIncrease, Number: _backToBackCount));
         } else {
             if (_lastClearWasDifficult && _backToBackCount > 0) {
-                OnBackToBackEnd?.Invoke(_backToBackCount);
+                Raise(new GameEvent(GameEventType.BackToBackEnd, Number: _backToBackCount));
             }
             _lastClearWasDifficult = false;
             _backToBackCount = 0;
@@ -549,7 +528,7 @@ public class TetrisGame {
         int totalAttack = Attack.CalculateTotalAttack(linesCleared, _wasLastSpin, applyB2B, _comboCount, _grid.IsClear());
 
         if (totalAttack > 0) {
-            OnAttackSent?.Invoke(totalAttack);
+            Raise(new GameEvent(GameEventType.AttackSent, Number: totalAttack));
             // In a multiplayer context, you would notify the target player(s) here
         }
     }
@@ -573,7 +552,7 @@ public class TetrisGame {
         _score = 0;
         _lines = 0;
         _targetLines = 0;
-        _lastUpdateTime = TimeSpan.Zero;
+        _elapsedTime = TimeSpan.Zero;
         _grid.Clear();
         _bagGenerator.Reset();
     }
@@ -677,10 +656,10 @@ public class TetrisGame {
 
     /// <summary>
     /// Checks if the ghost piece is in danger of topping out.
-    /// Updates _isAlmostTopOut and triggers events:
-    /// - OnGhostInDanger: When ghost position enters danger zone
-    /// - OnGhostSafe: When ghost position leaves danger zone
-    /// - OnAlmostTopOut: When overall almost top out state becomes true
+    /// Updates _isAlmostTopOut and raises GameEvent:
+    /// - GhostInDanger: When ghost position enters danger zone
+    /// - GhostSafe: When ghost position leaves danger zone
+    /// - AlmostTopOut: When overall almost top out state becomes true
     /// Conditions:
     /// 1. Ghost position is in the top 2-3 rows (danger zone)
     /// 2. Grid is almost covered (blocks in top 3 rows of visible area)
@@ -714,19 +693,19 @@ public class TetrisGame {
         }
 
         // Trigger events based on state changes
-        // OnAlmostTopOut: Fires when entering almost top out state (either condition)
+        // AlmostTopOut: Fires when entering almost top out state (either condition)
         if (_isAlmostTopOut && !wasAlmostTopOut) {
-            OnAlmostTopOut?.Invoke();
+            Raise(new GameEvent(GameEventType.AlmostTopOut));
         }
 
-        // OnGhostInDanger: Fires when ghost position enters danger zone
+        // GhostInDanger: Fires when ghost position enters danger zone
         if (_isGhostInDanger && !wasGhostInDanger) {
-            OnGhostInDanger?.Invoke();
+            Raise(new GameEvent(GameEventType.GhostInDanger));
         }
 
-        // OnGhostSafe: Fires when ghost position leaves danger zone
+        // GhostSafe: Fires when ghost position leaves danger zone
         if (!_isGhostInDanger && wasGhostInDanger) {
-            OnGhostSafe?.Invoke();
+            Raise(new GameEvent(GameEventType.GhostSafe));
         }
     }
     #endregion

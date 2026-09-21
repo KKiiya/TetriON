@@ -25,12 +25,29 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
         shineAtlas = Texture2DAtlas.Create("Shine", shineSheet.Texture, 30, 30, TotalFrames);
         ZIndex = 7; // Render above piece (6) but below UI
 
-        // Subscribe to events
-        TetrisGame.OnPieceLock += OnPieceLocked;
-        TetrisGame.OnLineClear += OnLineClear;
-        TetrisGame.OnPieceRotate += OnPieceRotate;
-        TetrisGame.OnPieceMove += OnPieceMove;
-        // NOTE: Don't subscribe to OnPieceSpawn - it fires AFTER FetchNextTetromino() during lock
+        // Single subscription to the game-event stream (unsubscribe via Detach())
+        TetrisGame.Raised += OnGameEvent;
+        // NOTE: Don't react to PieceSpawn - it fires AFTER FetchNextTetromino() during lock
+    }
+
+    public void Detach() {
+        TetrisGame.Raised -= OnGameEvent;
+    }
+
+    private void OnGameEvent(object? sender, GameEvent e) {
+        switch (e.Type) {
+            case GameEventType.PieceRotate:
+            case GameEventType.PieceMove:
+                // Capture matrix immediately to keep it fresh
+                CaptureCurrentPieceMatrix();
+                break;
+            case GameEventType.PieceLock:
+                OnPieceLocked(e.Flag, e.Position);
+                break;
+            case GameEventType.LineClear:
+                _activeShines.Clear();
+                break;
+        }
     }
 
     public override void Draw() {
@@ -83,19 +100,9 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
         }
     }
 
-    private void OnPieceRotate(RotationDirection direction, bool isSpin) {
-        // Capture matrix immediately after rotation to ensure we have the latest state
-        CaptureCurrentPieceMatrix();
-    }
-
-    private void OnPieceMove(MoveDirection direction) {
-        // Capture matrix on move to keep it fresh
-        CaptureCurrentPieceMatrix();
-    }
-
-    private void OnPieceLocked(bool wereCleared, System.Drawing.Point lockPosition) {
+    private void OnPieceLocked(bool wereCleared, System.Drawing.Point? lockPosition) {
         // Don't show shine if lines were cleared, as those cells will disappear immediately
-        if (wereCleared) {
+        if (wereCleared || lockPosition is not { } pos) {
             _lastPieceMatrix = null; // Clear to avoid stale data
             return;
         }
@@ -109,8 +116,8 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
             for (int x = 0; x < _lastPieceMatrix[y].Length; x++) {
                 if (_lastPieceMatrix[y][x]) {
                     _activeShines.Add(new ShineAnimation {
-                        GridX = lockPosition.X + x,
-                        GridY = lockPosition.Y + y,
+                        GridX = pos.X + x,
+                        GridY = pos.Y + y,
                         Frame = 0,
                         Timer = 0f
                     });
@@ -120,10 +127,6 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
 
         // Clear the matrix after use to prevent it from being reused for the next piece
         _lastPieceMatrix = null;
-    }
-
-    private void OnLineClear(long linesCleared, bool wasSpin) {
-        _activeShines.Clear();
     }
 
     private class ShineAnimation {

@@ -41,6 +41,8 @@ public class ClientController : IController {
 
     private TetrisGame? _currentGame;
     private GameDisposition? _gameDisposition;
+    private GameAudioEventHandler? _audioHandler;
+    private EventHandler<GameEvent>? _gameOverHandler;
 
 
     public ClientController(Game game) {
@@ -110,6 +112,9 @@ public class ClientController : IController {
     }
 
     public void Shutdown() {
+        if (_currentGame != null && _gameOverHandler != null)
+            _currentGame.Raised -= _gameOverHandler;
+        _audioHandler?.Dispose();
         InputManager.Dispose();
         NetworkManager.Dispose();
         SkinManager.Dispose();
@@ -144,10 +149,15 @@ public class ClientController : IController {
             new ShineLockRenderer(_currentGame, this, _gameDisposition)
         ]);
 
-        _ = new GameAudioEventHandler(this, _currentGame);
+        _audioHandler?.Dispose();
+        if (_currentGame != null && _gameOverHandler != null) _currentGame.Raised -= _gameOverHandler;
+        _audioHandler = new GameAudioEventHandler(this, _currentGame);
         _currentGame.Start();
         GameInput.LoadForGame(_currentGame);
-        _currentGame.OnGameOver += () => _currentGame.Restart();
+        _gameOverHandler = (s, e) => {
+            if (e.Type == GameEventType.GameOver) _currentGame.Restart();
+        };
+        _currentGame.Raised += _gameOverHandler;
         Logger.Log("ClientController: Test game started", Logger.LogLevel.Info);
     }
 
