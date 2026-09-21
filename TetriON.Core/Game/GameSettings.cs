@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TetriON.Core.Pieces.PieceTypes;
+using TetriON.Core.Rules;
 
 namespace TetriON.Core.Game;
 
 public class GameSettings {
 
-    private readonly KickSystem _wallKickSystem;
+    private KickSystem _wallKickSystem;
 
     #region Constructor
     public GameSettings() {
@@ -29,7 +30,14 @@ public class GameSettings {
     public bool EnableWallKicks { get; set; } = true;
     public bool EnableFloorKicks { get; set; } = true;
     public bool Enable180Spins { get; set; } = true;
-    public string KickType { get; set; } = WallKicks.KickType.SRSPlus;
+    private string _kickType = WallKicks.KickType.SRSPlus;
+    public string KickType {
+        get => _kickType;
+        set {
+            _kickType = value;
+            _wallKickSystem = WallKicks.GetKicks(value); // refresh cache
+        }
+    }
     #endregion
 
 
