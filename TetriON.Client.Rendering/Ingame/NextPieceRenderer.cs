@@ -49,8 +49,8 @@ public class NextPieceRenderer(TetrisGame tetrisGame, IController controller, Ga
             }
 
             // Get piece matrix and calculate centering
-            var matrix = nextPieces[i].GetRotations()[0];
-            var id = nextPieces[i].GetId();
+            var matrix = nextPieces[i].Rotations[0];
+            var id = nextPieces[i].Id;
             var pieceWidth = matrix[0].Length * pieceScaledTileSize;
             var pieceHeight = matrix.Length * pieceScaledTileSize;
 

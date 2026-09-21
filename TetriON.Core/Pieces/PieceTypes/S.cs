@@ -9,8 +9,8 @@ namespace TetriON.Core.Pieces.PieceTypes;
 public class S : Tetromino {
 
     private readonly Color _color = Color.Green;
-    private const string Shape = "S";
-    private readonly byte _id = GetTileId(Shape);
+    private const string ShapeName = "S";
+    private readonly byte _id = GetTileId(ShapeName);
     private int _rotation;
     private Point _lastKickOffset;
     private bool[][] _matrix = [
@@ -43,29 +43,17 @@ public class S : Tetromino {
     };
 
 
-    public override byte GetId() {
-        return _id;
-    }
+    public override byte Id => _id;
 
-    public override Color GetColor() {
-        return _color;
-    }
+    public override Color Color => _color;
 
-    public override string GetShape() {
-        return Shape;
-    }
+    public override string Shape => ShapeName;
 
-    public override bool[][] GetMatrix() {
-        return _matrix;
-    }
+    public override bool[][] Matrix => _matrix;
 
-    public override int GetRotationState() {
-        return _rotation;
-    }
-
-    public override void SetRotationState(int rotation) {
-        _rotation = rotation;
-        _matrix = _rotations[_rotation];
+    public override int RotationState {
+        get => _rotation;
+        set { _rotation = value; _matrix = _rotations[_rotation]; }
     }
 
     public override void ResetOrientation() {
@@ -73,15 +61,10 @@ public class S : Tetromino {
         _matrix = _rotations[_rotation];
     }
 
-    public override Point GetLastKickOffset() {
-        return _lastKickOffset;
+    public override Point LastKickOffset {
+        get => _lastKickOffset;
+        set => _lastKickOffset = value;
     }
 
-    public override void SetLastKickOffset(Point offset) {
-        _lastKickOffset = offset;
-    }
-
-    public override Dictionary<int, bool[][]> GetRotations() {
-        return _rotations;
-    }
+    public override IReadOnlyDictionary<int, bool[][]> Rotations => _rotations;
 }

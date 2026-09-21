@@ -23,7 +23,7 @@ public class NextPiecePositionRenderer(TetrisGame game, IController controller, 
         if (nextPieces == null || nextPieces.Length == 0 || nextPieces[0] == null) return;
 
         var nextPiece = nextPieces[0];
-        var matrix = nextPiece.GetMatrix();
+        var matrix = nextPiece?.Matrix;
 
         // Get spawn position where the next piece will appear
         var spawnPosition = TetrisGame.GetSpawnPosition(nextPiece);
@@ -44,7 +44,7 @@ public class NextPiecePositionRenderer(TetrisGame game, IController controller, 
         Color tintColor = Color.White * _transparency;
 
         // Draw the next piece matrix at spawn position
-        for (int y = 0; y < matrix.Length; y++) {
+        for (int y = 0; y < matrix?.Length; y++) {
             for (int x = 0; x < matrix[y].Length; x++) {
                 if (!matrix[y][x]) continue;
 

@@ -311,13 +311,13 @@ public class TetrisGame {
         //Logger.Log("TetrisGame.FetchNextTetromino: Fetching next piece from bag generator", Logger.LogLevel.Info);
         _currentTetromino = _bagGenerator.GetNextPiece();
         _currentTetromino.ResetOrientation();
-        //Logger.Log($"TetrisGame.FetchNextTetromino: Got piece {_currentTetromino?.GetShape()} (ID: {_currentTetromino?.GetId()})", Logger.LogLevel.Info);
+        //Logger.Log($"TetrisGame.FetchNextTetromino: Got piece {_currentTetromino?.Shape} (ID: {_currentTetromino?.Id})", Logger.LogLevel.Info);
         List<Tetromino> nextPieces = _bagGenerator.PeekNext(_nextTetrominos.Length);
         for (int i = 0; i < _nextTetrominos.Length; i++) _nextTetrominos[i] = nextPieces[i];
     }
 
     public void SpawnNextPiece() {
-        //Logger.Log($"TetrisGame.SpawnNextPiece: Starting spawn. CurrentPiece={_currentTetromino?.GetShape()}", Logger.LogLevel.Info);
+        //Logger.Log($"TetrisGame.SpawnNextPiece: Starting spawn. CurrentPiece={_currentTetromino?.Shape}", Logger.LogLevel.Info);
         ResetPosition();
         //Logger.Log($"TetrisGame.SpawnNextPiece: Position reset to ({_tetrominoPoint.X},{_tetrominoPoint.Y})", Logger.LogLevel.Info);
         _canHold = true;
@@ -336,7 +336,7 @@ public class TetrisGame {
         UpdateGhostPosition();
         CheckAlmostTopOut();
 
-        System.Diagnostics.Debug.WriteLine($"TetrisGame.SpawnNextPiece: Piece spawned successfully. Piece={_currentTetromino?.GetShape()}, Pos=({_tetrominoPoint.X},{_tetrominoPoint.Y})");
+        System.Diagnostics.Debug.WriteLine($"TetrisGame.SpawnNextPiece: Piece spawned successfully. Piece={_currentTetromino?.Shape}, Pos=({_tetrominoPoint.X},{_tetrominoPoint.Y})");
         Raise(new GameEvent(GameEventType.PieceSpawn));
     }
 
@@ -371,7 +371,7 @@ public class TetrisGame {
     }
 
     public void RotateTetromino(RotationDirection direction) {
-        //Logger.Log($"TetrisGame.RotateTetromino: Rotating piece {_currentTetromino?.GetShape()} {direction}", Logger.LogLevel.Info);
+        //Logger.Log($"TetrisGame.RotateTetromino: Rotating piece {_currentTetromino?.Shape} {direction}", Logger.LogLevel.Info);
         if (_currentTetromino == null) return;
 
         (var point, bool spin) = _currentTetromino.Rotate(_grid, _tetrominoPoint, direction);
@@ -392,7 +392,7 @@ public class TetrisGame {
     }
 
     public void MoveTetromino(MoveDirection direction) {
-        //Logger.Log($"TetrisGame.MoveTetromino: Moving piece {_currentTetromino?.GetShape()} {direction}", Logger.LogLevel.Info);
+        //Logger.Log($"TetrisGame.MoveTetromino: Moving piece {_currentTetromino?.Shape} {direction}", Logger.LogLevel.Info);
         if (_currentTetromino == null) return;
 
         Point newPoint = direction switch {
@@ -453,7 +453,7 @@ public class TetrisGame {
         // Lock the piece in place on the grid
         var coords = _currentTetromino.GetPieceCoordinates(_tetrominoPoint);
         var lockPosition = _tetrominoPoint;
-        foreach (var coord in coords) _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.GetColor(), Cell.CellType.Normal, _currentTetromino.GetId());
+        foreach (var coord in coords) _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.Color, Cell.CellType.Normal, _currentTetromino.Id);
 
         // Increment pieces locked count
         _piecesLocked++;

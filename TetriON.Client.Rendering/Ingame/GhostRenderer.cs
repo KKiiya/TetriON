@@ -20,8 +20,8 @@ public class GhostRenderer(TetrisGame tetrisGame, IController controller, GameDi
         if (currentPiece == null) return;
 
         var location = TetrisGame.GetGhostTetrominoPoint();
-        var matrix = currentPiece.GetMatrix();
-        var id = currentPiece.GetId();
+        var matrix = currentPiece.Matrix;
+        var id = currentPiece.Id;
         if (IsGray) id = 0x0A; // Use gray tile for ghost
 
         var position = _tileRectangles.ContainsKey(id) ? _tileRectangles[id].Location : new Point((id - GridSizing.TileSpacing) * 31, 0);

@@ -20,8 +20,8 @@ public class PieceRenderer(TetrisGame tetrisGame, IController controller, GameDi
         }
 
         var location = TetrisGame.GetTetrominoPoint();
-        var matrix = currentPiece.GetMatrix();
-        var id = currentPiece.GetId();
+        var matrix = currentPiece.Matrix;
+        var id = currentPiece.Id;
 
         var bounds = Controller.Game.Window.ClientBounds;
         var currentResolution = new Point(bounds.Width, bounds.Height);

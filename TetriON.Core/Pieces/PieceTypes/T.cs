@@ -11,8 +11,8 @@ namespace TetriON.Core.Pieces.PieceTypes;
 public class T : Tetromino {
 
     private readonly Color _color = Color.Purple;
-    private const string Shape = "T";
-    private readonly byte _id = GetTileId(Shape);
+    private const string ShapeName = "T";
+    private readonly byte _id = GetTileId(ShapeName);
     private int _rotation;
     private Point _lastKickOffset;
 
@@ -47,7 +47,7 @@ public class T : Tetromino {
 
 
     public override (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection direction) {
-        var oldRotation = GetRotationState();
+        var oldRotation = RotationState;
         var newRotation = (oldRotation + (int)direction + 4) % 4;
         var newMatrix = _rotations[newRotation];
         var settings = grid.GetGame().GetSettings();
@@ -55,10 +55,10 @@ public class T : Tetromino {
         // First, try to rotate in place (no wall kick)
         if (grid.CanPlaceTetromino(currentPoint, newMatrix)) {
             // Rotation successful without wall kick
-            SetRotationState(newRotation);
+            RotationState = newRotation;
             _rotation = newRotation;
             _matrix = newMatrix;
-            SetLastKickOffset(new Point(0, 0));
+            LastKickOffset = new Point(0, 0);
 
             var pivot = GetRotationCenter(currentPoint);
             var isTSpin = CheckTSpin(grid, pivot) && (settings.EnableTSpins || settings.EnableAllSpins);
@@ -75,9 +75,9 @@ public class T : Tetromino {
         var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, newRotation, false);
         if (newPosition.HasValue) {
             var kickOffset = new Point(newPosition.Value.X - currentPoint.X, newPosition.Value.Y - currentPoint.Y);
-            SetLastKickOffset(kickOffset);
+            LastKickOffset = kickOffset;
 
-            SetRotationState(newRotation);
+            RotationState = newRotation;
             _rotation = newRotation;
             _matrix = newMatrix;
 
@@ -124,29 +124,17 @@ public class T : Tetromino {
         return center;
     }
 
-    public override byte GetId() {
-        return _id;
-    }
+    public override byte Id => _id;
 
-    public override Color GetColor() {
-        return _color;
-    }
+    public override Color Color => _color;
 
-    public override string GetShape() {
-        return Shape;
-    }
+    public override string Shape => ShapeName;
 
-    public override bool[][] GetMatrix() {
-        return _matrix;
-    }
+    public override bool[][] Matrix => _matrix;
 
-    public override int GetRotationState() {
-        return _rotation;
-    }
-
-    public override void SetRotationState(int rotation) {
-        _rotation = rotation;
-        _matrix = _rotations[_rotation];
+    public override int RotationState {
+        get => _rotation;
+        set { _rotation = value; _matrix = _rotations[_rotation]; }
     }
 
     public override void ResetOrientation() {
@@ -154,15 +142,10 @@ public class T : Tetromino {
         _matrix = _rotations[_rotation];
     }
 
-    public override Point GetLastKickOffset() {
-        return _lastKickOffset;
+    public override Point LastKickOffset {
+        get => _lastKickOffset;
+        set => _lastKickOffset = value;
     }
 
-    public override void SetLastKickOffset(Point offset) {
-        _lastKickOffset = offset;
-    }
-
-    public override Dictionary<int, bool[][]> GetRotations() {
-        return _rotations;
-    }
+    public override IReadOnlyDictionary<int, bool[][]> Rotations => _rotations;
 }

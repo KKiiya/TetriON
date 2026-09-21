@@ -96,7 +96,7 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
     private void CaptureCurrentPieceMatrix() {
         var currentPiece = TetrisGame.GetCurrentTetromino();
         if (currentPiece != null) {
-            _lastPieceMatrix = currentPiece.GetMatrix();
+            _lastPieceMatrix = currentPiece.Matrix;
         }
     }
 

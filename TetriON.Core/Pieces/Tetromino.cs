@@ -26,35 +26,26 @@ public abstract class Tetromino {
     }
 
 
-    #region Abstract Methods
+    #region Abstract Properties
 
-    public abstract byte GetId();
+    public abstract byte Id { get; }
 
-    public abstract Color GetColor();
+    public abstract Color Color { get; }
 
-    public abstract string GetShape();
+    public abstract string Shape { get; }
 
-    public abstract bool[][] GetMatrix();
+    public abstract bool[][] Matrix { get; }
 
     public abstract void ResetOrientation();
 
-    public abstract Dictionary<int, bool[][]> GetRotations();
+    public abstract IReadOnlyDictionary<int, bool[][]> Rotations { get; }
 
-    public abstract Point GetLastKickOffset();
-
-    public abstract void SetLastKickOffset(Point offset);
+    public abstract Point LastKickOffset { get; set; }
 
     /// <summary>
-    /// Get current rotation state (0-3)
+    /// Current rotation state (0-3)
     /// </summary>
-    public abstract int GetRotationState();
-
-    /// <summary>
-    /// Set current rotation state (0-3)
-    /// </summary>
-    /// <param name="rotation">New rotation state</param>
-    /// <returns></returns>
-    public abstract void SetRotationState(int rotation);
+    public abstract int RotationState { get; set; }
     #endregion
 
 
@@ -68,14 +59,14 @@ public abstract class Tetromino {
     }
 
     public virtual (Point? position, bool tSpin) Rotate(Grid grid, Point currentPoint, RotationDirection direction) {
-        var oldRotation = GetRotationState();
+        var oldRotation = RotationState;
         var newRotation = (oldRotation + (int)direction + 4) % 4;
-        var newMatrix = GetRotations()[newRotation];
+        var newMatrix = Rotations[newRotation];
 
         // First, try to rotate in place (no wall kick)
         if (grid.CanPlaceTetromino(currentPoint, newMatrix)) {
-            SetRotationState(newRotation);
-            SetLastKickOffset(new Point(0, 0));
+            RotationState = newRotation;
+            LastKickOffset = new Point(0, 0);
 
             // ✅ Check for spin even on in-place rotation
             var isSpin = IsSpin(grid, currentPoint);
@@ -83,12 +74,12 @@ public abstract class Tetromino {
         }
 
         // If in-place rotation failed, try wall kicks
-        var isI = GetShape() == "I";
+        var isI = Shape == "I";
         var newPosition = grid.TryWallKick(currentPoint, newMatrix, oldRotation, newRotation, isI);
         if (newPosition.HasValue) {
             var kickOffset = new Point(newPosition.Value.X - currentPoint.X, newPosition.Value.Y - currentPoint.Y);
-            SetLastKickOffset(kickOffset);
-            SetRotationState(newRotation);
+            LastKickOffset = kickOffset;
+            RotationState = newRotation;
 
             // Check for All-Spin after successful wall kick
             var isSpin = IsSpin(grid, newPosition.Value);
@@ -103,7 +94,7 @@ public abstract class Tetromino {
     /// </summary>
     public virtual List<Point> GetPieceCoordinates(Point position, (int dx, int dy)? offset = null) {
         var coords = new List<Point>();
-        var matrix = GetMatrix();
+        var matrix = Matrix;
 
         for (int y = 0; y < matrix.Length; y++) {
             for (int x = 0; x < matrix[y].Length; x++) {

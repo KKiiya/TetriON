@@ -15,8 +15,8 @@ public class HeldPieceRenderer(TetrisGame tetrisGame, IController controller, Ga
         var heldPiece = TetrisGame.GetHeldTetromino();
         if (heldPiece == null) return;
 
-        var matrix = heldPiece.GetRotations()[0];
-        var id = heldPiece.GetId();
+        var matrix = heldPiece.Rotations[0];
+        var id = heldPiece.Id;
         if (!TetrisGame.CanHold()) id = 0x0B;
         var position = _tileRectangles.ContainsKey(id) ? _tileRectangles[id].Location : new Point((id - GridSizing.TileSpacing) * 31, 0);
         var rectangle = _tileRectangles.ContainsKey(id) ? _tileRectangles[id] : new Rectangle(position.X, position.Y, GridSizing.BaseTileWidth, GridSizing.BaseTileHeight);
