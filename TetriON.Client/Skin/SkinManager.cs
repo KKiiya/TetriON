@@ -91,7 +91,7 @@ public class SkinManager : ISkinManager {
     private readonly IController _controller;
 
     private string _currentSkin = "default";
-    private Game _instance;
+    private readonly Game _instance;
     private GraphicsDevice? _graphicsDevice;
 
     public SkinManager(ClientController controller) {
