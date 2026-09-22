@@ -8,7 +8,6 @@ namespace TetriON.Client.Rendering.Ingame;
 
 public class NextPiecePositionRenderer(TetrisGame game, IController controller, GameDisposition disposition) : GameRenderer(game, controller) {
 
-
     private readonly GameDisposition _gameDisposition = disposition;
     private ITexture TileSheet => Controller.SkinManager.GetTextureAsset("tiles").texture;
 
