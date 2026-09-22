@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using RenderingLibrary.Graphics;
 using TetriON.Client.Abstraction;
 using TetriON.Client.Particles.Handling;
 using TetriON.Client.Rendering.Data;
@@ -13,9 +14,6 @@ namespace TetriON.Client.Particles.Handlers;
 /// </summary>
 public class GameHandler(TetrisGame game, IParticleManager manager, GameDisposition gameDisposition) : GameParticleHandler(game, manager) {
     private readonly GameDisposition _gameDisposition = gameDisposition;
-    private bool _hardDropInProgress = false;
-    private Tetromino? _hardDropPiece;
-    private SystemPoint _hardDropPosition;
 
     public override void Initialize() {
         Manager.RegisterParticleType("spark", "particle", 31, 31, 1);
@@ -24,9 +22,9 @@ public class GameHandler(TetrisGame game, IParticleManager manager, GameDisposit
         // Smaller and more visible particles with higher opacity
         if (Manager is ParticleManager particleManager) {
             var sparkType = particleManager.GetParticleType("spark");
-            sparkType?.WithLifetime(0.4f)           // Shorter lifetime for snappier effect
-                    .WithDamping(0.88f)             // Slightly more damping for tighter effect
-                    .WithFade(0.0f, 0.3f);          // Minimal fade in, quick fade out
+            sparkType?.WithLifetime(0.8f)            // long life: slow rise, slow fade
+                    .WithDamping(0f)                 // no deceleration: constant rise
+                    .WithFade(0.05f, 0.45f);          // soft appear, dissolve over last 60%
         }
 
         Game.Raised += OnGameEvent;
@@ -34,37 +32,26 @@ public class GameHandler(TetrisGame game, IParticleManager manager, GameDisposit
 
     private void OnGameEvent(object? sender, GameEvent gameEvent) {
         switch (gameEvent.Type) {
-            case GameEventType.HardDrop:
-                OnHardDrop();
-                break;
             case GameEventType.PieceLock:
-                OnPieceLock(gameEvent.Flag, gameEvent.Position);
+                OnPieceLock(gameEvent.Position ?? Game.GetTetrominoPoint(), gameEvent.Piece);
                 break;
         }
     }
 
-    private void OnHardDrop() {
-        // Capture the current piece and its position when hard drop occurs
-        _hardDropInProgress = true;
-        _hardDropPiece = Game.GetCurrentTetromino();
-        _hardDropPosition = Game.GetGhostTetrominoPoint();
-    }
-
-    private void OnPieceLock(bool wereCleared, SystemPoint? lockPosition) {
+    private void OnPieceLock(SystemPoint lockPosition, Tetromino? piece = null) {
         // Only emit particles if this lock was from a hard drop
-        if (!_hardDropInProgress || _hardDropPiece == null) return;
-        _hardDropInProgress = false;
+        // If no piece is provided, we cannot emit particles
+        if (piece == null) return;
 
         // Emit particles from all cells the piece occupies
-        EmitExplosionFromPiece(_hardDropPiece, _hardDropPosition);
-        _hardDropPiece = null;
+        EmitExplosionFromPiece(lockPosition, piece);
     }
 
     /// <summary>
     /// Emits particles from all cells occupied by the falling piece
     /// Follows the rendering positioning system exactly
     /// </summary>
-    private void EmitExplosionFromPiece(Tetromino piece, SystemPoint piecePosition) {
+    private void EmitExplosionFromPiece(SystemPoint piecePosition, Tetromino piece) {
         var controller = Manager.Controller;
         var bounds = controller.Game.Window.ClientBounds;
         var currentResolution = new Point(bounds.Width, bounds.Height);
@@ -93,16 +80,22 @@ public class GameHandler(TetrisGame game, IParticleManager manager, GameDisposit
             int emitterId = particleManager.CreateEmitter("spark", particlePosition);
             var emitter = particleManager.GetEmitter(emitterId);
 
+            var pieceColor = piece.Color.ToXNA();
             if (emitter != null) {
-                // Configure emitter for smaller, more visible particles
-                emitter.Scale = new Vector2(0.35f, 0.35f);        // 35% of original size
-                emitter.Speed = 120f;                             // Good spread velocity
-                emitter.AngleVariation = (float)(Math.PI / 2);            // Full circle emission
-                emitter.Color = Color.White;                      // White with full opacity
+                emitter.Scale = new Vector2(0.2f, 0.2f); // smaller particles
+                emitter.EmissionAngle = -MathF.PI / 2f; // up (Y-down coords: 0 = right)
+                emitter.AngleVariation = 0f;            // no cone: every particle straight up
+                emitter.Speed = 45f;                    // slow rise
+                emitter.SpeedVariation = new Vector2(-8f, 8f); // slight natural variance, vertical only
+                emitter.VelocityVariation = Vector2.Zero; // no horizontal jitter
+                emitter.Acceleration = new Vector2(0f, -35f); // gentle upward pull: picks up toward end of life
+                emitter.PositionVariation = new Vector2(12f, 12f); // stay inside the cell, spread over the piece via per-cell emitters
+                emitter.LifetimeVariation = new Vector2(-0.25f, 0.25f); // avoid synchronized death
+                emitter.Color = pieceColor * 0.5f;     // piece-tinted, nearly opaque (fade handles the dissolve)
             }
 
-            // Emit 8 particles from each cell
-            particleManager.Emit(emitterId, 4);
+            // Emit 2 particles from each cell
+            particleManager.Emit(emitterId, 2);
             particleManager.RemoveEmitter(emitterId);
         }
     }
