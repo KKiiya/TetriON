@@ -36,7 +36,7 @@ public class SkinManager : ISkinManager {
     // Valid asset names that are allowed to be loaded (security/validation)
     private static readonly HashSet<string> ValidTextureNames = [
         // === GAME TEXTURES ===
-        "tiles", "ghost_tiles", "missing_texture",
+        "tiles", "ghost_tiles", "missing_texture", "line_clear",
 
         // === BACKGROUND AND UI ===
         "menu_background", "menu_pattern", "menu_decorations",
@@ -328,7 +328,27 @@ public class SkinManager : ISkinManager {
         }
 
         using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-        return Texture2D.FromStream(_graphicsDevice, fileStream);
+        var texture = Texture2D.FromStream(_graphicsDevice, fileStream);
+        // FromStream returns straight (non-premultiplied) alpha, but the default
+        // AlphaBlend state expects premultiplied. Without this, semi-transparent
+        // pixels render opaque/fringed, as if the PNG had no alpha channel.
+        PremultiplyInPlace(texture);
+        return texture;
+    }
+
+    private static void PremultiplyInPlace(Texture2D texture) {
+        int count = texture.Width * texture.Height;
+        var data = new Color[count];
+        texture.GetData(data);
+        for (int i = 0; i < count; i++) {
+            var c = data[i];
+            if (c.A == 0) data[i] = Color.Transparent;
+            else if (c.A != 255) {
+                float a = c.A / 255f;
+                data[i] = new Color((byte)(c.R * a), (byte)(c.G * a), (byte)(c.B * a), c.A);
+            }
+        }
+        texture.SetData(data);
     }
 
     /// <summary>
