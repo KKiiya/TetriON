@@ -1,3 +1,13 @@
 {
-  "UserEvents": {}
+  "UserEvents": {
+    "957da9fb69231a0b3677a8da73339ac44cdc935004e954dcddf1373cc0b1d5cf": [
+      {
+        "NewName": "LoginScreen",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 0,
+        "TimestampUtc": "2026-09-22T15:22:23.5605097Z"
+      }
+    ]
+  }
 }
