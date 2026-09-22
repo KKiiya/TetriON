@@ -128,9 +128,17 @@ public class SpriteWrapper : TextureWrapper {
     /// </summary>
     /// <param name="gameTime">Game time for delta time calculation</param>
     public void Update(GameTime gameTime) {
+        Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+    }
+
+    /// <summary>
+    /// Update the animation with an explicit delta time.
+    /// Renderers work in float seconds and don't hold a GameTime.
+    /// </summary>
+    /// <param name="deltaTime">Time elapsed since last update in seconds</param>
+    public void Update(float deltaTime) {
         if (IsDisposed || !_isPlaying || _frames.Count <= 1) return;
 
-        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _elapsedTime += deltaTime;
 
         if (_elapsedTime >= _frameDuration) {

@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
-using MonoGame.Extended.Graphics;
 using TetriON.Client.Abstraction;
-using TetriON.Client.Abstraction.Media;
+using TetriON.Client.Media;
 using TetriON.Client.Rendering.Data;
 using TetriON.Core.Game;
 using Point = Microsoft.Xna.Framework.Point;
@@ -10,10 +9,11 @@ namespace TetriON.Client.Rendering.Ingame;
 
 public class ShineLockRenderer(TetrisGame game, IController controller, GameDisposition gameDisposition) : GameRenderer(game, controller) {
 
-    private readonly ITexture shineSheet = controller.SkinManager.GetTextureAsset("piece_shine").texture;
-    private Texture2DAtlas? shineAtlas;
+    private TextureWrapper? _sheet;
+    private int _framesPerRow = 1;
     private readonly GameDisposition _gameDisposition = gameDisposition;
 
+    private const int FrameSize = 30; // piece_shine.png is a 30px grid (150x180)
     private const float FrameDuration = 0.016f; // 60 FPS animation
     private const float Opacity = 0.25f; // Overall opacity of the shine effect
     private const int TotalFrames = 28;
@@ -22,7 +22,11 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
     private bool[][]? _lastPieceMatrix;
 
     public override void Initialize() {
-        shineAtlas = Texture2DAtlas.Create("Shine", shineSheet.Texture, 30, 30, TotalFrames);
+        // Load here, not in a field initializer: skin assets aren't ready at construction.
+        // ownsTexture=false: the skin manager owns this texture, never dispose it.
+        var (_, texture) = Controller.SkinManager.GetTextureAsset("piece_shine");
+        _sheet = new TextureWrapper(Controller, texture.Texture);
+        _framesPerRow = Math.Max(1, _sheet.Texture.Width / FrameSize);
         ZIndex = 7; // Render above piece (6) but below UI
 
         // Single subscription to the game-event stream (unsubscribe via Detach())
@@ -32,6 +36,7 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
 
     public void Detach() {
         TetrisGame.Raised -= OnGameEvent;
+        ClearShines();
     }
 
     private void OnGameEvent(object? sender, GameEvent e) {
@@ -45,13 +50,13 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
                 OnPieceLocked(e.Flag, e.Position);
                 break;
             case GameEventType.LineClear:
-                _activeShines.Clear();
+                ClearShines();
                 break;
         }
     }
 
     public override void Draw() {
-        if (shineAtlas == null) return;
+        if (_sheet == null) return;
 
         var scaledWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
@@ -68,8 +73,7 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
                 scaledHeight
             );
 
-            var region = shineAtlas.GetRegion(shine.Frame);
-            Controller.SpriteBatch.Draw(region, destRect, Color.White * Opacity);
+            Controller.SpriteBatch.Draw(_sheet.Texture, destRect, shine.Sprite.CurrentFrameRectangle, Color.White * Opacity);
         }
     }
 
@@ -77,20 +81,11 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
         // Always capture the current piece's matrix to ensure it's up-to-date
         CaptureCurrentPieceMatrix();
 
-        // Update all active shine animations
-        for (int i = _activeShines.Count - 1; i >= 0; i--) {
-            var shine = _activeShines[i];
-            shine.Timer += deltaTime;
-
-            // Advance to next frame when timer exceeds frame duration
-            if (shine.Timer >= FrameDuration) {
-                shine.Timer -= FrameDuration;
-                shine.Frame++;
-
-                // Remove animation when it completes all frames
-                if (shine.Frame >= TotalFrames) _activeShines.RemoveAt(i);
-            }
-        }
+        if (_activeShines.Count == 0) return;
+        // Snapshot: Sprite.Update fires OnAnimationComplete synchronously,
+        // and that handler removes from _activeShines. Iterating the live
+        // list throws "Collection was modified" the moment a shine finishes.
+        foreach (var shine in _activeShines.ToArray()) shine.Sprite.Update(deltaTime);
     }
 
     private void CaptureCurrentPieceMatrix() {
@@ -102,7 +97,7 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
 
     private void OnPieceLocked(bool wereCleared, System.Drawing.Point? lockPosition) {
         // Don't show shine if lines were cleared, as those cells will disappear immediately
-        if (wereCleared || lockPosition is not { } pos) {
+        if (_sheet == null || wereCleared || lockPosition is not { } pos) {
             _lastPieceMatrix = null; // Clear to avoid stale data
             return;
         }
@@ -115,12 +110,14 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
         for (int y = 0; y < _lastPieceMatrix.Length; y++) {
             for (int x = 0; x < _lastPieceMatrix[y].Length; x++) {
                 if (_lastPieceMatrix[y][x]) {
-                    _activeShines.Add(new ShineAnimation {
+                    var shine = new ShineAnimation {
                         GridX = pos.X + x,
                         GridY = pos.Y + y,
-                        Frame = 0,
-                        Timer = 0f
-                    });
+                        Sprite = new SpriteWrapper(Controller, _sheet, FrameSize, FrameSize, TotalFrames, _framesPerRow, FrameDuration, isLooping: false)
+                    };
+                    shine.Sprite.OnAnimationComplete += () => RemoveShine(shine);
+                    shine.Sprite.Play();
+                    _activeShines.Add(shine);
                 }
             }
         }
@@ -129,10 +126,19 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
         _lastPieceMatrix = null;
     }
 
-    private class ShineAnimation {
+    private void RemoveShine(ShineAnimation shine) {
+        shine.Sprite.Dispose();
+        _activeShines.Remove(shine);
+    }
+
+    private void ClearShines() {
+        foreach (var shine in _activeShines) shine.Sprite.Dispose();
+        _activeShines.Clear();
+    }
+
+    private sealed class ShineAnimation {
         public int GridX { get; set; }
         public int GridY { get; set; }
-        public int Frame { get; set; }
-        public float Timer { get; set; }
+        public required SpriteWrapper Sprite { get; set; }
     }
 }
