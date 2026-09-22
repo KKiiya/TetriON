@@ -361,8 +361,8 @@ public class TetrisGame {
         while (_currentTetromino.CanFitAt(_grid, new Point(_tetrominoPoint.X, newY + 1))) {
             newY++;
         }
-        _tetrominoPoint = new Point(_tetrominoPoint.X, newY);
         _lastDropDistance = newY - _tetrominoPoint.Y;
+        _tetrominoPoint = new Point(_tetrominoPoint.X, newY);
         _wasLastHardDrop = true;
 
         // Lock piece in place
@@ -483,7 +483,6 @@ public class TetrisGame {
 
     public long CalculateScore(int linesCleared, bool wasLastHardDrop = false) {
         bool wereCleared = linesCleared > 0;
-        if (wereCleared && linesCleared == 0) return 0;
         if (!wereCleared) return 0;
 
         long totalPoints = 0;
@@ -548,10 +547,26 @@ public class TetrisGame {
         _currentTetromino = null;
         _heldTetromino = null;
         _tetrominoPoint = GetSpawnPosition();
-        _level = 0;
+        _canHold = true;
+        _level = 1;
         _score = 0;
         _lines = 0;
-        _targetLines = 0;
+        _targetLines = _settings.LinesPerLevel;
+        _comboCount = 0;
+        _previousLineClear = false;
+        _lastDropDistance = 0;
+        _wasLastHardDrop = false;
+        _wasLastSpin = false;
+        _isGravityPaused = false;
+        _isAlmostTopOut = false;
+        _isGhostInDanger = false;
+        _lockDelayTimer = 0f;
+        _lockResetCount = 0;
+        _isPieceOnGround = false;
+        _lowestYReached = 0;
+        _lastClearWasDifficult = false;
+        _backToBackCount = 0;
+        _gravityAccumulator = 0f;
         _elapsedTime = TimeSpan.Zero;
         _grid.Clear();
         _bagGenerator.Reset();
