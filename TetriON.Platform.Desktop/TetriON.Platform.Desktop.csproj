@@ -6,6 +6,14 @@
         <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
         <SelfContained>false</SelfContained>
+        <DebugType>None</DebugType>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <PublishSingleFile>true</PublishSingleFile>
+        <DebugSymbols>false</DebugSymbols>
+        <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+        <CopyDocumentationFilesToPublishDirectory>false</CopyDocumentationFilesToPublishDirectory>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -28,8 +36,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1" />
-        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*" />
+        <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.5.1" />
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.5.1" />
     </ItemGroup>
 
     <ItemGroup>

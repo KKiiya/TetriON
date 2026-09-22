@@ -6,7 +6,7 @@
   <AnimationChain>
     <Name>ButtonPress</Name>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -21,7 +21,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -36,7 +36,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -51,7 +51,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -66,7 +66,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -81,7 +81,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -96,7 +96,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -111,7 +111,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -126,7 +126,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -141,7 +141,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -156,7 +156,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -171,7 +171,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -186,7 +186,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -201,7 +201,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -216,7 +216,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>
@@ -231,7 +231,7 @@
       </ShapeCollectionSave>
     </Frame>
     <Frame>
-      <TextureName>Button.png</TextureName>
+      <TextureName>button.png</TextureName>
       <FrameLength>0.03125</FrameLength>
       <LeftCoordinate>0</LeftCoordinate>
       <RightCoordinate>320</RightCoordinate>

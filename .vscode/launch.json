@@ -1,0 +1,11 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "TetriON Desktop",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/TetriON.Platform.Desktop/TetriON.Platform.Desktop.csproj"
+        }
+    ]
+}

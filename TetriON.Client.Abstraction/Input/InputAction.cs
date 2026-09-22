@@ -1,4 +1,4 @@
-namespace TetriON.Client.Input;
+namespace TetriON.Client.Abstraction.Input;
 
 /// <summary>
 /// Defines a logical input action that can be bound to different physical inputs

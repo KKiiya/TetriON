@@ -1,8 +1,7 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TetriON.Client.Abstraction;
+using TetriON.Client.Particles.Handling;
 
 namespace TetriON.Client.Particles;
 
@@ -10,10 +9,10 @@ namespace TetriON.Client.Particles;
 /// Manages particle effects using object pooling for high performance
 /// Integrates with MonoGame Extended sprite system for efficient rendering
 /// </summary>
-public class ParticleManager : IParticleManager
-{
-    private readonly Dictionary<string, ParticleType> _particleTypes = new();
-    private readonly Dictionary<int, ParticleEmitter> _emitters = new();
+public class ParticleManager : IParticleManager {
+    private readonly Dictionary<string, ParticleType> _particleTypes = [];
+    private readonly Dictionary<int, ParticleEmitter> _emitters = [];
+    private readonly List<ParticleHandler> _handlers = [];
     private readonly Particle[] _particlePool;
     private int _nextEmitterId = 0;
 
@@ -32,54 +31,43 @@ public class ParticleManager : IParticleManager
     /// </summary>
     /// <param name="controller">Reference to the game controller</param>
     /// <param name="maxParticles">Maximum number of particles in the pool (default: 2000)</param>
-    public ParticleManager(IController controller, int maxParticles = 2000)
-    {
+    public ParticleManager(IController controller, int maxParticles = 2000) {
         Controller = controller;
         MaxParticles = maxParticles;
         _particlePool = new Particle[maxParticles];
 
         // Initialize particle pool
-        for (int i = 0; i < maxParticles; i++)
-        {
+        for (int i = 0; i < maxParticles; i++) {
             _particlePool[i] = new Particle { IsActive = false };
         }
     }
 
-    public void Initialize()
-    {
+    public void Initialize() {
         // Particle types will be registered by the client code
         // Manager is ready to use after initialization
     }
 
-    public void Update(float deltaTime)
-    {
+    public void Update(float deltaTime) {
         // Update all active particles
-        for (int i = 0; i < _particlePool.Length; i++)
-        {
-            if (_particlePool[i].IsActive)
-            {
+        for (int i = 0; i < _particlePool.Length; i++) {
+            if (_particlePool[i].IsActive) {
                 _particlePool[i].Update(deltaTime);
             }
         }
     }
 
-    public void Draw()
-    {
+    public void Draw() {
         // Draw all active particles
         // Particles are drawn in pool order, which provides consistent layering
-        for (int i = 0; i < _particlePool.Length; i++)
-        {
-            if (_particlePool[i].IsActive)
-            {
+        for (int i = 0; i < _particlePool.Length; i++) {
+            if (_particlePool[i].IsActive) {
                 _particlePool[i].Draw(SpriteBatch);
             }
         }
     }
 
-    public void RegisterParticleType(string typeName, string textureName, int frameWidth, int frameHeight, int frameCount = 1)
-    {
-        if (_particleTypes.ContainsKey(typeName))
-        {
+    public void RegisterParticleType(string typeName, string textureName, int frameWidth, int frameHeight, int frameCount = 1) {
+        if (_particleTypes.ContainsKey(typeName)) {
             // Type already registered, skip or update
             return;
         }
@@ -87,8 +75,7 @@ public class ParticleManager : IParticleManager
         // Load texture from SkinManager
         var (success, texture) = SkinManager.GetTextureAsset(textureName);
 
-        if (!success || texture?.Texture == null)
-        {
+        if (!success || texture?.Texture == null) {
             throw new InvalidOperationException($"Failed to load texture '{textureName}' for particle type '{typeName}'");
         }
 
@@ -97,16 +84,13 @@ public class ParticleManager : IParticleManager
         _particleTypes[typeName] = particleType;
     }
 
-    public int CreateEmitter(string typeName, Vector2 position)
-    {
-        if (!_particleTypes.ContainsKey(typeName))
-        {
+    public int CreateEmitter(string typeName, Vector2 position) {
+        if (!_particleTypes.ContainsKey(typeName)) {
             throw new InvalidOperationException($"Particle type '{typeName}' is not registered. Call RegisterParticleType first.");
         }
 
         int emitterId = _nextEmitterId++;
-        var emitter = new ParticleEmitter
-        {
+        var emitter = new ParticleEmitter {
             Id = emitterId,
             Position = position,
             ParticleType = _particleTypes[typeName],
@@ -117,34 +101,28 @@ public class ParticleManager : IParticleManager
         return emitterId;
     }
 
-    public void Emit(int emitterId, int count = 1)
-    {
-        if (!_emitters.TryGetValue(emitterId, out var emitter) || !emitter.IsActive)
-        {
+    public void Emit(int emitterId, int count = 1) {
+        if (!_emitters.TryGetValue(emitterId, out var emitter) || !emitter.IsActive) {
             return;
         }
 
         emitter.EmitParticles(_particlePool, count);
     }
 
-    public void EmitBurst(string typeName, Vector2 position, int count)
-    {
+    public void EmitBurst(string typeName, Vector2 position, int count) {
         // Create temporary emitter for one-shot burst
         int emitterId = CreateEmitter(typeName, position);
         Emit(emitterId, count);
         RemoveEmitter(emitterId);
     }
 
-    public void RemoveEmitter(int emitterId)
-    {
+    public void RemoveEmitter(int emitterId) {
         _emitters.Remove(emitterId);
     }
 
-    public void Clear()
-    {
+    public void Clear() {
         // Deactivate all particles
-        for (int i = 0; i < _particlePool.Length; i++)
-        {
+        for (int i = 0; i < _particlePool.Length; i++) {
             _particlePool[i].IsActive = false;
         }
 
@@ -152,11 +130,9 @@ public class ParticleManager : IParticleManager
         _emitters.Clear();
     }
 
-    public int GetActiveParticleCount()
-    {
+    public int GetActiveParticleCount() {
         int count = 0;
-        for (int i = 0; i < _particlePool.Length; i++)
-        {
+        for (int i = 0; i < _particlePool.Length; i++) {
             if (_particlePool[i].IsActive) count++;
         }
         return count;
@@ -167,8 +143,7 @@ public class ParticleManager : IParticleManager
     /// </summary>
     /// <param name="emitterId">ID of the emitter</param>
     /// <returns>The emitter, or null if not found</returns>
-    public ParticleEmitter? GetEmitter(int emitterId)
-    {
+    public ParticleEmitter? GetEmitter(int emitterId) {
         return _emitters.TryGetValue(emitterId, out var emitter) ? emitter : null;
     }
 
@@ -177,26 +152,30 @@ public class ParticleManager : IParticleManager
     /// </summary>
     /// <param name="typeName">Name of the particle type</param>
     /// <returns>The particle type, or null if not found</returns>
-    public ParticleType? GetParticleType(string typeName)
-    {
+    public ParticleType? GetParticleType(string typeName) {
         return _particleTypes.TryGetValue(typeName, out var type) ? type : null;
     }
 
     /// <summary>
     /// Check if a particle type is registered
     /// </summary>
-    public bool HasParticleType(string typeName)
-    {
+    public bool HasParticleType(string typeName) {
         return _particleTypes.ContainsKey(typeName);
     }
 
     /// <summary>
     /// Get all registered particle type names
     /// </summary>
-    public string[] GetRegisteredTypes()
-    {
+    public string[] GetRegisteredTypes() {
         var types = new string[_particleTypes.Count];
         _particleTypes.Keys.CopyTo(types, 0);
         return types;
+    }
+
+    /// <summary>
+    /// Add a custom particle handler for complex behaviors
+    /// </summary> <param name="handler">The particle handler to add</param>
+    public void AddHandler(ParticleHandler handler) {
+        _handlers.Add(handler);
     }
 }

@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using TetriON.Client.Abstraction;
-using TetriON.Client.Input.Support;
+using TetriON.Client.Abstraction.Input;
 using TetriON.Core.Game;
 
 namespace TetriON.Client.Input;

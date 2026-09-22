@@ -52,22 +52,22 @@ public class InputManager : IInputManager {
     /// <summary>
     /// Gets the keyboard input system
     /// </summary>
-    public Support.KeyboardInput Keyboard => _keyboard;
+    public IKeyboardInput Keyboard => _keyboard;
 
     /// <summary>
     /// Gets the mouse input system
     /// </summary>
-    public MouseInput Mouse => _mouse;
+    public IMouseInput Mouse => _mouse;
 
     /// <summary>
     /// Gets the touch input system
     /// </summary>
-    public TouchInput Touch => _touch;
+    public ITouchInput Touch => _touch;
 
     /// <summary>
     /// Gets the gamepad input system
     /// </summary>
-    public GamepadInput Gamepad => _gamepad;
+    public IGamepadInput Gamepad => _gamepad;
 
     /// <summary>
     /// Gets the unified pointer (controlled by mouse or touch)
@@ -77,7 +77,7 @@ public class InputManager : IInputManager {
     /// <summary>
     /// Gets the key bind manager
     /// </summary>
-    public KeyBindManager KeyBindManager => _keyBindManager;
+    public IKeyBindManager KeyBindManager => _keyBindManager;
 
     // Timing configuration getters/setters
 
@@ -584,14 +584,4 @@ public class InputManager : IInputManager {
     private void OnGamepadButton(object? sender, GamepadEventArgs e) {
         // Handle raw gamepad buttons if needed
     }
-}
-
-/// <summary>
-/// Supported input devices
-/// </summary>
-public enum InputDevice {
-    Keyboard,
-    Mouse,
-    Gamepad,
-    Touch
 }

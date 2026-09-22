@@ -1,27 +1,37 @@
+using TetriON.Client.Abstraction;
+using TetriON.Client.Abstraction.Services;
+
 namespace TetriON.Client.Services;
 
 /// <summary>
 /// Manages all client services
 /// </summary>
-public class ServiceManager(ClientController clientController) : IDisposable {
+public class ServiceManager(ClientController clientController) : IServiceManager {
 
     private readonly ClientController _clientController = clientController;
-    public AccountService AccountService { get; private set; } = new AccountService();
-    public LobbyService LobbyService { get; private set; } = new LobbyService();
-    public FriendsService FriendsService { get; private set; } = new FriendsService();
-    public MatchmakingService MatchmakingService { get; private set; } = new MatchmakingService();
+    private readonly AccountService _accountService = new();
+    private readonly LobbyService _lobbyService = new();
+    private readonly FriendsService _friendsService = new();
+    private readonly MatchmakingService _matchmakingService = new();
+
+    public IController Controller => _clientController;
+    public IAccountService AccountService => _accountService;
+    public ILobbyService LobbyService => _lobbyService;
+    public IFriendsService FriendsService => _friendsService;
+    public IMatchmakingService MatchmakingService => _matchmakingService;
 
     public void Initialize() {
-        AccountService.Initialize();
-        LobbyService.Initialize();
-        FriendsService.Initialize();
-        MatchmakingService.Initialize();
+        _accountService.Initialize();
+        _lobbyService.Initialize();
+        _friendsService.Initialize();
+        _matchmakingService.Initialize();
     }
 
     public void Dispose() {
-        AccountService.Dispose();
-        LobbyService.Dispose();
-        FriendsService.Dispose();
-        MatchmakingService.Dispose();
+        _accountService.Dispose();
+        _lobbyService.Dispose();
+        _friendsService.Dispose();
+        _matchmakingService.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

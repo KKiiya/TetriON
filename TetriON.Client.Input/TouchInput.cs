@@ -1,12 +1,13 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input.Touch;
+using TetriON.Client.Abstraction.Input;
+using XnaTouch = Microsoft.Xna.Framework.Input.Touch;
 
 namespace TetriON.Client.Input;
 
 /// <summary>
 /// Manages touch input with gesture recognition and multi-finger support
 /// </summary>
-public class TouchInput : IInputProvider {
+public class TouchInput : IInputProvider, ITouchInput {
     private readonly Dictionary<int, TouchState> _activeTouches = [];
     private readonly Dictionary<int, TouchState> _previousTouches = [];
     private readonly List<DetectedGesture> _detectedGestures = [];
@@ -41,7 +42,7 @@ public class TouchInput : IInputProvider {
         _detectedGestures.Clear();
 
         // Get current touch state from MonoGame
-        TouchCollection touches = TouchPanel.GetState();
+        XnaTouch.TouchCollection touches = XnaTouch.TouchPanel.GetState();
 
         // Store previous states
         _previousTouches.Clear();
@@ -54,7 +55,7 @@ public class TouchInput : IInputProvider {
 
         // Process current touches
         for (int i = 0; i < touches.Count; i++) {
-            TouchLocation touch = touches[i];
+            XnaTouch.TouchLocation touch = touches[i];
             int fingerId = touch.Id;
             currentTouchIds.Add(fingerId);
 
@@ -123,7 +124,7 @@ public class TouchInput : IInputProvider {
         _eventBuffer.Clear();
     }
 
-    private void CreateNewTouch(TouchLocation touch) {
+    private void CreateNewTouch(XnaTouch.TouchLocation touch) {
         var touchState = new TouchState {
             FingerId = touch.Id,
             Position = touch.Position,
@@ -158,7 +159,7 @@ public class TouchInput : IInputProvider {
         GestureDetected?.Invoke(this, new GestureEventArgs(GestureType.Press, touch.Position, _activeTouches.Count));
     }
 
-    private void UpdateExistingTouch(TouchState touchState, TouchLocation touch, float deltaTime) {
+    private void UpdateExistingTouch(TouchState touchState, XnaTouch.TouchLocation touch, float deltaTime) {
         touchState.PreviousPosition = touchState.Position;
         touchState.Position = touch.Position;
         touchState.HoldTime += deltaTime;
@@ -303,82 +304,6 @@ public class TouchInput : IInputProvider {
         while (_eventBuffer.Count > 100) {
             _eventBuffer.Dequeue();
         }
-    }
-}
-
-/// <summary>
-/// Represents the state of a single touch point
-/// </summary>
-public class TouchState {
-    public int FingerId { get; set; }
-    public Vector2 Position { get; set; }
-    public Vector2 PreviousPosition { get; set; }
-    public Vector2 StartPosition { get; set; }
-    public float StartTime { get; set; }
-    public float HoldTime { get; set; }
-    public Vector2 Velocity { get; set; }
-    public bool IsActive { get; set; }
-    public bool JustStarted { get; set; }
-    public bool JustEnded { get; set; }
-    public bool HoldDetected { get; set; }
-
-    public Vector2 Delta => Position - PreviousPosition;
-    public float TravelDistance => Vector2.Distance(StartPosition, Position);
-
-    public TouchState Clone() {
-        return new TouchState {
-            FingerId = FingerId,
-            Position = Position,
-            PreviousPosition = PreviousPosition,
-            StartPosition = StartPosition,
-            StartTime = StartTime,
-            HoldTime = HoldTime,
-            Velocity = Velocity,
-            IsActive = IsActive,
-            JustStarted = JustStarted,
-            JustEnded = JustEnded,
-            HoldDetected = HoldDetected
-        };
-    }
-}
-
-/// <summary>
-/// Represents a detected gesture
-/// </summary>
-public class DetectedGesture {
-    public GestureType Type { get; set; }
-    public Vector2 Position { get; set; }
-    public SwipeDirection Direction { get; set; }
-    public int FingerCount { get; set; }
-    public float Timestamp { get; set; }
-    public Vector2 Delta { get; set; }
-}
-
-/// <summary>
-/// Event args for touch events
-/// </summary>
-public class TouchEventArgs : EventArgs {
-    public TouchState Touch { get; }
-
-    public TouchEventArgs(TouchState touch) {
-        Touch = touch;
-    }
-}
-
-/// <summary>
-/// Event args for gesture events
-/// </summary>
-public class GestureEventArgs : EventArgs {
-    public GestureType Type { get; set; }
-    public Vector2 Position { get; set; }
-    public int FingerCount { get; set; }
-    public SwipeDirection Direction { get; set; }
-    public Vector2 Delta { get; set; }
-
-    public GestureEventArgs(GestureType type, Vector2 position, int fingerCount) {
-        Type = type;
-        Position = position;
-        FingerCount = fingerCount;
     }
 }
 

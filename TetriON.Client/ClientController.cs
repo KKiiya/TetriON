@@ -3,18 +3,23 @@ using Microsoft.Xna.Framework.Graphics;
 using TetriON.Client.Rendering.Data;
 using TetriON.Client.Rendering.Ingame;
 using TetriON.Client.Rendering.UI;
-using TetriON.Client.Services;
 using TetriON.Client.Skin;
-using TetriON.Client.State;
 using TetriON.Client.Input;
+using TetriON.Client.Networking;
 using TetriON.Core.Game;
 using TetriON.Shared.Utilities;
-using TetriON.Client.Networking;
 using TetriON.Client.Abstraction;
+using TetriON.Client.Abstraction.Networking;
+using TetriON.Client.Abstraction.Services;
+using TetriON.Client.Abstraction.State;
 using TetriON.Client.Rendering.Info;
 using TetriON.Client.Rendering;
+using TetriON.Client.Services;
+using TetriON.Client.State;
 using TetriON.Client.Audio;
 using TetriON.Client.UI;
+using TetriON.Client.Particles;
+using TetriON.Client.Particles.Handlers;
 
 namespace TetriON.Client;
 
@@ -28,16 +33,18 @@ public class ClientController : IController {
 
     // Managers (all key systems)
     public IInputManager InputManager { get; }
-    public NetworkManager NetworkManager { get; }
-    public StateManager StateManager { get; }
-    public ServiceManager ServiceManager { get; }
+    public INetworkManager NetworkManager { get; }
+    public IStateManager StateManager { get; }
+    public IServiceManager ServiceManager { get; }
     public ISkinManager SkinManager { get; }
     public IRendererManager RendererManager { get; }
     public IAudioManager AudioManager { get; }
     public IUIManager UIManager { get; }
-    public ClientEvents ClientEvents { get; }
+    public IClientEvents ClientEvents { get; }
     public SpriteBatch SpriteBatch { get; }
     public GameInput GameInput { get; }
+
+    public IParticleManager ParticleManager { get; }
 
     private TetrisGame? _currentGame;
     private GameDisposition? _gameDisposition;
@@ -60,6 +67,7 @@ public class ClientController : IController {
         AudioManager = new AudioManager(this);
         UIManager = new UIManager(this);
         ClientEvents = new ClientEvents(this);
+        ParticleManager = new ParticleManager(this);
     }
 
     // Lifecycle methods
@@ -90,7 +98,7 @@ public class ClientController : IController {
         GameInput.Update(deltaTime);
         AudioManager.Update(deltaTime);
         UIManager.Update(gameTime);
-
+        ParticleManager.Update(deltaTime);
         _currentGame?.Update(gameTime.ElapsedGameTime);
         // Other updates...
         RendererManager.UpdateRenderers(gameTime);
@@ -99,6 +107,7 @@ public class ClientController : IController {
     public void Draw() {
         SpriteBatch.Begin();
         RendererManager.DrawRenderers();
+        ParticleManager.Draw();
         SpriteBatch.End();
 
         UIManager.Draw();
@@ -151,6 +160,11 @@ public class ClientController : IController {
         _audioHandler?.Dispose();
         if (_currentGame != null && _gameOverHandler != null) _currentGame.Raised -= _gameOverHandler;
         _audioHandler = new GameAudioEventHandler(this, _currentGame);
+
+        // Initialize particle handlers
+        var gameParticleHandler = new GameHandler(_currentGame, ParticleManager, _gameDisposition);
+        gameParticleHandler.Initialize();
+
         _currentGame.Start();
         GameInput.LoadForGame(_currentGame);
         _gameOverHandler = (s, e) => {

@@ -7,8 +7,7 @@ namespace TetriON.Client.Particles;
 /// Defines the properties and behavior of a particle type
 /// Acts as a template for creating particles
 /// </summary>
-public class ParticleType
-{
+public class ParticleType {
     /// <summary>
     /// Unique identifier for this particle type
     /// </summary>
@@ -72,13 +71,11 @@ public class ParticleType
         Texture2D texture,
         int frameWidth,
         int frameHeight,
-        int frameCount = 1)
-    {
+        int frameCount = 1) {
 
         var atlas = Texture2DAtlas.Create(name, texture, frameWidth, frameHeight, frameCount);
 
-        return new ParticleType
-        {
+        return new ParticleType {
             Name = name,
             Atlas = atlas,
             FrameWidth = frameWidth,
@@ -90,8 +87,7 @@ public class ParticleType
     /// <summary>
     /// Create a copy of this particle type with modified properties
     /// </summary>
-    public ParticleType WithLifetime(float lifetime)
-    {
+    public ParticleType WithLifetime(float lifetime) {
         DefaultLifetime = lifetime;
         return this;
     }
@@ -99,8 +95,7 @@ public class ParticleType
     /// <summary>
     /// Set the damping/friction for this particle type
     /// </summary>
-    public ParticleType WithDamping(float damping)
-    {
+    public ParticleType WithDamping(float damping) {
         Damping = damping;
         return this;
     }
@@ -108,8 +103,7 @@ public class ParticleType
     /// <summary>
     /// Set the fade in/out properties for this particle type
     /// </summary>
-    public ParticleType WithFade(float fadeIn, float fadeOut)
-    {
+    public ParticleType WithFade(float fadeIn, float fadeOut) {
         FadeIn = fadeIn;
         FadeOut = fadeOut;
         return this;
@@ -118,8 +112,7 @@ public class ParticleType
     /// <summary>
     /// Set the animation properties for this particle type
     /// </summary>
-    public ParticleType WithAnimation(float frameDuration, bool isLooping = false)
-    {
+    public ParticleType WithAnimation(float frameDuration, bool isLooping = false) {
         FrameDuration = frameDuration;
         IsLooping = isLooping;
         return this;

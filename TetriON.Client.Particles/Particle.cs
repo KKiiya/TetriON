@@ -8,8 +8,7 @@ namespace TetriON.Client.Particles;
 /// Represents an individual particle instance
 /// Uses object pooling for performance
 /// </summary>
-internal class Particle
-{
+public class Particle {
     public bool IsActive { get; set; }
     public Vector2 Position { get; set; }
     public Vector2 Velocity { get; set; }
@@ -30,8 +29,7 @@ internal class Particle
     /// <summary>
     /// Initialize/reset particle with new values
     /// </summary>
-    public void Initialize(ParticleType type, Vector2 position, Vector2 velocity, float rotation = 0f)
-    {
+    public void Initialize(ParticleType type, Vector2 position, Vector2 velocity, float rotation = 0f) {
         IsActive = true;
         Type = type;
         Position = position;
@@ -53,15 +51,13 @@ internal class Particle
     /// </summary>
     /// <param name="deltaTime">Time elapsed since last update in seconds</param>
     /// <returns>True if particle is still active, false if it should be deactivated</returns>
-    public bool Update(float deltaTime)
-    {
+    public bool Update(float deltaTime) {
         if (!IsActive || Type == null) return false;
 
         Age += deltaTime;
 
         // Check if particle has exceeded its lifetime
-        if (Age >= Lifetime)
-        {
+        if (Age >= Lifetime) {
             IsActive = false;
             return false;
         }
@@ -70,29 +66,21 @@ internal class Particle
         Velocity += Acceleration * deltaTime;
 
         // Apply damping/friction
-        if (Type.Damping > 0f)
-        {
-            Velocity *= (1f - Type.Damping * deltaTime);
-        }
+        if (Type.Damping > 0f) Velocity *= 1f - Type.Damping * deltaTime;
 
         Position += Velocity * deltaTime;
         Rotation += RotationSpeed * deltaTime;
 
         // Update animation frame
-        if (Type.FrameCount > 1 && Type.FrameDuration > 0f)
-        {
+        if (Type.FrameCount > 1 && Type.FrameDuration > 0f) {
             FrameTimer += deltaTime;
-            if (FrameTimer >= Type.FrameDuration)
-            {
+            if (FrameTimer >= Type.FrameDuration) {
                 FrameTimer -= Type.FrameDuration;
                 CurrentFrame++;
 
-                if (Type.IsLooping)
-                {
+                if (Type.IsLooping) {
                     CurrentFrame %= Type.FrameCount;
-                }
-                else if (CurrentFrame >= Type.FrameCount)
-                {
+                } else if (CurrentFrame >= Type.FrameCount) {
                     CurrentFrame = Type.FrameCount - 1;
                 }
             }
@@ -101,16 +89,11 @@ internal class Particle
         // Update alpha based on fade settings
         float normalizedAge = Age / Lifetime;
 
-        if (Type.FadeIn > 0f && normalizedAge < Type.FadeIn)
-        {
+        if (Type.FadeIn > 0f && normalizedAge < Type.FadeIn) {
             Alpha = normalizedAge / Type.FadeIn;
-        }
-        else if (Type.FadeOut > 0f && normalizedAge > (1f - Type.FadeOut))
-        {
+        } else if (Type.FadeOut > 0f && normalizedAge > (1f - Type.FadeOut)) {
             Alpha = (1f - normalizedAge) / Type.FadeOut;
-        }
-        else
-        {
+        } else {
             Alpha = 1f;
         }
 
@@ -120,8 +103,7 @@ internal class Particle
     /// <summary>
     /// Draw the particle using MonoGame Extended sprite system
     /// </summary>
-    public void Draw(SpriteBatch spriteBatch)
-    {
+    public void Draw(SpriteBatch spriteBatch) {
         if (!IsActive || Type?.Atlas == null) return;
 
         var region = Type.Atlas.GetRegion(CurrentFrame);

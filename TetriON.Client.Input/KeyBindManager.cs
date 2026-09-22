@@ -1,11 +1,12 @@
 using Microsoft.Xna.Framework.Input;
+using TetriON.Client.Abstraction.Input;
 
 namespace TetriON.Client.Input;
 
 /// <summary>
 /// Manages key bindings and mappings between physical inputs and logical actions
 /// </summary>
-public class KeyBindManager {
+public class KeyBindManager : IKeyBindManager {
     private readonly Dictionary<InputAction, List<KeyBinding>> _bindings = [];
     private readonly Dictionary<string, InputAction> _actionRegistry = [];
 
@@ -94,99 +95,5 @@ public class KeyBindManager {
 
     private static string GetActionKey(string name, string category) {
         return $"{category}:{name}";
-    }
-}
-
-/// <summary>
-/// Key modifiers for keyboard input
-/// </summary>
-[Flags]
-public enum KeyModifier {
-    None = 0,
-    Shift = 1,
-    Control = 2,
-    Alt = 4
-}
-
-/// <summary>
-/// Mouse button types
-/// </summary>
-public enum MouseButton {
-    Left,
-    Right,
-    Middle,
-    XButton1,
-    XButton2
-}
-
-/// <summary>
-/// Base class for key bindings
-/// </summary>
-public abstract class KeyBinding {
-    public abstract string GetDisplayName();
-}
-
-/// <summary>
-/// Keyboard key binding
-/// </summary>
-public class KeyboardBinding : KeyBinding {
-    public Keys Key { get; }
-    public KeyModifier Modifiers { get; }
-
-    public KeyboardBinding(Keys key, KeyModifier modifiers = KeyModifier.None) {
-        Key = key;
-        Modifiers = modifiers;
-    }
-
-    public override string GetDisplayName() {
-        var modStr = Modifiers != KeyModifier.None ? $"{Modifiers}+" : "";
-        return $"{modStr}{Key}";
-    }
-}
-
-/// <summary>
-/// Gamepad button binding
-/// </summary>
-public class GamepadButtonBinding : KeyBinding {
-    public Buttons Button { get; }
-
-    public GamepadButtonBinding(Buttons button) {
-        Button = button;
-    }
-
-    public override string GetDisplayName() {
-        return $"Gamepad: {Button}";
-    }
-}
-
-/// <summary>
-/// Mouse button binding
-/// </summary>
-public class MouseButtonBinding : KeyBinding {
-    public MouseButton Button { get; }
-
-    public MouseButtonBinding(MouseButton button) {
-        Button = button;
-    }
-
-    public override string GetDisplayName() {
-        return $"Mouse: {Button}";
-    }
-}
-
-/// <summary>
-/// Touch gesture binding
-/// </summary>
-public class TouchGestureBinding : KeyBinding {
-    public GestureType GestureType { get; }
-    public int FingerCount { get; }
-
-    public TouchGestureBinding(GestureType gestureType, int fingerCount = 1) {
-        GestureType = gestureType;
-        FingerCount = fingerCount;
-    }
-
-    public override string GetDisplayName() {
-        return $"Touch: {FingerCount}-finger {GestureType}";
     }
 }
