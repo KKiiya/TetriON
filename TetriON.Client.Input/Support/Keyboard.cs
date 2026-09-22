@@ -1,11 +1,12 @@
 using Microsoft.Xna.Framework.Input;
+using TetriON.Client.Abstraction.Input;
 
 namespace TetriON.Client.Input.Support;
 
 /// <summary>
 /// Manages keyboard input with buffering and multi-key support
 /// </summary>
-public class KeyboardInput : IInputProvider {
+public class KeyboardInput : IInputProvider, IKeyboardInput {
     private KeyboardState _currentState;
     private KeyboardState _previousState;
     private readonly Dictionary<Keys, KeyState> _keyStates = [];
@@ -237,43 +238,6 @@ public class KeyboardInput : IInputProvider {
         public Keys Key { get; set; }
         public float HoldTime { get; set; }
         public float RepeatTimer { get; set; }
-    }
-}
-
-/// <summary>
-/// Represents a keyboard event
-/// </summary>
-public class KeyEvent {
-    public KeyEventType Type { get; set; }
-    public Keys Key { get; set; }
-    public KeyModifier Modifiers { get; set; }
-    public float Timestamp { get; set; }
-
-    public override string ToString() {
-        return $"{Type}: {Key} ({Modifiers})";
-    }
-}
-
-/// <summary>
-/// Type of keyboard event
-/// </summary>
-public enum KeyEventType {
-    Pressed,
-    Released,
-    Repeated
-}
-
-/// <summary>
-/// Event args for keyboard events
-/// </summary>
-public class KeyEventArgs : EventArgs {
-    public Keys Key { get; }
-    public KeyModifier Modifiers { get; }
-    public float HoldTime { get; set; }
-
-    public KeyEventArgs(Keys key, KeyModifier modifiers) {
-        Key = key;
-        Modifiers = modifiers;
     }
 }
 

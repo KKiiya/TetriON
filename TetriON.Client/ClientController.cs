@@ -3,16 +3,19 @@ using Microsoft.Xna.Framework.Graphics;
 using TetriON.Client.Rendering.Data;
 using TetriON.Client.Rendering.Ingame;
 using TetriON.Client.Rendering.UI;
-using TetriON.Client.Services;
 using TetriON.Client.Skin;
-using TetriON.Client.State;
 using TetriON.Client.Input;
+using TetriON.Client.Networking;
 using TetriON.Core.Game;
 using TetriON.Shared.Utilities;
-using TetriON.Client.Networking;
 using TetriON.Client.Abstraction;
+using TetriON.Client.Abstraction.Networking;
+using TetriON.Client.Abstraction.Services;
+using TetriON.Client.Abstraction.State;
 using TetriON.Client.Rendering.Info;
 using TetriON.Client.Rendering;
+using TetriON.Client.Services;
+using TetriON.Client.State;
 using TetriON.Client.Audio;
 using TetriON.Client.UI;
 using TetriON.Client.Particles;
@@ -30,14 +33,14 @@ public class ClientController : IController {
 
     // Managers (all key systems)
     public IInputManager InputManager { get; }
-    public NetworkManager NetworkManager { get; }
-    public StateManager StateManager { get; }
-    public ServiceManager ServiceManager { get; }
+    public INetworkManager NetworkManager { get; }
+    public IStateManager StateManager { get; }
+    public IServiceManager ServiceManager { get; }
     public ISkinManager SkinManager { get; }
     public IRendererManager RendererManager { get; }
     public IAudioManager AudioManager { get; }
     public IUIManager UIManager { get; }
-    public ClientEvents ClientEvents { get; }
+    public IClientEvents ClientEvents { get; }
     public SpriteBatch SpriteBatch { get; }
     public GameInput GameInput { get; }
 

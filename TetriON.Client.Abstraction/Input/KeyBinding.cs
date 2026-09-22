@@ -1,6 +1,78 @@
 using Microsoft.Xna.Framework.Input;
 
-namespace TetriON.Client.Input.Support;
+namespace TetriON.Client.Abstraction.Input;
+
+/// <summary>
+/// Base class for key bindings
+/// </summary>
+public abstract class KeyBinding {
+    public abstract string GetDisplayName();
+}
+
+/// <summary>
+/// Keyboard key binding
+/// </summary>
+public class KeyboardBinding : KeyBinding {
+    public Keys Key { get; }
+    public KeyModifier Modifiers { get; }
+
+    public KeyboardBinding(Keys key, KeyModifier modifiers = KeyModifier.None) {
+        Key = key;
+        Modifiers = modifiers;
+    }
+
+    public override string GetDisplayName() {
+        var modStr = Modifiers != KeyModifier.None ? $"{Modifiers}+" : "";
+        return $"{modStr}{Key}";
+    }
+}
+
+/// <summary>
+/// Gamepad button binding
+/// </summary>
+public class GamepadButtonBinding : KeyBinding {
+    public Buttons Button { get; }
+
+    public GamepadButtonBinding(Buttons button) {
+        Button = button;
+    }
+
+    public override string GetDisplayName() {
+        return $"Gamepad: {Button}";
+    }
+}
+
+/// <summary>
+/// Mouse button binding
+/// </summary>
+public class MouseButtonBinding : KeyBinding {
+    public MouseButton Button { get; }
+
+    public MouseButtonBinding(MouseButton button) {
+        Button = button;
+    }
+
+    public override string GetDisplayName() {
+        return $"Mouse: {Button}";
+    }
+}
+
+/// <summary>
+/// Touch gesture binding
+/// </summary>
+public class TouchGestureBinding : KeyBinding {
+    public GestureType GestureType { get; }
+    public int FingerCount { get; }
+
+    public TouchGestureBinding(GestureType gestureType, int fingerCount = 1) {
+        GestureType = gestureType;
+        FingerCount = fingerCount;
+    }
+
+    public override string GetDisplayName() {
+        return $"Touch: {FingerCount}-finger {GestureType}";
+    }
+}
 
 /// <summary>
 /// Helper utilities for working with key bindings and input configuration
@@ -174,4 +246,3 @@ public static class KeyBindHelper {
         }
     }
 }
-

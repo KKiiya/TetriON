@@ -1,6 +1,6 @@
 namespace TetriON.Client.Abstraction;
 
-public class ClientEvents(IController controller) : IDisposable {
+public class ClientEvents(IController controller) : IClientEvents {
 
     public IController Controller => controller;
     public event EventHandler? OnConnected;

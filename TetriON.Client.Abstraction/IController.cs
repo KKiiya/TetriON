@@ -19,7 +19,7 @@ public interface IController {
 
     IParticleManager ParticleManager { get; }
 
-    ClientEvents ClientEvents { get; }
+    IClientEvents ClientEvents { get; }
 
     void Initialize();
     void Update(GameTime gameTime);

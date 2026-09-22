@@ -1,12 +1,13 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using TetriON.Client.Abstraction.Input;
 
 namespace TetriON.Client.Input.Support;
 
 /// <summary>
 /// Manages gamepad/controller input with smooth analog input and buffering
 /// </summary>
-public class GamepadInput : IInputProvider {
+public class GamepadInput : IInputProvider, IGamepadInput {
     private GamePadState _currentState;
     private GamePadState _previousState;
     private readonly Dictionary<Buttons, ButtonState> _buttonStates = [];
@@ -276,54 +277,5 @@ public class GamepadInput : IInputProvider {
     private class ButtonState {
         public float HoldTime { get; set; }
     }
-}
-
-/// <summary>
-/// Represents a gamepad event
-/// </summary>
-public class GamepadEvent {
-    public GamepadEventType Type { get; set; }
-    public Buttons Button { get; set; }
-    public float Timestamp { get; set; }
-}
-
-/// <summary>
-/// Type of gamepad event
-/// </summary>
-public enum GamepadEventType {
-    ButtonPressed,
-    ButtonReleased,
-    AnalogChanged
-}
-
-/// <summary>
-/// Type of analog input
-/// </summary>
-public enum GamepadAnalogType {
-    LeftStick,
-    RightStick,
-    LeftTrigger,
-    RightTrigger
-}
-
-/// <summary>
-/// Event args for gamepad button events
-/// </summary>
-public class GamepadEventArgs : EventArgs {
-    public Buttons Button { get; }
-    public float HoldTime { get; set; }
-
-    public GamepadEventArgs(Buttons button) {
-        Button = button;
-    }
-}
-
-/// <summary>
-/// Event args for gamepad analog events
-/// </summary>
-public class GamepadAnalogEventArgs : EventArgs {
-    public GamepadAnalogType Type { get; set; }
-    public Vector2 Value { get; set; }
-    public Vector2 Delta { get; set; }
 }
 

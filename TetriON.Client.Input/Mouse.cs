@@ -1,12 +1,13 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using TetriON.Client.Abstraction.Input;
 
 namespace TetriON.Client.Input;
 
 /// <summary>
 /// Manages mouse input with gesture-like detection (hold, press, release, drag)
 /// </summary>
-public class MouseInput : IInputProvider {
+public class MouseInput : IInputProvider, IMouseInput {
     private MouseState _currentState;
     private MouseState _previousState;
     private readonly Dictionary<MouseButton, ButtonState> _buttonStates = [];
@@ -294,30 +295,6 @@ public class MouseInput : IInputProvider {
         public bool IsDragging { get; set; }
         public bool HoldDetected { get; set; }
     }
-}
-
-/// <summary>
-/// Event args for mouse events
-/// </summary>
-public class MouseEventArgs : EventArgs {
-    public MouseButton Button { get; set; }
-    public Vector2 Position { get; set; }
-    public Vector2 Delta { get; set; }
-    public int ScrollDelta { get; set; }
-    public float HoldTime { get; set; }
-}
-
-/// <summary>
-/// Event args for mouse gesture events
-/// </summary>
-public class MouseGestureEventArgs : EventArgs {
-    public GestureType Type { get; set; }
-    public MouseButton Button { get; set; }
-    public Vector2 Position { get; set; }
-    public Vector2 StartPosition { get; set; }
-    public SwipeDirection Direction { get; set; }
-    public Vector2 Delta { get; set; }
-    public float HoldTime { get; set; }
 }
 
 /// <summary>

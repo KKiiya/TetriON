@@ -1,11 +1,12 @@
+using TetriON.Client.Abstraction.Services;
+
 namespace TetriON.Client.Services;
 
 /// <summary>
 /// Handles matchmaking operations (queue, cancel, match found)
 /// Communicates with the Go web app
 /// </summary>
-public class MatchmakingService : IDisposable {
-
+public class MatchmakingService : IMatchmakingService {
 
     public void Initialize() {
 
@@ -14,6 +15,6 @@ public class MatchmakingService : IDisposable {
     // TODO: Implement matchmaking methods
     public void Dispose() {
         // TODO: Cleanup resources if needed
+        GC.SuppressFinalize(this);
     }
 }
-
