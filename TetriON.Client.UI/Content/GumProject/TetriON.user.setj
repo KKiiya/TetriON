@@ -2,12 +2,7 @@
   "TreeViewState": {
     "ExpandedNodes": [
       "Screens",
-      "Screens/MainMenu",
-      "Screens/MainMenu/ButtonContainer",
-      "Components",
-      "Components/GreenButton",
-      "Components/GreenButton/SpriteInstance"
-      "Screens"
+      "Components"
     ]
   }
 }
