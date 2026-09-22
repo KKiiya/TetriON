@@ -82,9 +82,6 @@ public class ShineLockRenderer(TetrisGame game, IController controller, GameDisp
         CaptureCurrentPieceMatrix();
 
         if (_activeShines.Count == 0) return;
-        // Snapshot: Sprite.Update fires OnAnimationComplete synchronously,
-        // and that handler removes from _activeShines. Iterating the live
-        // list throws "Collection was modified" the moment a shine finishes.
         foreach (var shine in _activeShines.ToArray()) shine.Sprite.Update(deltaTime);
     }
 
