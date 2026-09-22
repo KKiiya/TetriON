@@ -4,7 +4,7 @@ namespace TetriON.Core.Pieces.PieceTypes;
 
 public class Z : Tetromino {
 
-    private readonly Color _color = Color.Red;
+    private readonly Color _color = Color.Green;
     private const string ShapeName = "Z";
     private readonly byte _id = GetTileId(ShapeName);
     private int _rotation;
