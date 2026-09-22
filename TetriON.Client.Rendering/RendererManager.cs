@@ -29,6 +29,12 @@ public class RendererManager(IController controller) : IRendererManager {
         }
     }
 
+    public void DrawAdditive() {
+        foreach (var renderer in _renderers) {
+            if (renderer.IsActive && renderer is IAdditiveRenderer additive) additive.DrawAdditive();
+        }
+    }
+
     public List<IRenderer> GetActiveRenderers() {
         return [.. _renderers.Where(r => r.IsActive)];
     }

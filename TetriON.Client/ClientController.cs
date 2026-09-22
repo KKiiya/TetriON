@@ -110,6 +110,12 @@ public class ClientController : IController {
         ParticleManager.Draw();
         SpriteBatch.End();
 
+        // Additive glow pass (bloom-like effects). Separate scope because
+        // blend state can't change inside the alpha batches above.
+        SpriteBatch.Begin(blendState: BlendState.Additive);
+        RendererManager.DrawAdditive();
+        SpriteBatch.End();
+
         UIManager.Draw();
 
         SpriteBatch.Begin();
@@ -154,7 +160,8 @@ public class ClientController : IController {
             new NextPieceRenderer(_currentGame, this, _gameDisposition),
             new HeldPieceRenderer(_currentGame, this, _gameDisposition),
             new StatsRenderer(_currentGame, this),
-            new NextPiecePositionRenderer(_currentGame, this, _gameDisposition)
+            new NextPiecePositionRenderer(_currentGame, this, _gameDisposition),
+            new LineClearRenderer(_currentGame, this, _gameDisposition)
         ]);
 
         _audioHandler?.Dispose();

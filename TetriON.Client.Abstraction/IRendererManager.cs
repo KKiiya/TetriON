@@ -17,5 +17,6 @@ public interface IRendererManager {
     void UpdateRenderers(GameTime gameTime);
     void DrawRenderers();
     void DrawSpecialRenderers();
+    void DrawAdditive();
     void DoPostDrawActions();
 }
