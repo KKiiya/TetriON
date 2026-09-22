@@ -99,43 +99,53 @@ public class Grid {
     #endregion
 
     #region Line Clearing
+    /// <summary>
+    /// Pure query: which rows are full (cell coordinates). No mutation,
+    /// so TetrisGame can raise PreLineClear with the exact rows first.
+    /// </summary>
+    public int[] FindFullRows() {
+        var full = new List<int>();
+        for (int y = _bufferHeight; y < _totalHeight; y++) {
+            if (IsRowFull(y)) full.Add(y);
+        }
+        return [.. full];
+    }
+
+    public bool IsRowFull(int y) {
+        for (int x = 0; x < _width; x++) {
+            Cell cell = GetCell(x, y);
+            if (!cell.IsOccupied || cell.Type == Cell.CellType.Locked) return false;
+        }
+        return true;
+    }
+
     public int ClearLines() {
         int linesCleared = 0;
 
         // Iterate through visible board rows (starting at bufferHeight)
         for (int y = _bufferHeight; y < _totalHeight; y++) {
-            bool isLineFull = true;
+            if (!IsRowFull(y)) continue;
 
-            for (int x = 0; x < _width; x++) {
-                Cell cell = GetCell(x, y);
-                if (!cell.IsOccupied || cell.Type == Cell.CellType.Locked) {
-                    isLineFull = false;
-                    break;
-                }
-            }
+            linesCleared++;
+            // Clear the line
+            for (int x = 0; x < _width; x++) _cells[x, y].Vacate();
 
-            if (isLineFull) {
-                linesCleared++;
-                // Clear the line
-                for (int x = 0; x < _width; x++) _cells[x, y].Vacate();
-
-                // Move all lines above down (including buffer zone)
-                for (int row = y; row > 0; row--) {
-                    for (int x = 0; x < _width; x++) {
-                        Cell aboveCell = GetCell(x, row - 1);
-                        if (aboveCell.IsOccupied) _cells[x, row].Occupy(aboveCell.CellColor, aboveCell.Type, aboveCell.Identifier);
-                        else _cells[x, row].Vacate();
-                    }
-                }
-
-                // Clear the top line (top of buffer zone)
+            // Move all lines above down (including buffer zone)
+            for (int row = y; row > 0; row--) {
                 for (int x = 0; x < _width; x++) {
-                    _cells[x, 0].Vacate();
+                    Cell aboveCell = GetCell(x, row - 1);
+                    if (aboveCell.IsOccupied) _cells[x, row].Occupy(aboveCell.CellColor, aboveCell.Type, aboveCell.Identifier);
+                    else _cells[x, row].Vacate();
                 }
-
-                // Since we cleared a line, we need to check the same line again
-                y--;
             }
+
+            // Clear the top line (top of buffer zone)
+            for (int x = 0; x < _width; x++) {
+                _cells[x, 0].Vacate();
+            }
+
+            // Since we cleared a line, we need to check the same line again
+            y--;
         }
 
         return linesCleared;

@@ -30,8 +30,6 @@ public class TetrisGame {
     private bool _canHold;
     private bool _wasLastSpin; // Whether last move was a T-Spin
     private bool _previousLineClear;
-    private int _lastDropDistance;
-    private bool _wasLastHardDrop;
     private bool _isGravityPaused; // Whether gravity is currently paused (e.g., during soft drop)
     private bool _isAlmostTopOut; // Whether the piece is in the top 2 rows, used for special game over conditions in some modes
     private bool _isGhostInDanger; // Whether the ghost piece is currently in the danger zone
@@ -361,9 +359,9 @@ public class TetrisGame {
         while (_currentTetromino.CanFitAt(_grid, new Point(_tetrominoPoint.X, newY + 1))) {
             newY++;
         }
-        _lastDropDistance = newY - _tetrominoPoint.Y;
+        int dropped = newY - _tetrominoPoint.Y;
         _tetrominoPoint = new Point(_tetrominoPoint.X, newY);
-        _wasLastHardDrop = true;
+        AddScore(Scoring.GetDropPoints(dropped, isHardDrop: true)); // guideline: 2 pts per hard-drop cell, immediately
 
         // Lock piece in place
         LockPiece();
@@ -405,6 +403,8 @@ public class TetrisGame {
         if (_currentTetromino.CanFitAt(_grid, newPoint)) {
             _tetrominoPoint = newPoint;
             OnMovementDetected();
+            if (direction == MoveDirection.DOWN)
+                AddScore(Scoring.GetDropPoints(1, isHardDrop: false)); // guideline: 1 pt per soft-drop cell, immediately
             if (_tetrominoPoint.Y > _lowestYReached) _lowestYReached = _tetrominoPoint.Y;
             UpdateGhostPosition();
             Raise(new GameEvent(GameEventType.PieceMove, MoveDirection: direction));
@@ -451,6 +451,7 @@ public class TetrisGame {
         if (_currentTetromino == null) return;
 
         // Lock the piece in place on the grid
+        var previousTetromino = _currentTetromino;
         var coords = _currentTetromino.GetPieceCoordinates(_tetrominoPoint);
         var lockPosition = _tetrominoPoint;
         foreach (var coord in coords) _grid.OccupyCell(coord.X, coord.Y, _currentTetromino.Color, Cell.CellType.Normal, _currentTetromino.Id);
@@ -458,7 +459,20 @@ public class TetrisGame {
         // Increment pieces locked count
         _piecesLocked++;
 
-        int linesCleared = _grid.ClearLines();
+        // Detect BEFORE clearing: PreLineClear fires only when rows are actually full,
+        // carrying the exact row indexes. ClearLines is guaranteed via finally so a
+        // throwing subscriber can never leave full rows stuck on the board.
+        var fullRows = _grid.FindFullRows();
+        int linesCleared = 0;
+        if (fullRows.Length > 0) {
+            try {
+                Raise(new GameEvent(GameEventType.PreLineClear, Position: lockPosition, Rows: fullRows));
+            } finally {
+                linesCleared = _grid.ClearLines();
+            }
+            System.Diagnostics.Debug.Assert(linesCleared == fullRows.Length,
+                $"ClearLines cleared {linesCleared} but {fullRows.Length} rows were full.");
+        }
         _lines += linesCleared;
         bool wereCleared = linesCleared > 0;
         if (wereCleared) {
@@ -470,18 +484,17 @@ public class TetrisGame {
             _previousLineClear = false;
         }
 
-        AddScore(CalculateScore(linesCleared, _wasLastHardDrop));
+        AddScore(CalculateScore(linesCleared));
         CalculateAttack(linesCleared);
         ResetLockDelay();
         FetchNextTetromino();
         SpawnNextPiece();
 
         if (wereCleared) _previousLineClear = true;
-        _wasLastHardDrop = false;
-        Raise(new GameEvent(GameEventType.PieceLock, Flag: wereCleared, Position: lockPosition));
+        Raise(new GameEvent(GameEventType.PieceLock, Flag: wereCleared, Position: lockPosition, Number: linesCleared, Piece: previousTetromino));
     }
 
-    public long CalculateScore(int linesCleared, bool wasLastHardDrop = false) {
+    public long CalculateScore(int linesCleared) {
         bool wereCleared = linesCleared > 0;
         if (!wereCleared) return 0;
 
@@ -514,8 +527,6 @@ public class TetrisGame {
             _lastClearWasDifficult = false;
             _backToBackCount = 0;
         }
-        var dropPoints = Scoring.GetDropPoints(_lastDropDistance, wasLastHardDrop);
-        totalPoints += dropPoints;
         return totalPoints;
     }
 
@@ -554,8 +565,6 @@ public class TetrisGame {
         _targetLines = _settings.LinesPerLevel;
         _comboCount = 0;
         _previousLineClear = false;
-        _lastDropDistance = 0;
-        _wasLastHardDrop = false;
         _wasLastSpin = false;
         _isGravityPaused = false;
         _isAlmostTopOut = false;
