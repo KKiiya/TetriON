@@ -29,8 +29,18 @@ public class GameHandler(TetrisGame game, IParticleManager manager, GameDisposit
                     .WithFade(0.0f, 0.3f);          // Minimal fade in, quick fade out
         }
 
-        Game.OnHardDrop += OnHardDrop;
-        Game.OnPieceLock += OnPieceLock;
+        Game.Raised += OnGameEvent;
+    }
+
+    private void OnGameEvent(object? sender, GameEvent gameEvent) {
+        switch (gameEvent.Type) {
+            case GameEventType.HardDrop:
+                OnHardDrop();
+                break;
+            case GameEventType.PieceLock:
+                OnPieceLock(gameEvent.Flag, gameEvent.Position);
+                break;
+        }
     }
 
     private void OnHardDrop() {
@@ -40,7 +50,7 @@ public class GameHandler(TetrisGame game, IParticleManager manager, GameDisposit
         _hardDropPosition = Game.GetGhostTetrominoPoint();
     }
 
-    private void OnPieceLock(bool wereCleared, SystemPoint lockPosition) {
+    private void OnPieceLock(bool wereCleared, SystemPoint? lockPosition) {
         // Only emit particles if this lock was from a hard drop
         if (!_hardDropInProgress || _hardDropPiece == null) return;
         _hardDropInProgress = false;
