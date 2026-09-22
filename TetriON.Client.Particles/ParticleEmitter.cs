@@ -25,6 +25,13 @@ public class ParticleEmitter {
     public Vector2 Position { get; set; }
 
     /// <summary>
+    /// Random spawn offset box (±X, ±Y around Position).
+    /// Zero (default) = all particles spawn exactly at Position.
+    /// E.g. (60, 4) spreads spawns along a horizontal row segment.
+    /// </summary>
+    public Vector2 PositionVariation { get; set; } = Vector2.Zero;
+
+    /// <summary>
     /// Type of particles to emit
     /// </summary>
     public ParticleType? ParticleType { get; set; }
@@ -165,8 +172,18 @@ public class ParticleEmitter {
 
         float rotation = Rotation + RandomRange(-RotationVariation, RotationVariation);
 
+        // Spawn position jitter (box around Position)
+        Vector2 spawnPos = Position + new Vector2(
+            RandomRange(-PositionVariation.X, PositionVariation.X),
+            RandomRange(-PositionVariation.Y, PositionVariation.Y)
+        );
+
         // Initialize the particle
-        particle.Initialize(ParticleType, Position, velocity, rotation);
+        particle.Initialize(ParticleType, spawnPos, velocity, rotation);
+
+        // Constant acceleration (e.g. upward pull or gravity). Must be set
+        // here: Initialize() resets it to zero.
+        particle.Acceleration = Acceleration;
 
         // Apply additional customizations
         particle.Scale = Scale + new Vector2(
