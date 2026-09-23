@@ -24,10 +24,11 @@ public class SongWrapper : ISong {
     // Event for fade out completion
     public event EventHandler? OnFadeOutComplete;
 
-    public SongWrapper(IController controller, string path) {
+    public SongWrapper(IController controller, string path, AudioType type = AudioType.Music) {
         if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("Path cannot be null or empty", nameof(path));
 
         _controller = controller ?? throw new ArgumentNullException(nameof(controller));
+        Type = type;
         _path = path;
 
         try {
@@ -37,11 +38,14 @@ public class SongWrapper : ISong {
         }
     }
 
-    public SongWrapper(IController controller, Song song, string name) {
+    public SongWrapper(IController controller, Song song, string name, AudioType type = AudioType.Music) {
         _controller = controller ?? throw new ArgumentNullException(nameof(controller));
         _song = song ?? throw new ArgumentNullException(nameof(song));
+        Type = type;
         _path = name ?? throw new ArgumentNullException(nameof(name));
     }
+
+    public AudioType Type { get; }
 
     public void Play(float volume = 1.0f, TimeSpan? startTime = default, bool loop = true) {
         ObjectDisposedException.ThrowIf(_disposed, nameof(SongWrapper));

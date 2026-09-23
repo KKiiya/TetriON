@@ -63,6 +63,11 @@ public interface IAudioManager : IDisposable {
     float MusicVolume { get; set; }
 
     /// <summary>
+    /// Set the master volume for interface sounds
+    /// </summary>
+    float UiVolume { get; set; }
+
+    /// <summary>
     /// Mute/unmute all audio
     /// </summary>
     bool IsMuted { get; set; }

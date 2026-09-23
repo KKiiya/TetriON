@@ -12,9 +12,10 @@ public class SoundWrapper : ISound {
     private readonly List<SoundEffectInstance> _activeInstances = [];
     private bool _disposed;
 
-    public SoundWrapper(IController controller, string path) {
+    public SoundWrapper(IController controller, string path, AudioType type = AudioType.Sfx) {
         if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("Path cannot be null or empty", nameof(path));
         _controller = controller ?? throw new ArgumentNullException(nameof(controller));
+        Type = type;
         _path = path;
 
         try {
@@ -29,11 +30,14 @@ public class SoundWrapper : ISound {
         }
     }
 
-    public SoundWrapper(IController controller, SoundEffect soundEffect, string name) {
+    public SoundWrapper(IController controller, SoundEffect soundEffect, string name, AudioType type = AudioType.Sfx) {
         _controller = controller ?? throw new ArgumentNullException(nameof(controller));
         _soundEffect = soundEffect ?? throw new ArgumentNullException(nameof(soundEffect));
+        Type = type;
         _path = name ?? throw new ArgumentNullException(nameof(name));
     }
+
+    public AudioType Type { get; }
 
     public void Play() {
         ObjectDisposedException.ThrowIf(_disposed, nameof(SoundWrapper));

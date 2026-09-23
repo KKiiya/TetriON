@@ -15,6 +15,7 @@ public class AudioManager(IController controller) : IAudioManager {
     private float _lastDeltaTime;
     private float _soundEffectVolume = 0.07f;
     private float _musicVolume = 0.07f;
+    private float _uiVolume = 0.07f;
     private bool _isMuted = false;
 
     public IController Controller { get; } = controller;
@@ -54,8 +55,8 @@ public class AudioManager(IController controller) : IAudioManager {
         if (_isMuted) return;
 
         if (_soundEffects.TryGetValue(soundName, out var sound)) {
-            float finalVolume = _soundEffectVolume * volume;
-            sound.Play(finalVolume);
+            float bus = sound.Type == AudioType.Ui ? _uiVolume : _soundEffectVolume;
+            sound.Play(bus * volume);
         }
     }
 
@@ -100,6 +101,11 @@ public class AudioManager(IController controller) : IAudioManager {
                 _currentMusic.SetVolume(_musicVolume);
             }
         }
+    }
+
+    public float UiVolume {
+        get => _uiVolume;
+        set => _uiVolume = Math.Clamp(value, 0f, 1f);
     }
 
     public bool IsMuted {
