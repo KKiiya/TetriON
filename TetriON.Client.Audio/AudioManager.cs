@@ -205,12 +205,9 @@ public class AudioManager(IController controller) : IAudioManager {
             oldMusic.FadeOut(TimeSpan.FromSeconds(fadeOutDuration));
 
             // Set up event handler to switch to new music after fade out completes
-            EventHandler? fadeOutHandler = null;
-            fadeOutHandler = (sender, e) => {
+            void fadeOutHandler(object? sender, EventArgs e) {
                 // Unsubscribe to avoid memory leaks
-                if (oldMusic != null) {
-                    oldMusic.OnFadeOutComplete -= fadeOutHandler;
-                }
+                if (oldMusic != null) oldMusic.OnFadeOutComplete -= fadeOutHandler;
 
                 // Stop the old music explicitly (it should already be stopped by FadeOut)
                 oldMusic?.Stop();
@@ -221,7 +218,7 @@ public class AudioManager(IController controller) : IAudioManager {
                 // Start the new music with fade in
                 music.SetRepeat(loop);
                 music.FadeIn(TimeSpan.FromSeconds(fadeInDuration), _musicVolume * volume);
-            };
+            }
 
             oldMusic.OnFadeOutComplete += fadeOutHandler;
         } else {
