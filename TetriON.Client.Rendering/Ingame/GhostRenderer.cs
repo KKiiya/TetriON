@@ -16,10 +16,10 @@ public class GhostRenderer(TetrisGame tetrisGame, IController controller, GameDi
 
 
     public override void Draw() {
-        Tetromino? currentPiece = TetrisGame.GetCurrentTetromino();
+        Tetromino? currentPiece = TetrisGame.CurrentTetromino;
         if (currentPiece == null) return;
 
-        var location = TetrisGame.GetGhostTetrominoPoint();
+        var location = TetrisGame.GhostTetrominoPoint;
         var matrix = currentPiece.Matrix;
         var id = currentPiece.Id;
         if (IsGray) id = 0x0A; // Use gray tile for ghost

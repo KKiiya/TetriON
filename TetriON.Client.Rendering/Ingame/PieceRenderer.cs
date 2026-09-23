@@ -13,13 +13,13 @@ public class PieceRenderer(TetrisGame tetrisGame, IController controller, GameDi
     protected readonly GameDisposition _gameDisposition = gameDisposition;
 
     public override void Draw() {
-        Tetromino? currentPiece = TetrisGame.GetCurrentTetromino();
+        Tetromino? currentPiece = TetrisGame.CurrentTetromino;
         if (currentPiece == null) {
             //Logger.Log("PieceRenderer: No current piece to draw", Logger.LogLevel.Info);
             return;
         }
 
-        var location = TetrisGame.GetTetrominoPoint();
+        var location = TetrisGame.TetrominoPoint;
         var matrix = currentPiece.Matrix;
         var id = currentPiece.Id;
 
@@ -45,10 +45,10 @@ public class PieceRenderer(TetrisGame tetrisGame, IController controller, GameDi
                 );
 
                 Color tintColor = Color.White;
-                if (TetrisGame.IsLockDelayActive()) {
+                if (TetrisGame.IsLockDelayActive) {
                     // Apply grey tint based on lock delay progress
-                    float lockTimer = TetrisGame.GetLockDelayTimer();
-                    float maxLockDelay = TetrisGame.GetSettings().LockDelay;
+                    float lockTimer = TetrisGame.LockDelayTimer;
+                    float maxLockDelay = TetrisGame.Settings.LockDelay;
                     float progress = MathHelper.Clamp(lockTimer / maxLockDelay, 0f, 1f);
 
                     // Interpolate from white (1.0) to grey (0.5) as lock delay progresses

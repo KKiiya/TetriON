@@ -39,50 +39,50 @@ public class BoardGridRenderer(TetrisGame tetrisGame, IController controller) : 
     }
 
     private void DrawBorder(int scaledTileWidth, int scaledTileHeight) {
-        var grid = TetrisGame.GetGrid();
+        var grid = TetrisGame.Grid;
 
         var borderThickness = 3;
         var gridRect = new Rectangle(
             _boardLocation.X - borderThickness,
             _boardLocation.Y - borderThickness,
-            grid.GetWidth() * scaledTileWidth + (borderThickness * 2),
-            grid.GetHeight() * scaledTileHeight + (borderThickness * 2)
+            grid.Width * scaledTileWidth + (borderThickness * 2),
+            grid.Height * scaledTileHeight + (borderThickness * 2)
         );
 
         Controller.SpriteBatch.Draw(_pixelTexture, gridRect, Color.Black);
     }
 
     private void DrawBackground(int scaledTileWidth, int scaledTileHeight) {
-        var grid = TetrisGame.GetGrid();
+        var grid = TetrisGame.Grid;
         var innerRect = new Rectangle(
             _boardLocation.X,
             _boardLocation.Y,
-            grid.GetWidth() * scaledTileWidth,
-            grid.GetHeight() * scaledTileHeight
+            grid.Width * scaledTileWidth,
+            grid.Height * scaledTileHeight
         );
 
         Controller.SpriteBatch.Draw(_pixelTexture, innerRect, Color.Gray * 0.2f);
     }
 
     private void DrawGridLines(int scaledTileWidth, int scaledTileHeight) {
-        var grid = TetrisGame.GetGrid();
+        var grid = TetrisGame.Grid;
         // Vertical lines
-        for (var x = 0; x <= grid.GetWidth(); x++) {
+        for (var x = 0; x <= grid.Width; x++) {
             var lineRect = new Rectangle(
                 _boardLocation.X + x * scaledTileWidth,
                 _boardLocation.Y,
                 1,
-                grid.GetHeight() * scaledTileHeight
+                grid.Height * scaledTileHeight
             );
             Controller.SpriteBatch.Draw(_pixelTexture, lineRect, Color.Gray * 0.5f);
         }
 
         // Horizontal lines
-        for (var y = 0; y <= grid.GetHeight(); y++) {
+        for (var y = 0; y <= grid.Height; y++) {
             var lineRect = new Rectangle(
                 _boardLocation.X,
                 _boardLocation.Y + y * scaledTileHeight,
-                grid.GetWidth() * scaledTileWidth,
+                grid.Width * scaledTileWidth,
                 1
             );
             Controller.SpriteBatch.Draw(_pixelTexture, lineRect, Color.Gray * 0.5f);

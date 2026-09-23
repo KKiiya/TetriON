@@ -113,9 +113,9 @@ public abstract class Tetromino {
     public virtual bool CanFitAt(Grid grid, Point position) {
         var coords = GetPieceCoordinates(position);
         foreach (var coord in coords) {
-            if (coord.X < 0 || coord.X >= grid.GetWidth()) return false;
+            if (coord.X < 0 || coord.X >= grid.Width) return false;
             // Check bounds: allow buffer zone (negative Y) but not beyond
-            if (coord.Y < -grid.GetBufferHeight() || coord.Y >= grid.GetHeight()) return false;
+            if (coord.Y < -grid.BufferHeight || coord.Y >= grid.Height) return false;
             if (!grid.IsCellEmpty(coord.X, coord.Y)) return false;
         }
         return true;
@@ -145,12 +145,12 @@ public abstract class Tetromino {
                 var newX = coord.X + direction.X;
                 var newY = coord.Y + direction.Y;
 
-                if (newX < 0 || newX >= grid.GetWidth()) {
+                if (newX < 0 || newX >= grid.Width) {
                     canMoveInThisDirection = false;
                     break;
                 }
 
-                if (newY < -grid.GetBufferHeight() || newY >= grid.GetHeight()) {
+                if (newY < -grid.BufferHeight || newY >= grid.Height) {
                     canMoveInThisDirection = false;
                     break;
                 }

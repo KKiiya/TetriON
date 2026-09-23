@@ -29,9 +29,9 @@ public class GameDisposition(TetrisGame tetrisGame, float sizeMultiplier) {
     /// Forces a recalculation of board location
     /// </summary>
     public void RecalculateBoardLocation(Point screenResolution) {
-        var board = _tetrisGame.GetGrid();
-        var width = board.GetWidth();
-        var height = board.GetHeight();
+        var board = _tetrisGame.Grid;
+        var width = board.Width;
+        var height = board.Height;
 
         var scaledTileWidth = (int)(GridSizing.BaseTileWidth * _sizeMultiplier);
         var scaledTileHeight = (int)(GridSizing.BaseTileHeight * _sizeMultiplier);

@@ -10,15 +10,15 @@ public class StatsRenderer(TetrisGame tetrisGame, IController controller) : Game
     private readonly IFont _font = controller.SkinManager.GetFontAsset("default");
 
     public override void Draw() {
-        int remainingRotations = TetrisGame.GetLockResetCount() - TetrisGame.GetSettings().MaxLockResets;
-        string statsText = $"Score: {TetrisGame.GetScore()}\n" +
-                           $"Level: {TetrisGame.GetLevel()}\n" +
-                           $"Lines Cleared: {TetrisGame.GetLines()}\n" +
-                           $"Combo: {TetrisGame.GetComboCount()}\n" +
+        int remainingRotations = TetrisGame.LockResetCount - TetrisGame.Settings.MaxLockResets;
+        string statsText = $"Score: {TetrisGame.Score}\n" +
+                           $"Level: {TetrisGame.Level}\n" +
+                           $"Lines Cleared: {TetrisGame.Lines}\n" +
+                           $"Combo: {TetrisGame.ComboCount}\n" +
                            $"Lock count: {remainingRotations}\n" +
                            $"\n" +
-                           $"Pieces PS: {TetrisGame.GetPiecePerSecond()}\n" +
-                           $"Time: {FormatElapsedTime(TetrisGame.GetElapsedTime())}";
+                           $"Pieces PS: {TetrisGame.PiecePerSecond}\n" +
+                           $"Time: {FormatElapsedTime(TetrisGame.ElapsedTime)}";
         _font.Draw(statsText, new Vector2(10, 50), Color.White, 0.5f);
     }
 

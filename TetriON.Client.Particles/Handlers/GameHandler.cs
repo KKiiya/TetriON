@@ -33,7 +33,7 @@ public class GameHandler(TetrisGame game, IParticleManager manager, GameDisposit
     private void OnGameEvent(object? sender, GameEvent gameEvent) {
         switch (gameEvent.Type) {
             case GameEventType.PieceLock:
-                OnPieceLock(gameEvent.Position ?? Game.GetTetrominoPoint(), gameEvent.Piece);
+                OnPieceLock(gameEvent.Position ?? Game.TetrominoPoint, gameEvent.Piece);
                 break;
         }
     }
@@ -82,7 +82,7 @@ public class GameHandler(TetrisGame game, IParticleManager manager, GameDisposit
 
             var pieceColor = piece.Color.ToXNA();
             if (emitter != null) {
-                emitter.Scale = new Vector2(0.2f, 0.2f); // smaller particles
+                emitter.Scale = new Vector2(0.3f, 0.3f); // smaller particles
                 emitter.EmissionAngle = -MathF.PI / 2f; // up (Y-down coords: 0 = right)
                 emitter.AngleVariation = 0f;            // no cone: every particle straight up
                 emitter.Speed = 45f;                    // slow rise

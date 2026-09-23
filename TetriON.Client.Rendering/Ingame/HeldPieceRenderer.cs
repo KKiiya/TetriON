@@ -12,12 +12,12 @@ public class HeldPieceRenderer(TetrisGame tetrisGame, IController controller, Ga
     private ITexture TileSheet => Controller.SkinManager.GetTextureAsset("tiles").texture;
 
     public override void Draw() {
-        var heldPiece = TetrisGame.GetHeldTetromino();
+        var heldPiece = TetrisGame.HeldTetromino;
         if (heldPiece == null) return;
 
         var matrix = heldPiece.Rotations[0];
         var id = heldPiece.Id;
-        if (!TetrisGame.CanHold()) id = 0x0B;
+        if (!TetrisGame.CanHold) id = 0x0B;
         var rectangle = TileAtlas.GetSourceRect(id);
         var scaledWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);

@@ -46,7 +46,7 @@ public class T : Tetromino {
         var oldRotation = RotationState;
         var newRotation = (oldRotation + (int)direction + 4) % 4;
         var newMatrix = _rotations[newRotation];
-        var settings = grid.GetGame().GetSettings();
+        var settings = grid.Game.Settings;
 
         // First, try to rotate in place (no wall kick)
         if (grid.CanPlaceTetromino(currentPoint, newMatrix)) {

@@ -20,16 +20,16 @@ public class BoardCellRenderer(TetrisGame tetrisGame, IController controller) : 
     }
 
     public override void Draw() {
-        var board = TetrisGame.GetGrid();
+        var board = TetrisGame.Grid;
         var scaledTileWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         var scaledTileHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
 
         int occupiedCount = 0;
         // Render buffer zone cells (if any are occupied) and visible board cells
         // Y coordinate: -bufferHeight to (height - 1)
-        for (int x = 0; x < board.GetWidth(); x++) {
-            for (int y = -board.GetBufferHeight(); y < board.GetHeight(); y++) {
-                var gridY = y + board.GetBufferHeight();
+        for (int x = 0; x < board.Width; x++) {
+            for (int y = -board.BufferHeight; y < board.Height; y++) {
+                var gridY = y + board.BufferHeight;
                 var cell = board.GetCell(x, gridY);
                 if (cell.IsOccupied) {
                     DrawCell(x, y, cell.Identifier, scaledTileWidth, scaledTileHeight);

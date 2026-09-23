@@ -12,7 +12,7 @@ public class NextPieceRenderer(TetrisGame tetrisGame, IController controller, Ga
     private ITexture TileSheet => Controller.SkinManager.GetTextureAsset("tiles").texture;
 
     public override void Draw() {
-        var nextPieces = TetrisGame.GetNextTetrominos();
+        var nextPieces = TetrisGame.NextTetrominos;
         if (nextPieces == null) return;
 
         var bounds = Controller.Game.Window.ClientBounds;

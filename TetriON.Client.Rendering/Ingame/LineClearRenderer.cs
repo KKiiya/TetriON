@@ -51,13 +51,13 @@ public class LineClearRenderer(TetrisGame game, IController controller, GameDisp
         var sheet = _lineClearTexture?.Texture;
         if (sheet == null || _activeFlashes.Count == 0) return;
 
-        var grid = TetrisGame.GetGrid();
-        int buffer = grid.GetBufferHeight();
+        var grid = TetrisGame.Grid;
+        int buffer = grid.BufferHeight;
         var bounds = Controller.Game.Window.ClientBounds;
         var boardLocation = _gameDisposition.GetBoardLocation(new Point(bounds.Width, bounds.Height));
         int scaledWidth = (int)(GridSizing.BaseTileWidth * SizeMultiplier);
         int scaledHeight = (int)(GridSizing.BaseTileHeight * SizeMultiplier);
-        int rowWidth = (int)(grid.GetWidth() * 1.25f * scaledWidth);
+        int rowWidth = (int)(grid.Width * 1.25f * scaledWidth);
 
         // Full texture: the art is authored to read correctly squashed flat.
         var source = new Rectangle(0, 0, sheet.Width, sheet.Height);

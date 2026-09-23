@@ -88,135 +88,55 @@ public class TetrisGame {
         // Initialize next tetrominos
     }
 
-    #region Getters and Setters
-    public GameSettings GetSettings() {
-        return _settings;
-    }
+    #region Properties
+    public GameSettings Settings => _settings;
 
-    public Grid GetGrid() {
-        return _grid;
-    }
+    public Grid Grid => _grid;
 
-    public Tetromino? GetCurrentTetromino() {
-        return _currentTetromino;
-    }
+    public Tetromino? CurrentTetromino { get => _currentTetromino; set => _currentTetromino = value; }
 
-    public void SetCurrentTetromino(Tetromino tetromino) {
-        _currentTetromino = tetromino;
-    }
+    public Tetromino?[] NextTetrominos => [.. _nextTetrominos];
 
-    public Tetromino?[] GetNextTetrominos() {
-        return [.. _nextTetrominos];
-    }
+    public Tetromino? HeldTetromino { get => _heldTetromino; set => _heldTetromino = value; }
 
-    public Tetromino? GetHeldTetromino() {
-        return _heldTetromino;
-    }
+    public long Level { get => _level; set => _level = value; }
 
-    public void SetHeldTetromino(Tetromino tetromino) {
-        _heldTetromino = tetromino;
-    }
-
-    public long GetLevel() {
-        return _level;
-    }
-
-    public void SetLevel(long level) {
-        _level = level;
-    }
-
-    public long GetScore() {
-        return _score;
-    }
+    public long Score { get => _score; set => _score = value; }
 
     public void AddScore(long score) {
-        _score += score;
-        Raise(new GameEvent(GameEventType.ScoreChange, Number: _score));
+        Score += score;
+        Raise(new GameEvent(GameEventType.ScoreChange, Number: Score));
     }
 
-    public void SetScore(long score) {
-        _score = score;
-    }
+    public int ComboCount => _comboCount;
 
-    public int GetComboCount() {
-        return _comboCount;
-    }
+    public float Gravity => _gravity;
 
-    public float GetGravity() {
-        return _gravity;
-    }
+    public bool WasLastSpin => _wasLastSpin;
 
-    public bool WasLastSpin() {
-        return _wasLastSpin;
-    }
+    public long Lines { get => _lines; set => _lines = value; }
 
-    public long GetLines() {
-        return _lines;
-    }
+    public long TargetLines { get => _targetLines; set => _targetLines = value; }
 
-    public void SetLines(long lines) {
-        _lines = lines;
-    }
+    public bool CanHold { get => _canHold; set => _canHold = value; }
 
-    public long GetTargetLines() {
-        return _targetLines;
-    }
+    public Point TetrominoPoint { get => _tetrominoPoint; set => _tetrominoPoint = value; }
 
-    public void SetTargetLines(long targetLines) {
-        _targetLines = targetLines;
-    }
+    public Point GhostTetrominoPoint { get => _ghostTetrominoPoint; set => _ghostTetrominoPoint = value; }
 
-    public bool CanHold() {
-        return _canHold;
-    }
+    public int BackToBackCount => _backToBackCount;
 
-    public void SetCanHold(bool canHold) {
-        _canHold = canHold;
-    }
+    public bool IsBackToBackActive => _lastClearWasDifficult && _backToBackCount > 0;
 
-    public Point GetTetrominoPoint() {
-        return _tetrominoPoint;
-    }
+    public float PiecePerSecond => _piecePerSecond;
 
-    public void SetTetrominoPoint(Point point) {
-        _tetrominoPoint = point;
-    }
+    public int PiecesLocked => _piecesLocked;
 
-    public Point GetGhostTetrominoPoint() {
-        return _ghostTetrominoPoint;
-    }
+    public TimeSpan ElapsedTime => _elapsedTime;
 
-    public void SetGhostTetrominoPoint(Point point) {
-        _ghostTetrominoPoint = point;
-    }
+    public bool IsRunning => _running;
 
-    public int GetBackToBackCount() {
-        return _backToBackCount;
-    }
-
-    public bool IsBackToBackActive() {
-        return _lastClearWasDifficult && _backToBackCount > 0;
-    }
-
-    public float GetPiecePerSecond() {
-        return _piecePerSecond;
-    }
-
-    public int GetPiecesLocked() {
-        return _piecesLocked;
-    }
-
-    public TimeSpan GetElapsedTime() {
-        return _elapsedTime;
-    }
-
-    public bool IsRunning() {
-        return _running;
-    }
-
-    public bool IsGravityPaused() {
-        return _isGravityPaused;
-    }
+    public bool IsGravityPaused => _isGravityPaused;
 
     public void PauseGravity() {
         _isGravityPaused = true;
@@ -226,13 +146,9 @@ public class TetrisGame {
         _isGravityPaused = false;
     }
 
-    public bool IsAlmostTopOut() {
-        return _isAlmostTopOut;
-    }
+    public bool IsAlmostTopOut => _isAlmostTopOut;
 
-    public bool IsGhostInDanger() {
-        return _isGhostInDanger;
-    }
+    public bool IsGhostInDanger => _isGhostInDanger;
     #endregion
 
 
@@ -550,7 +466,7 @@ public class TetrisGame {
     public Point GetSpawnPosition(Tetromino? piece = null) {
         var startX = (_settings.GridWidth / 2) - 2;
         if (piece?.GetType() == typeof(O)) startX += 1; // Center O piece
-        return new Point(startX, _grid.GetSpawnOffset());
+        return new Point(startX, _grid.SpawnOffset);
     }
 
     public void Finish() {
@@ -632,33 +548,25 @@ public class TetrisGame {
     }
 
     /// <summary>
-    /// Gets the current lock delay timer value
+    /// Current lock delay timer value
     /// </summary>
-    public float GetLockDelayTimer() {
-        return _lockDelayTimer;
-    }
+    public float LockDelayTimer => _lockDelayTimer;
 
     /// <summary>
-    /// Gets the number of lock delay resets performed
+    /// Number of lock delay resets performed
     /// </summary>
-    public int GetLockResetCount() {
-        return _lockResetCount;
-    }
+    public int LockResetCount => _lockResetCount;
 
     /// <summary>
-    /// Checks if piece is currently on ground and lock delay is active
+    /// Whether the piece is currently on ground with lock delay active
     /// </summary>
-    public bool IsLockDelayActive() {
-        return _isPieceOnGround;
-    }
+    public bool IsLockDelayActive => _isPieceOnGround;
 
     /// <summary>
-    /// Gets the lowest Y position the current piece has reached
-    /// Used for detecting if player moved piece up (infinity stall prevention)
+    /// Lowest Y position the current piece has reached.
+    /// Used for detecting if player moved piece up (infinity stall prevention).
     /// </summary>
-    public int GetLowestYReached() {
-        return _lowestYReached;
-    }
+    public int LowestYReached => _lowestYReached;
 
     /// <summary>
     /// Checks if the piece has moved down since the lowest point
@@ -707,7 +615,7 @@ public class TetrisGame {
         // Check if grid is almost covered (blocks present in top 3 rows)
         int visibleTopRows = 3;
         for (int y = 0; y < visibleTopRows; y++) {
-            for (int x = 0; x < _grid.GetWidth(); x++) {
+            for (int x = 0; x < _grid.Width; x++) {
                 if (!_grid.IsCellEmpty(x, y)) {
                     _isAlmostTopOut = true;
                     break;

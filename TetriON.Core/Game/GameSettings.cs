@@ -115,15 +115,7 @@ public class GameSettings {
 
 
     #region Online Settings
-    private GameType _gameType = GameType.Local;
-
-    public GameType GetGameType() {
-        return _gameType;
-    }
-
-    public void SetGameType(GameType gameType) {
-        _gameType = gameType;
-    }
+    public PlayScope GameType { get; set; } = PlayScope.Local;
 
     public int MaxPlayers { get; set; } = 4;
     public bool EnableSpectating { get; set; } = true;
@@ -145,9 +137,7 @@ public class GameSettings {
 
 
     #region Methods
-    public KickSystem GetWallKickSystem() {
-        return _wallKickSystem;
-    }
+    public KickSystem WallKickSystem => _wallKickSystem;
     #endregion
 
 
@@ -214,7 +204,7 @@ public class GameSettings {
     }
 
 
-    public enum GameType {
+    public enum PlayScope {
         Local,
         LocalMultiplayer,
         Online

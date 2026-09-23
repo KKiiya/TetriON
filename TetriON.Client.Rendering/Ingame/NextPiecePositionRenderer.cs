@@ -16,9 +16,9 @@ public class NextPiecePositionRenderer(TetrisGame game, IController controller, 
 
     public override void Draw() {
         // Only draw if game is in danger of topping out
-        if (!TetrisGame.IsAlmostTopOut()) return;
+        if (!TetrisGame.IsAlmostTopOut) return;
 
-        var nextPieces = TetrisGame.GetNextTetrominos();
+        var nextPieces = TetrisGame.NextTetrominos;
         if (nextPieces == null || nextPieces.Length == 0 || nextPieces[0] == null) return;
 
         var nextPiece = nextPieces[0];

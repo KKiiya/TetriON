@@ -7,32 +7,32 @@ namespace TetriON.Core.Board;
 
 public class Grid {
 
-    private readonly TetrisGame _game;
-    private readonly KickSystem _wallKickSystem;
+    public TetrisGame Game { get; }
+    public KickSystem WallKickSystem { get; }
 
 
     #region Grid Properties
-    private readonly int _width;
-    private readonly int _height;
-    private readonly int _bufferHeight;
-    private readonly int _totalHeight;
-    private readonly int _spawnOffset;
+    public int Width { get; }
+    public int Height { get; }
+    public int BufferHeight { get; }
+    public int TotalHeight { get; }
+    public int SpawnOffset { get; }
     private readonly Cell[,] _cells;
     #endregion
 
     #region Constructor
     public Grid(TetrisGame game, int width, int height) {
-        _width = width;
-        _height = height;
-        _bufferHeight = 4;
-        _spawnOffset = -3;
-        _totalHeight = height + _bufferHeight;
-        _game = game;
-        _wallKickSystem = _game.GetSettings().GetWallKickSystem();
+        Width = width;
+        Height = height;
+        BufferHeight = 4;
+        SpawnOffset = -3;
+        TotalHeight = height + BufferHeight;
+        Game = game;
+        WallKickSystem = game.Settings.WallKickSystem;
 
-        _cells = new Cell[width, _totalHeight];
+        _cells = new Cell[width, TotalHeight];
         for (int x = 0; x < width; x++) {
-            for (int y = 0; y < _totalHeight; y++) {
+            for (int y = 0; y < TotalHeight; y++) {
                 _cells[x, y] = new Cell();
             }
         }
@@ -40,7 +40,7 @@ public class Grid {
     #endregion
 
     public Cell GetCell(int x, int y) {
-        if (x < 0 || x >= _width || y < 0 || y >= _totalHeight) {
+        if (x < 0 || x >= Width || y < 0 || y >= TotalHeight) {
             throw new ArgumentOutOfRangeException("Cell coordinates are out of bounds.");
         }
 
@@ -48,53 +48,43 @@ public class Grid {
     }
 
     public void Clear() {
-        for (int x = 0; x < _width; x++) {
-            for (int y = 0; y < _totalHeight; y++) _cells[x, y].Vacate();
+        for (int x = 0; x < Width; x++) {
+            for (int y = 0; y < TotalHeight; y++) _cells[x, y].Vacate();
         }
     }
 
     #region Grid Methods
-    public int GetWidth() {
-        return _width;
-    }
-
-    public int GetHeight() {
-        return _height;
-    }
-
-    public int GetTotalHeight() {
-        return _totalHeight;
-    }
-
-    public int GetBufferHeight() {
-        return _bufferHeight;
-    }
-
-    public int GetSpawnOffset() {
-        return _spawnOffset;
-    }
-
-    public Cell[,] GetCells() {
-        return _cells;
-    }
-
     public void OccupyCell(int x, int y, Color color, CellType type = CellType.Normal, byte identifier = 0) {
         // Allow buffer zone: Y can be negative (down to -bufferHeight)
-        if (x < 0 || x >= _width || y < -_bufferHeight || y >= _height) return;
-        var gridY = y + _bufferHeight;
+        System.Diagnostics.Debug.Assert(x >= 0 && x < Width && y >= -BufferHeight && y < Height,
+            $"OccupyCell out of bounds: ({x}, {y}) on {Width}x{Height}+{BufferHeight} buffer.");
+        if (x < 0 || x >= Width || y < -BufferHeight || y >= Height) return;
+        var gridY = y + BufferHeight;
         _cells[x, gridY].Occupy(color, type, identifier);
     }
 
-    public KickSystem GetWallKickSystem() {
-        return _wallKickSystem;
-    }
-
-    public TetrisGame GetGame() {
-        return _game;
-    }
-
     public Dictionary<string, Point[]> GetWallKicks(bool isI) {
-        return isI ? _wallKickSystem.IKicks : _wallKickSystem.Kicks;
+        return isI ? WallKickSystem.IKicks : WallKickSystem.Kicks;
+    }
+
+    /// <summary>
+    /// Deep snapshot of all cells. The live board stays encapsulated;
+    /// mutate the snapshot freely, it never affects the game.
+    /// </summary>
+    public Cell[,] SnapshotCells() {
+        var copy = new Cell[Width, TotalHeight];
+        for (int x = 0; x < Width; x++) {
+            for (int y = 0; y < TotalHeight; y++) {
+                copy[x, y] = SnapshotCell(_cells[x, y]);
+            }
+        }
+        return copy;
+    }
+
+    private static Cell SnapshotCell(Cell cell) {
+        var copy = new Cell();
+        if (cell.IsOccupied) copy.Occupy(cell.CellColor, cell.Type, cell.Identifier);
+        return copy;
     }
     #endregion
 
@@ -105,14 +95,14 @@ public class Grid {
     /// </summary>
     public int[] FindFullRows() {
         var full = new List<int>();
-        for (int y = _bufferHeight; y < _totalHeight; y++) {
+        for (int y = BufferHeight; y < TotalHeight; y++) {
             if (IsRowFull(y)) full.Add(y);
         }
         return [.. full];
     }
 
     public bool IsRowFull(int y) {
-        for (int x = 0; x < _width; x++) {
+        for (int x = 0; x < Width; x++) {
             Cell cell = GetCell(x, y);
             if (!cell.IsOccupied || cell.Type == Cell.CellType.Locked) return false;
         }
@@ -123,16 +113,16 @@ public class Grid {
         int linesCleared = 0;
 
         // Iterate through visible board rows (starting at bufferHeight)
-        for (int y = _bufferHeight; y < _totalHeight; y++) {
+        for (int y = BufferHeight; y < TotalHeight; y++) {
             if (!IsRowFull(y)) continue;
 
             linesCleared++;
             // Clear the line
-            for (int x = 0; x < _width; x++) _cells[x, y].Vacate();
+            for (int x = 0; x < Width; x++) _cells[x, y].Vacate();
 
             // Move all lines above down (including buffer zone)
             for (int row = y; row > 0; row--) {
-                for (int x = 0; x < _width; x++) {
+                for (int x = 0; x < Width; x++) {
                     Cell aboveCell = GetCell(x, row - 1);
                     if (aboveCell.IsOccupied) _cells[x, row].Occupy(aboveCell.CellColor, aboveCell.Type, aboveCell.Identifier);
                     else _cells[x, row].Vacate();
@@ -140,7 +130,7 @@ public class Grid {
             }
 
             // Clear the top line (top of buffer zone)
-            for (int x = 0; x < _width; x++) {
+            for (int x = 0; x < Width; x++) {
                 _cells[x, 0].Vacate();
             }
 
@@ -155,14 +145,14 @@ public class Grid {
     #region Cell and Row Checks
     public bool IsClear() {
         // Check only visible board area
-        for (int y = _bufferHeight; y < _totalHeight; y++) {
+        for (int y = BufferHeight; y < TotalHeight; y++) {
             if (!IsRowEmpty(y)) return false;
         }
         return true;
     }
 
     public bool IsRowEmpty(int y) {
-        for (int x = 0; x < _width; x++) {
+        for (int x = 0; x < Width; x++) {
             Cell cell = GetCell(x, y);
             if (cell.IsOccupied) return false;
         }
@@ -170,8 +160,8 @@ public class Grid {
     }
 
     public bool IsCellEmpty(int x, int y) {
-        var gridY = y + _bufferHeight;
-        if (x < 0 || x >= _width || gridY < 0 || gridY >= _totalHeight) return false;
+        var gridY = y + BufferHeight;
+        if (x < 0 || x >= Width || gridY < 0 || gridY >= TotalHeight) return false;
         return !_cells[x, gridY].IsOccupied;
     }
 
@@ -218,10 +208,10 @@ public class Grid {
                 var y = position.Y + row;
 
                 // Check if the position is out of bounds (allow buffer zone)
-                if (x < 0 || x >= GetWidth()) return false;
+                if (x < 0 || x >= Width) return false;
 
                 // Allow pieces in buffer zone (negative Y) but not below total area
-                if (y < -_bufferHeight || y >= _height) return false;
+                if (y < -BufferHeight || y >= Height) return false;
 
                 if (!IsCellEmpty(x, y)) return false;
             }
