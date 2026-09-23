@@ -9,6 +9,7 @@ using TetriON.Client.Networking;
 using TetriON.Core.Game;
 using TetriON.Shared.Utilities;
 using TetriON.Client.Abstraction;
+using TetriON.Client.Abstraction.Platform;
 using TetriON.Client.Abstraction.Networking;
 using TetriON.Client.Abstraction.Services;
 using TetriON.Client.Abstraction.State;
@@ -31,6 +32,8 @@ public class ClientController : IController {
     // Dependencies
     public Game Game { get; }
 
+    public IPlatformServices Platform { get; }
+
     // Managers (all key systems)
     public IInputManager InputManager { get; }
     public INetworkManager NetworkManager { get; }
@@ -52,8 +55,11 @@ public class ClientController : IController {
     private EventHandler<GameEvent>? _gameOverHandler;
 
 
-    public ClientController(Game game) {
+    public ClientController(Game game, IPlatformServices? platform = null) {
         Game = game;
+        // Desktop default: bundled assets at the executable root, user data under ./data.
+        // Android/iOS shells inject their own services (TitleContainer + sandbox).
+        Platform = platform ?? new DefaultPlatformServices();
 
         SpriteBatch = new SpriteBatch(game.GraphicsDevice);
         // Initialize in dependency order

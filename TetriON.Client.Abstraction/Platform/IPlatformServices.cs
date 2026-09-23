@@ -40,7 +40,7 @@ public class DefaultPlatformServices : IPlatformServices {
     }
 
     private sealed class DefaultAppStorage(string root) : IAppStorage {
-        public string UserDataDirectory => Path.Combine(root, "data");
+        public string UserDataDirectory => root;
         public string UserSkinDirectory => Path.Combine(root, "skins");
         public string UserLogsDirectory => Path.Combine(root, "logs");
 
