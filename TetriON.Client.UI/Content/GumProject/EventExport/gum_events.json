@@ -7,6 +7,202 @@
         "ElementType": "Screens",
         "EventType": 0,
         "TimestampUtc": "2026-09-22T15:22:23.5605097Z"
+      },
+      {
+        "NewName": "LoginTitleComponent",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 0,
+        "TimestampUtc": "2026-09-23T17:09:32.7400572Z"
+      },
+      {
+        "NewName": "LoginTitleComponent (Container).SpriteInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:10:13.5680776Z"
+      },
+      {
+        "NewName": "PassTitleComponent",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 0,
+        "TimestampUtc": "2026-09-23T17:23:24.4880912Z"
+      },
+      {
+        "NewName": "PassTitleComponent (Container).SpriteInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:23:31.7995884Z"
+      },
+      {
+        "NewName": "LoginBackgroundComponent",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 0,
+        "TimestampUtc": "2026-09-23T17:25:31.2449951Z"
+      },
+      {
+        "NewName": "LoginBackgroundComponent (Container).SpriteInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:25:35.8435504Z"
+      },
+      {
+        "NewName": "LoginScreen.ContainerInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:26:33.9040385Z"
+      },
+      {
+        "NewName": "LoginScreen.LoginBackgroundComponentInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:29:49.9610478Z"
+      },
+      {
+        "NewName": "LoginScreen.ContainerInstance1",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:30:40.3069689Z"
+      },
+      {
+        "NewName": "LoginScreen.LoginTitleComponentInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:30:53.6003426Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LoginScreen.LoginTitleComponent LoginTitleComponentInstance in LoginScreen",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-09-23T17:31:45.5609467Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LoginScreen.Container ContainerInstance1 in LoginScreen",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-09-23T17:31:45.575941Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LoginScreen.LoginBackgroundComponent LoginBackgroundComponentInstance in LoginScreen",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-09-23T17:31:45.5936659Z"
+      },
+      {
+        "NewName": "LoginScreen.LoginContainer",
+        "OldName": "LoginScreen.ContainerInstance",
+        "ElementType": "Screens",
+        "EventType": 7,
+        "TimestampUtc": "2026-09-23T17:33:18.7032505Z"
+      },
+      {
+        "NewName": "LoginScreen.LoginBackgroundComponentInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:33:23.01108Z"
+      },
+      {
+        "NewName": "LoginScreen.ContainerInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:37:58.2434223Z"
+      },
+      {
+        "NewName": "LoginScreen.LoginField",
+        "OldName": "LoginScreen.ContainerInstance",
+        "ElementType": "Screens",
+        "EventType": 7,
+        "TimestampUtc": "2026-09-23T17:44:04.1968183Z"
+      },
+      {
+        "NewName": "LoginScreen.LoginField1",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:44:10.8008337Z"
+      },
+      {
+        "NewName": "LoginScreen.PasswordField",
+        "OldName": "LoginScreen.LoginField1",
+        "ElementType": "Screens",
+        "EventType": 7,
+        "TimestampUtc": "2026-09-23T17:44:17.6475936Z"
+      },
+      {
+        "NewName": "LoginScreen.ContainerInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:44:39.1066858Z"
+      },
+      {
+        "NewName": "LoginScreen.CredentialsField",
+        "OldName": "LoginScreen.ContainerInstance",
+        "ElementType": "Screens",
+        "EventType": 7,
+        "TimestampUtc": "2026-09-23T17:44:49.8767681Z"
+      },
+      {
+        "NewName": "LoginScreen.PassTitleComponentInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:46:05.0181632Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LoginScreen.PassTitleComponent PassTitleComponentInstance in LoginScreen",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-09-23T17:46:40.7898395Z"
+      },
+      {
+        "NewName": "LoginScreen.LoginTitleComponentInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:47:12.5028155Z"
+      },
+      {
+        "NewName": "TextField",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 0,
+        "TimestampUtc": "2026-09-23T17:47:39.152434Z"
+      },
+      {
+        "NewName": "TextField (Container).ColoredCircleInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:47:50.4233267Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "TextField",
+        "ElementType": "Components",
+        "EventType": 1,
+        "TimestampUtc": "2026-09-23T17:51:00.8537895Z"
+      },
+      {
+        "NewName": "LoginScreen.PassTitleComponentInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T17:51:19.4634938Z"
       }
     ]
   }

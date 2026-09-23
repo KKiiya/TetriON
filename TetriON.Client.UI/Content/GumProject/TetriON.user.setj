@@ -2,6 +2,14 @@
   "TreeViewState": {
     "ExpandedNodes": [
       "Screens",
+      "Screens/LoginScreen",
+      "Screens/LoginScreen/LoginContainer",
+      "Screens/LoginScreen/LoginContainer/LoginBackgroundComponentInstance",
+      "Screens/LoginScreen/LoginContainer/LoginBackgroundComponentInstance/CredentialsField",
+      "Screens/LoginScreen/LoginContainer/LoginBackgroundComponentInstance/CredentialsField/PasswordField",
+      "Screens/LoginScreen/LoginContainer/LoginBackgroundComponentInstance/CredentialsField/LoginField",
+      "Screens/MainMenu",
+      "Screens/MainMenu/ButtonContainer",
       "Components"
     ]
   }
