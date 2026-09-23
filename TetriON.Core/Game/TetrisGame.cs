@@ -157,7 +157,7 @@ public class TetrisGame {
     public void Start() {
         _running = true;
         _elapsedTime = TimeSpan.Zero;
-        _gravity = Gravity.GetGravity((int)_level);
+        _gravity = Rules.Gravity.GetGravity((int)_level);
         _bagGenerator.Reset();
         _piecesLocked = 0;
         _piecePerSecond = 0f;
@@ -359,7 +359,7 @@ public class TetrisGame {
         if (!ShouldLevelUp() && !force) return;
         _level++;
         _targetLines += _settings.LinesPerLevel;
-        _gravity = Gravity.GetGravity((int)_level);
+        _gravity = Rules.Gravity.GetGravity((int)_level);
         Raise(new GameEvent(GameEventType.LevelUp, Number: _level));
     }
 
