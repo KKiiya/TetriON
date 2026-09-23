@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Audio;
 namespace TetriON.Client.Abstraction.Media;
 
 public interface ISound : IDisposable {
+    AudioType Type { get; }
     void Play(float volume = 1.0f, float pitch = 0.0f, float pan = 0.0f);
     SoundEffectInstance? PlayInstance(float volume = 1.0f, float pitch = 0.0f, float pan = 0.0f);
     void StopAll();

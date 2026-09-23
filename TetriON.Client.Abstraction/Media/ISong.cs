@@ -4,6 +4,7 @@ namespace TetriON.Client.Abstraction.Media;
 
 public interface ISong : IDisposable {
 
+    AudioType Type { get; }
     void Play(float volume = 1.0f, TimeSpan? startTime = default, bool loop = true);
     void Stop();
     void Pause();
