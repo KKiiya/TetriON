@@ -92,6 +92,7 @@ public class GameHandler(TetrisGame game, IParticleManager manager, GameDisposit
                 emitter.PositionVariation = new Vector2(12f, 12f); // stay inside the cell, spread over the piece via per-cell emitters
                 emitter.LifetimeVariation = new Vector2(-0.25f, 0.25f); // avoid synchronized death
                 emitter.Color = pieceColor * 0.5f;     // piece-tinted, nearly opaque (fade handles the dissolve)
+                emitter.RotationSpeedVariation = new Vector2(-3f, 3f); // gentle spin
             }
 
             // Emit 2 particles from each cell
