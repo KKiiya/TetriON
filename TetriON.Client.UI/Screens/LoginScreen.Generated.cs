@@ -43,6 +43,7 @@ partial class LoginScreen : global::Gum.Forms.Controls.FrameworkElement
     public PassTitleComponent PassTitleComponentInstance { get; protected set; }
     public InputTextBox InputTextBoxInstance1 { get; protected set; }
     public InputTextBox InputTextBoxInstance { get; protected set; }
+    public GoButtonComponent GoButtonComponentInstance { get; protected set; }
 
     public LoginScreen(InteractiveGue visual) : base(visual)
     {
@@ -91,6 +92,8 @@ partial class LoginScreen : global::Gum.Forms.Controls.FrameworkElement
         InputTextBoxInstance1.Name = "InputTextBoxInstance1";
         InputTextBoxInstance = new TetriON.Client.UI.Gum.Components.InputTextBox();
         InputTextBoxInstance.Name = "InputTextBoxInstance";
+        GoButtonComponentInstance = new TetriON.Client.UI.Gum.Components.GoButtonComponent();
+        GoButtonComponentInstance.Name = "GoButtonComponentInstance";
         base.RefreshInternalVisualReferences();
     }
     protected virtual void AssignParents()
@@ -104,6 +107,7 @@ partial class LoginScreen : global::Gum.Forms.Controls.FrameworkElement
         PasswordField.AddChild(PassTitleComponentInstance);
         PasswordField.AddChild(InputTextBoxInstance1);
         LoginField.AddChild(InputTextBoxInstance);
+        CredentialsField.AddChild(GoButtonComponentInstance);
     }
     private void ApplyDefaultVariables()
     {
@@ -112,18 +116,18 @@ partial class LoginScreen : global::Gum.Forms.Controls.FrameworkElement
         this.Visual.Height = 0f;
         this.Visual.HeightUnits = global::Gum.DataTypes.DimensionUnitType.RelativeToParent;
         this.LoginContainer.ChildrenLayout = global::Gum.Managers.ChildrenLayout.Regular;
-        this.LoginContainer.Height = 200f;
-        this.LoginContainer.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfOtherDimension;
-        this.LoginContainer.Width = 200f;
-        this.LoginContainer.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfOtherDimension;
+        this.LoginContainer.Height = 30f;
+        this.LoginContainer.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
+        this.LoginContainer.Width = 30f;
+        this.LoginContainer.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
         this.LoginContainer.XOrigin = global::RenderingLibrary.Graphics.HorizontalAlignment.Center;
         this.LoginContainer.XUnits = global::Gum.Converters.GeneralUnitType.PixelsFromMiddle;
         this.LoginContainer.YOrigin = global::RenderingLibrary.Graphics.VerticalAlignment.Center;
         this.LoginContainer.YUnits = global::Gum.Converters.GeneralUnitType.PixelsFromMiddle;
 
-        this.LoginBackgroundComponentInstance.Visual.Height = 70f;
+        this.LoginBackgroundComponentInstance.Visual.Height = 100f;
         this.LoginBackgroundComponentInstance.Visual.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
-        this.LoginBackgroundComponentInstance.Visual.Width = 80f;
+        this.LoginBackgroundComponentInstance.Visual.Width = 100f;
         this.LoginBackgroundComponentInstance.Visual.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
         this.LoginBackgroundComponentInstance.Visual.XOrigin = global::RenderingLibrary.Graphics.HorizontalAlignment.Center;
         this.LoginBackgroundComponentInstance.Visual.XUnits = global::Gum.Converters.GeneralUnitType.PixelsFromMiddle;
@@ -131,11 +135,11 @@ partial class LoginScreen : global::Gum.Forms.Controls.FrameworkElement
         this.LoginBackgroundComponentInstance.Visual.YUnits = global::Gum.Converters.GeneralUnitType.PixelsFromMiddle;
 
         this.CredentialsField.ChildrenLayout = global::Gum.Managers.ChildrenLayout.TopToBottomStack;
-        this.CredentialsField.Height = 0f;
-        this.CredentialsField.HeightUnits = global::Gum.DataTypes.DimensionUnitType.RelativeToChildren;
+        this.CredentialsField.Height = 80f;
+        this.CredentialsField.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
         this.CredentialsField.StackSpacing = 15f;
-        this.CredentialsField.Width = 0f;
-        this.CredentialsField.WidthUnits = global::Gum.DataTypes.DimensionUnitType.RelativeToChildren;
+        this.CredentialsField.Width = 80f;
+        this.CredentialsField.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
         this.CredentialsField.XOrigin = global::RenderingLibrary.Graphics.HorizontalAlignment.Center;
         this.CredentialsField.XUnits = global::Gum.Converters.GeneralUnitType.PixelsFromMiddle;
         this.CredentialsField.YOrigin = global::RenderingLibrary.Graphics.VerticalAlignment.Center;
@@ -143,22 +147,22 @@ partial class LoginScreen : global::Gum.Forms.Controls.FrameworkElement
 
         this.LoginField.ChildrenLayout = global::Gum.Managers.ChildrenLayout.TopToBottomStack;
         this.LoginField.Height = 25f;
-        this.LoginField.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfOtherDimension;
+        this.LoginField.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
         this.LoginField.IsRenderTarget = false;
         this.LoginField.StackSpacing = 5f;
-        this.LoginField.Width = 150f;
-        this.LoginField.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfOtherDimension;
+        this.LoginField.Width = 100f;
+        this.LoginField.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
         this.LoginField.WrapsChildren = false;
         this.LoginField.XOrigin = global::RenderingLibrary.Graphics.HorizontalAlignment.Center;
         this.LoginField.XUnits = global::Gum.Converters.GeneralUnitType.PixelsFromMiddle;
 
         this.PasswordField.ChildrenLayout = global::Gum.Managers.ChildrenLayout.TopToBottomStack;
         this.PasswordField.Height = 25f;
-        this.PasswordField.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfOtherDimension;
+        this.PasswordField.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
         this.PasswordField.IgnoredByParentSize = false;
         this.PasswordField.StackSpacing = 5f;
-        this.PasswordField.Width = 150f;
-        this.PasswordField.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfOtherDimension;
+        this.PasswordField.Width = 100f;
+        this.PasswordField.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
         this.PasswordField.XOrigin = global::RenderingLibrary.Graphics.HorizontalAlignment.Center;
         this.PasswordField.XUnits = global::Gum.Converters.GeneralUnitType.PixelsFromMiddle;
 
@@ -175,6 +179,9 @@ partial class LoginScreen : global::Gum.Forms.Controls.FrameworkElement
 
         this.InputTextBoxInstance.Visual.Height = 50f;
         this.InputTextBoxInstance.Visual.Width = 100f;
+
+        this.GoButtonComponentInstance.Visual.XOrigin = global::RenderingLibrary.Graphics.HorizontalAlignment.Center;
+        this.GoButtonComponentInstance.Visual.XUnits = global::Gum.Converters.GeneralUnitType.PixelsFromMiddle;
 
     }
     partial void CustomInitialize();

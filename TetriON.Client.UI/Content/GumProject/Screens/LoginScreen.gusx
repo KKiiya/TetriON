@@ -12,13 +12,13 @@
     <Variable>
       <Type>float</Type>
       <Name>CredentialsField.Height</Name>
-      <Value xsi:type="xsd:float">0</Value>
+      <Value xsi:type="xsd:float">80</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>DimensionUnitType</Type>
       <Name>CredentialsField.HeightUnits</Name>
-      <Value xsi:type="xsd:int">4</Value>
+      <Value xsi:type="xsd:int">1</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -36,13 +36,13 @@
     <Variable>
       <Type>float</Type>
       <Name>CredentialsField.Width</Name>
-      <Value xsi:type="xsd:float">0</Value>
+      <Value xsi:type="xsd:float">80</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>DimensionUnitType</Type>
       <Name>CredentialsField.WidthUnits</Name>
-      <Value xsi:type="xsd:int">4</Value>
+      <Value xsi:type="xsd:int">1</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -67,6 +67,24 @@
       <Type>PositionUnitType</Type>
       <Name>CredentialsField.YUnits</Name>
       <Value xsi:type="xsd:int">7</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>string</Type>
+      <Name>GoButtonComponentInstance.Parent</Name>
+      <Value xsi:type="xsd:string">CredentialsField</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>HorizontalAlignment</Type>
+      <Name>GoButtonComponentInstance.XOrigin</Name>
+      <Value xsi:type="xsd:int">1</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>PositionUnitType</Type>
+      <Name>GoButtonComponentInstance.XUnits</Name>
+      <Value xsi:type="xsd:int">6</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -108,7 +126,7 @@
     <Variable>
       <Type>float</Type>
       <Name>LoginBackgroundComponentInstance.Height</Name>
-      <Value xsi:type="xsd:float">70</Value>
+      <Value xsi:type="xsd:float">100</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -126,7 +144,7 @@
     <Variable>
       <Type>float</Type>
       <Name>LoginBackgroundComponentInstance.Width</Name>
-      <Value xsi:type="xsd:float">80</Value>
+      <Value xsi:type="xsd:float">100</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -168,25 +186,25 @@
     <Variable>
       <Type>float</Type>
       <Name>LoginContainer.Height</Name>
-      <Value xsi:type="xsd:float">200</Value>
+      <Value xsi:type="xsd:float">30</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>DimensionUnitType</Type>
       <Name>LoginContainer.HeightUnits</Name>
-      <Value xsi:type="xsd:int">5</Value>
+      <Value xsi:type="xsd:int">1</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>float</Type>
       <Name>LoginContainer.Width</Name>
-      <Value xsi:type="xsd:float">200</Value>
+      <Value xsi:type="xsd:float">30</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>DimensionUnitType</Type>
       <Name>LoginContainer.WidthUnits</Name>
-      <Value xsi:type="xsd:int">5</Value>
+      <Value xsi:type="xsd:int">1</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -228,7 +246,7 @@
     <Variable>
       <Type>DimensionUnitType</Type>
       <Name>LoginField.HeightUnits</Name>
-      <Value xsi:type="xsd:int">5</Value>
+      <Value xsi:type="xsd:int">1</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -252,13 +270,13 @@
     <Variable>
       <Type>float</Type>
       <Name>LoginField.Width</Name>
-      <Value xsi:type="xsd:float">150</Value>
+      <Value xsi:type="xsd:float">100</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>DimensionUnitType</Type>
       <Name>LoginField.WidthUnits</Name>
-      <Value xsi:type="xsd:int">5</Value>
+      <Value xsi:type="xsd:int">1</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -342,7 +360,7 @@
     <Variable>
       <Type>DimensionUnitType</Type>
       <Name>PasswordField.HeightUnits</Name>
-      <Value xsi:type="xsd:int">5</Value>
+      <Value xsi:type="xsd:int">1</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -366,13 +384,13 @@
     <Variable>
       <Type>float</Type>
       <Name>PasswordField.Width</Name>
-      <Value xsi:type="xsd:float">150</Value>
+      <Value xsi:type="xsd:float">100</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>DimensionUnitType</Type>
       <Name>PasswordField.WidthUnits</Name>
-      <Value xsi:type="xsd:int">5</Value>
+      <Value xsi:type="xsd:int">1</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -431,6 +449,11 @@
   <Instance>
     <Name>InputTextBoxInstance</Name>
     <BaseType>InputTextBox</BaseType>
+    <DefinedByBase>false</DefinedByBase>
+  </Instance>
+  <Instance>
+    <Name>GoButtonComponentInstance</Name>
+    <BaseType>GoButtonComponent</BaseType>
     <DefinedByBase>false</DefinedByBase>
   </Instance>
   <Behaviors />

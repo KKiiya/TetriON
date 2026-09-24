@@ -1,19 +1,7 @@
-using Gum.Converters;
-using Gum.DataTypes;
-using Gum.Managers;
-using Gum.Wireframe;
+namespace TetriON.Client.UI.Gum.Screens;
 
-using RenderingLibrary.Graphics;
+partial class LoginScreen {
+    partial void CustomInitialize() {
 
-using System.Linq;
-
-namespace TetriON.Client.UI.Gum.Screens
-{
-    partial class LoginScreen
-    {
-        partial void CustomInitialize()
-        {
-        
-        }
     }
 }

@@ -39,6 +39,10 @@ partial class GoButtonComponent : global::Gum.Forms.Controls.FrameworkElement
     public GoButtonComponent() : base(new ContainerRuntime())
     {
 
+        this.Visual.Height = 50f;
+        this.Visual.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfOtherDimension;
+        this.Visual.Width = 100f;
+        this.Visual.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfOtherDimension;
 
         InitializeInstances();
 
@@ -62,12 +66,16 @@ partial class GoButtonComponent : global::Gum.Forms.Controls.FrameworkElement
     private void ApplyDefaultVariables()
     {
         this.SpriteInstance.Animate = false;
-        this.SpriteInstance.SourceFileName = @"start_button_sprite.png";
+        this.SpriteInstance.Height = 100f;
+        this.SpriteInstance.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
+        this.SpriteInstance.SourceFileName = @"GoPress.achx";
         this.SpriteInstance.TextureAddress = global::Gum.Managers.TextureAddress.Custom;
         this.SpriteInstance.TextureHeight = 16;
         this.SpriteInstance.TextureLeft = 0;
         this.SpriteInstance.TextureTop = 0;
         this.SpriteInstance.TextureWidth = 32;
+        this.SpriteInstance.Width = 100f;
+        this.SpriteInstance.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
 
     }
     partial void CustomInitialize();

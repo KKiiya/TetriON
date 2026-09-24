@@ -203,6 +203,27 @@
         "ElementType": "Screens",
         "EventType": 5,
         "TimestampUtc": "2026-09-23T17:51:19.4634938Z"
+      },
+      {
+        "NewName": "LoginScreen.GoButtonComponentInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-24T14:19:03.4600346Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LoginScreen.GoButtonComponent GoButtonComponentInstance in LoginScreen",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-09-24T15:19:58.4903391Z"
+      },
+      {
+        "NewName": "LoginScreen.GoButtonComponentInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-24T15:23:55.6366636Z"
       }
     ],
     "69f7e042eb9d4fa48c58f0db55848f4fa81634f83b640477d764d2c8d7122b15": [

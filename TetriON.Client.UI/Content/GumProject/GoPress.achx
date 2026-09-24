@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AnimationChainArraySave xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <FileRelativeTextures>true</FileRelativeTextures>
+  <TimeMeasurementUnit>Second</TimeMeasurementUnit>
+  <CoordinateType>Pixel</CoordinateType>
+  <AnimationChain>
+    <Name>GoPress</Name>
+    <Frame>
+      <TextureName>start_button_sprite.png</TextureName>
+      <FrameLength>0.1</FrameLength>
+      <LeftCoordinate>0</LeftCoordinate>
+      <RightCoordinate>32</RightCoordinate>
+      <TopCoordinate>0</TopCoordinate>
+      <BottomCoordinate>16</BottomCoordinate>
+      <ShapeCollectionSave>
+        <AxisAlignedRectangleSaves />
+        <AxisAlignedCubeSaves />
+        <PolygonSaves />
+        <CircleSaves />
+        <SphereSaves />
+      </ShapeCollectionSave>
+    </Frame>
+    <Frame>
+      <TextureName>start_button_sprite.png</TextureName>
+      <FrameLength>0.1</FrameLength>
+      <LeftCoordinate>32</LeftCoordinate>
+      <RightCoordinate>64</RightCoordinate>
+      <TopCoordinate>-0</TopCoordinate>
+      <BottomCoordinate>16</BottomCoordinate>
+      <ShapeCollectionSave>
+        <AxisAlignedRectangleSaves />
+        <AxisAlignedCubeSaves />
+        <PolygonSaves />
+        <CircleSaves />
+        <SphereSaves />
+      </ShapeCollectionSave>
+    </Frame>
+    <Frame>
+      <TextureName>start_button_sprite.png</TextureName>
+      <FrameLength>0.1</FrameLength>
+      <LeftCoordinate>64</LeftCoordinate>
+      <RightCoordinate>96</RightCoordinate>
+      <TopCoordinate>-0</TopCoordinate>
+      <BottomCoordinate>16</BottomCoordinate>
+      <ShapeCollectionSave>
+        <AxisAlignedRectangleSaves />
+        <AxisAlignedCubeSaves />
+        <PolygonSaves />
+        <CircleSaves />
+        <SphereSaves />
+      </ShapeCollectionSave>
+    </Frame>
+    <Frame>
+      <TextureName>start_button_sprite.png</TextureName>
+      <FrameLength>0.1</FrameLength>
+      <LeftCoordinate>0</LeftCoordinate>
+      <RightCoordinate>32</RightCoordinate>
+      <TopCoordinate>17</TopCoordinate>
+      <BottomCoordinate>32</BottomCoordinate>
+      <ShapeCollectionSave>
+        <AxisAlignedRectangleSaves />
+        <AxisAlignedCubeSaves />
+        <PolygonSaves />
+        <CircleSaves />
+        <SphereSaves />
+      </ShapeCollectionSave>
+    </Frame>
+    <Frame>
+      <TextureName>start_button_sprite.png</TextureName>
+      <FrameLength>0.1</FrameLength>
+      <LeftCoordinate>32</LeftCoordinate>
+      <RightCoordinate>64</RightCoordinate>
+      <TopCoordinate>16</TopCoordinate>
+      <BottomCoordinate>32</BottomCoordinate>
+      <ShapeCollectionSave>
+        <AxisAlignedRectangleSaves />
+        <AxisAlignedCubeSaves />
+        <PolygonSaves />
+        <CircleSaves />
+        <SphereSaves />
+      </ShapeCollectionSave>
+    </Frame>
+    <Frame>
+      <TextureName>start_button_sprite.png</TextureName>
+      <FrameLength>0.1</FrameLength>
+      <LeftCoordinate>64</LeftCoordinate>
+      <RightCoordinate>96</RightCoordinate>
+      <TopCoordinate>16</TopCoordinate>
+      <BottomCoordinate>32</BottomCoordinate>
+      <ShapeCollectionSave>
+        <AxisAlignedRectangleSaves />
+        <AxisAlignedCubeSaves />
+        <PolygonSaves />
+        <CircleSaves />
+        <SphereSaves />
+      </ShapeCollectionSave>
+    </Frame>
+    <Frame>
+      <TextureName>start_button_sprite.png</TextureName>
+      <FrameLength>0.1</FrameLength>
+      <LeftCoordinate>0</LeftCoordinate>
+      <RightCoordinate>32</RightCoordinate>
+      <TopCoordinate>32</TopCoordinate>
+      <BottomCoordinate>48</BottomCoordinate>
+      <ShapeCollectionSave>
+        <AxisAlignedRectangleSaves />
+        <AxisAlignedCubeSaves />
+        <PolygonSaves />
+        <CircleSaves />
+        <SphereSaves />
+      </ShapeCollectionSave>
+    </Frame>
+  </AnimationChain>
+</AnimationChainArraySave>

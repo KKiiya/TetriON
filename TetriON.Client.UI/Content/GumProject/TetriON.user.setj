@@ -9,9 +9,7 @@
       "Screens/MainMenu",
       "Screens/MainMenu/ButtonContainer",
       "Components",
-      "Components/GoButtonComponent",
-      "Components/GreenButton",
-      "Components/GreenButton/SpriteInstance"
+      "Components/GoButtonComponent"
     ]
   }
 }
