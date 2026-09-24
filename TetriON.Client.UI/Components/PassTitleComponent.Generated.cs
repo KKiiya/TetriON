@@ -39,9 +39,9 @@ partial class PassTitleComponent : global::Gum.Forms.Controls.FrameworkElement
     public PassTitleComponent() : base(new ContainerRuntime())
     {
 
-        this.Visual.Height = 0f;
+        this.Visual.Height = 25f;
         this.Visual.HeightUnits = global::Gum.DataTypes.DimensionUnitType.RelativeToChildren;
-        this.Visual.Width = 0f;
+        this.Visual.Width = 70f;
         this.Visual.WidthUnits = global::Gum.DataTypes.DimensionUnitType.RelativeToChildren;
 
         InitializeInstances();
@@ -65,7 +65,9 @@ partial class PassTitleComponent : global::Gum.Forms.Controls.FrameworkElement
     }
     private void ApplyDefaultVariables()
     {
+        this.SpriteInstance.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
         this.SpriteInstance.SourceFileName = @"pass_title.png";
+        this.SpriteInstance.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
 
     }
     partial void CustomInitialize();

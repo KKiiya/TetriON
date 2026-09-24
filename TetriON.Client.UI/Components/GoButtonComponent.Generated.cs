@@ -1,4 +1,4 @@
-//Code for LoginTitleComponent (Container)
+//Code for GoButtonComponent (Container)
 using Gum.Converters;
 using Gum.DataTypes;
 using Gum.Managers;
@@ -9,7 +9,7 @@ using MonoGameGum.GueDeriving;
 using RenderingLibrary.Graphics;
 using System.Linq;
 namespace TetriON.Client.UI.Gum.Components;
-partial class LoginTitleComponent : global::Gum.Forms.Controls.FrameworkElement
+partial class GoButtonComponent : global::Gum.Forms.Controls.FrameworkElement
 {
     [System.Runtime.CompilerServices.ModuleInitializer]
     public static void RegisterRuntimeType()
@@ -17,13 +17,13 @@ partial class LoginTitleComponent : global::Gum.Forms.Controls.FrameworkElement
         var template = new global::Gum.Forms.VisualTemplate((vm, createForms) =>
         {
             var visual = new global::MonoGameGum.GueDeriving.ContainerRuntime();
-            var element = ObjectFinder.Self.GetElementSave("LoginTitleComponent") ?? throw new System.InvalidOperationException("Could not find an element named LoginTitleComponent - did you forget to load a Gum project?");
+            var element = ObjectFinder.Self.GetElementSave("GoButtonComponent") ?? throw new System.InvalidOperationException("Could not find an element named GoButtonComponent - did you forget to load a Gum project?");
             element.SetGraphicalUiElement(visual, RenderingLibrary.SystemManagers.Default);
-            if(createForms) visual.FormsControlAsObject = new LoginTitleComponent(visual);
+            if(createForms) visual.FormsControlAsObject = new GoButtonComponent(visual);
             return visual;
         });
-        global::Gum.Forms.Controls.FrameworkElement.DefaultFormsTemplates[typeof(LoginTitleComponent)] = template;
-        ElementSaveExtensions.RegisterGueInstantiation("LoginTitleComponent", () => 
+        global::Gum.Forms.Controls.FrameworkElement.DefaultFormsTemplates[typeof(GoButtonComponent)] = template;
+        ElementSaveExtensions.RegisterGueInstantiation("GoButtonComponent", () => 
         {
             var gue = template.CreateContent(null, true) as InteractiveGue;
             return gue;
@@ -31,18 +31,14 @@ partial class LoginTitleComponent : global::Gum.Forms.Controls.FrameworkElement
     }
     public SpriteRuntime SpriteInstance { get; protected set; }
 
-    public LoginTitleComponent(InteractiveGue visual) : base(visual)
+    public GoButtonComponent(InteractiveGue visual) : base(visual)
     {
         InitializeInstances();
         CustomInitialize();
     }
-    public LoginTitleComponent() : base(new ContainerRuntime())
+    public GoButtonComponent() : base(new ContainerRuntime())
     {
 
-        this.Visual.Height = 25f;
-        this.Visual.HeightUnits = global::Gum.DataTypes.DimensionUnitType.RelativeToChildren;
-        this.Visual.Width = 70f;
-        this.Visual.WidthUnits = global::Gum.DataTypes.DimensionUnitType.RelativeToChildren;
 
         InitializeInstances();
 
@@ -65,10 +61,13 @@ partial class LoginTitleComponent : global::Gum.Forms.Controls.FrameworkElement
     }
     private void ApplyDefaultVariables()
     {
-        this.SpriteInstance.HeightUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
-        this.SpriteInstance.SourceFileName = @"login_title.png";
-        this.SpriteInstance.Width = 100f;
-        this.SpriteInstance.WidthUnits = global::Gum.DataTypes.DimensionUnitType.PercentageOfParent;
+        this.SpriteInstance.Animate = false;
+        this.SpriteInstance.SourceFileName = @"start_button_sprite.png";
+        this.SpriteInstance.TextureAddress = global::Gum.Managers.TextureAddress.Custom;
+        this.SpriteInstance.TextureHeight = 16;
+        this.SpriteInstance.TextureLeft = 0;
+        this.SpriteInstance.TextureTop = 0;
+        this.SpriteInstance.TextureWidth = 32;
 
     }
     partial void CustomInitialize();

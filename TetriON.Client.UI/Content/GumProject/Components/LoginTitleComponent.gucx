@@ -7,7 +7,7 @@
     <Variable>
       <Type>float</Type>
       <Name>Height</Name>
-      <Value xsi:type="xsd:float">0</Value>
+      <Value xsi:type="xsd:float">25</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -17,10 +17,28 @@
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
+      <Type>DimensionUnitType</Type>
+      <Name>SpriteInstance.HeightUnits</Name>
+      <Value xsi:type="xsd:int">1</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
       <IsFile>true</IsFile>
       <Type>string</Type>
       <Name>SpriteInstance.SourceFile</Name>
       <Value xsi:type="xsd:string">login_title.png</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>float</Type>
+      <Name>SpriteInstance.Width</Name>
+      <Value xsi:type="xsd:float">100</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>DimensionUnitType</Type>
+      <Name>SpriteInstance.WidthUnits</Name>
+      <Value xsi:type="xsd:int">1</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -33,7 +51,7 @@
     <Variable>
       <Type>float</Type>
       <Name>Width</Name>
-      <Value xsi:type="xsd:float">0</Value>
+      <Value xsi:type="xsd:float">70</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>

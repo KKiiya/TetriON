@@ -204,6 +204,148 @@
         "EventType": 5,
         "TimestampUtc": "2026-09-23T17:51:19.4634938Z"
       }
+    ],
+    "69f7e042eb9d4fa48c58f0db55848f4fa81634f83b640477d764d2c8d7122b15": [
+      {
+        "NewName": "LoginScreen.CanvasInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T20:27:25.1118878Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LoginScreen.Canvas CanvasInstance in LoginScreen",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-09-23T20:27:30.2031332Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LoginScreen.LoginTitleComponent LoginTitleComponentInstance in LoginScreen",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-09-23T22:04:38.2360601Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LoginScreen.PassTitleComponent PassTitleComponentInstance in LoginScreen",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-09-23T22:04:38.2365715Z"
+      },
+      {
+        "NewName": "LoginScreen.LoginTitleComponentInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T22:12:04.5372168Z"
+      },
+      {
+        "NewName": "LoginScreen.PassTitleComponentInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T22:12:06.4957535Z"
+      },
+      {
+        "NewName": "InputTextBox",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 0,
+        "TimestampUtc": "2026-09-23T23:06:30.7309927Z"
+      },
+      {
+        "NewName": "InputTextBox (Container).ColoredRectangleInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T23:06:40.2798802Z"
+      },
+      {
+        "NewName": "InputTextBox (Container).ColoredRectangleInstance1",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-23T23:06:45.1865933Z"
+      },
+      {
+        "NewName": "InputTextBox (Container).Outline",
+        "OldName": "InputTextBox (Container).ColoredRectangleInstance",
+        "ElementType": "Components",
+        "EventType": 7,
+        "TimestampUtc": "2026-09-23T23:06:49.7899129Z"
+      },
+      {
+        "NewName": "InputTextBox (Container).Outline",
+        "OldName": "InputTextBox (Container).Outline",
+        "ElementType": "Components",
+        "EventType": 7,
+        "TimestampUtc": "2026-09-23T23:06:49.7956106Z"
+      },
+      {
+        "NewName": "InputTextBox (Container).TextBox",
+        "OldName": "InputTextBox (Container).ColoredRectangleInstance1",
+        "ElementType": "Components",
+        "EventType": 7,
+        "TimestampUtc": "2026-09-23T23:58:34.4033508Z"
+      },
+      {
+        "NewName": "InputTextBox (Container).TextBox",
+        "OldName": "InputTextBox (Container).TextBox",
+        "ElementType": "Components",
+        "EventType": 7,
+        "TimestampUtc": "2026-09-23T23:58:34.4184097Z"
+      },
+      {
+        "NewName": "LoginScreen.InputTextBoxInstance",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-24T00:04:59.6485431Z"
+      },
+      {
+        "NewName": "LoginScreen.LoginTitleComponentInstance1",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-24T00:05:45.5460407Z"
+      },
+      {
+        "NewName": null,
+        "OldName": "LoginScreen.LoginTitleComponent LoginTitleComponentInstance1 in LoginScreen",
+        "ElementType": "Screens",
+        "EventType": 6,
+        "TimestampUtc": "2026-09-24T00:29:08.3711687Z"
+      },
+      {
+        "NewName": "LoginScreen.InputTextBoxInstance1",
+        "OldName": null,
+        "ElementType": "Screens",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-24T00:29:16.5780475Z"
+      },
+      {
+        "NewName": "GoButtonCOmponent",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 0,
+        "TimestampUtc": "2026-09-24T01:18:20.3613799Z"
+      },
+      {
+        "NewName": "GoButtonComponent",
+        "OldName": "GoButtonComponent",
+        "ElementType": "Components",
+        "EventType": 2,
+        "TimestampUtc": "2026-09-24T01:18:28.0084391Z"
+      },
+      {
+        "NewName": "GoButtonComponent (Container).SpriteInstance",
+        "OldName": null,
+        "ElementType": "Components",
+        "EventType": 5,
+        "TimestampUtc": "2026-09-24T01:18:41.265717Z"
+      }
     ]
   }
 }

@@ -12,37 +12,37 @@
     <Variable>
       <Type>float</Type>
       <Name>CredentialsField.Height</Name>
-      <Value xsi:type="xsd:float">100</Value>
+      <Value xsi:type="xsd:float">0</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>DimensionUnitType</Type>
       <Name>CredentialsField.HeightUnits</Name>
-      <Value xsi:type="xsd:int">5</Value>
+      <Value xsi:type="xsd:int">4</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>string</Type>
       <Name>CredentialsField.Parent</Name>
-      <Value xsi:type="xsd:string">LoginBackgroundComponentInstance</Value>
+      <Value xsi:type="xsd:string">LoginContainer</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>float</Type>
       <Name>CredentialsField.StackSpacing</Name>
-      <Value xsi:type="xsd:float">20</Value>
+      <Value xsi:type="xsd:float">15</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>float</Type>
       <Name>CredentialsField.Width</Name>
-      <Value xsi:type="xsd:float">100</Value>
+      <Value xsi:type="xsd:float">0</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>DimensionUnitType</Type>
       <Name>CredentialsField.WidthUnits</Name>
-      <Value xsi:type="xsd:int">5</Value>
+      <Value xsi:type="xsd:int">4</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -71,8 +71,44 @@
     </Variable>
     <Variable>
       <Type>float</Type>
-      <Name>LoginBackgroundComponentInstance.Height</Name>
+      <Name>InputTextBoxInstance.Height</Name>
+      <Value xsi:type="xsd:float">50</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>string</Type>
+      <Name>InputTextBoxInstance.Parent</Name>
+      <Value xsi:type="xsd:string">LoginField</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>float</Type>
+      <Name>InputTextBoxInstance.Width</Name>
       <Value xsi:type="xsd:float">100</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>float</Type>
+      <Name>InputTextBoxInstance1.Height</Name>
+      <Value xsi:type="xsd:float">50</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>string</Type>
+      <Name>InputTextBoxInstance1.Parent</Name>
+      <Value xsi:type="xsd:string">PasswordField</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>float</Type>
+      <Name>InputTextBoxInstance1.Width</Name>
+      <Value xsi:type="xsd:float">100</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>float</Type>
+      <Name>LoginBackgroundComponentInstance.Height</Name>
+      <Value xsi:type="xsd:float">70</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -90,7 +126,7 @@
     <Variable>
       <Type>float</Type>
       <Name>LoginBackgroundComponentInstance.Width</Name>
-      <Value xsi:type="xsd:float">100</Value>
+      <Value xsi:type="xsd:float">80</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -121,6 +157,12 @@
       <Type>PositionUnitType</Type>
       <Name>LoginBackgroundComponentInstance.YUnits</Name>
       <Value xsi:type="xsd:int">7</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>ChildrenLayout</Type>
+      <Name>LoginContainer.ChildrenLayout</Name>
+      <Value xsi:type="xsd:int">0</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -180,13 +222,19 @@
     <Variable>
       <Type>float</Type>
       <Name>LoginField.Height</Name>
-      <Value xsi:type="xsd:float">50</Value>
+      <Value xsi:type="xsd:float">25</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>DimensionUnitType</Type>
       <Name>LoginField.HeightUnits</Name>
       <Value xsi:type="xsd:int">5</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>bool</Type>
+      <Name>LoginField.IsRenderTarget</Name>
+      <Value xsi:type="xsd:boolean">false</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -197,14 +245,26 @@
     </Variable>
     <Variable>
       <Type>float</Type>
+      <Name>LoginField.StackSpacing</Name>
+      <Value xsi:type="xsd:float">5</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>float</Type>
       <Name>LoginField.Width</Name>
-      <Value xsi:type="xsd:float">175</Value>
+      <Value xsi:type="xsd:float">150</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
       <Type>DimensionUnitType</Type>
       <Name>LoginField.WidthUnits</Name>
       <Value xsi:type="xsd:int">5</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>bool</Type>
+      <Name>LoginField.WrapsChildren</Name>
+      <Value xsi:type="xsd:boolean">false</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -220,9 +280,33 @@
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
+      <Type>DimensionUnitType</Type>
+      <Name>LoginTitleComponentInstance.HeightUnits</Name>
+      <Value xsi:type="xsd:int">1</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
       <Type>string</Type>
       <Name>LoginTitleComponentInstance.Parent</Name>
       <Value xsi:type="xsd:string">LoginField</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>float</Type>
+      <Name>LoginTitleComponentInstance.Width</Name>
+      <Value xsi:type="xsd:float">15</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>DimensionUnitType</Type>
+      <Name>LoginTitleComponentInstance.WidthUnits</Name>
+      <Value xsi:type="xsd:int">1</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>DimensionUnitType</Type>
+      <Name>PassTitleComponentInstance.HeightUnits</Name>
+      <Value xsi:type="xsd:int">1</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -232,14 +316,14 @@
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
-      <Type>PositionUnitType</Type>
-      <Name>PassTitleComponentInstance.XUnits</Name>
-      <Value xsi:type="xsd:int">0</Value>
+      <Type>float</Type>
+      <Name>PassTitleComponentInstance.Width</Name>
+      <Value xsi:type="xsd:float">10</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
-      <Type>PositionUnitType</Type>
-      <Name>PassTitleComponentInstance.YUnits</Name>
+      <Type>DimensionUnitType</Type>
+      <Name>PassTitleComponentInstance.WidthUnits</Name>
       <Value xsi:type="xsd:int">1</Value>
       <SetsValue>true</SetsValue>
     </Variable>
@@ -252,7 +336,7 @@
     <Variable>
       <Type>float</Type>
       <Name>PasswordField.Height</Name>
-      <Value xsi:type="xsd:float">50</Value>
+      <Value xsi:type="xsd:float">25</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -275,8 +359,14 @@
     </Variable>
     <Variable>
       <Type>float</Type>
+      <Name>PasswordField.StackSpacing</Name>
+      <Value xsi:type="xsd:float">5</Value>
+      <SetsValue>true</SetsValue>
+    </Variable>
+    <Variable>
+      <Type>float</Type>
       <Name>PasswordField.Width</Name>
-      <Value xsi:type="xsd:float">175</Value>
+      <Value xsi:type="xsd:float">150</Value>
       <SetsValue>true</SetsValue>
     </Variable>
     <Variable>
@@ -314,12 +404,12 @@
     <DefinedByBase>false</DefinedByBase>
   </Instance>
   <Instance>
-    <Name>PasswordField</Name>
+    <Name>LoginField</Name>
     <BaseType>Container</BaseType>
     <DefinedByBase>false</DefinedByBase>
   </Instance>
   <Instance>
-    <Name>LoginField</Name>
+    <Name>PasswordField</Name>
     <BaseType>Container</BaseType>
     <DefinedByBase>false</DefinedByBase>
   </Instance>
@@ -331,6 +421,16 @@
   <Instance>
     <Name>PassTitleComponentInstance</Name>
     <BaseType>PassTitleComponent</BaseType>
+    <DefinedByBase>false</DefinedByBase>
+  </Instance>
+  <Instance>
+    <Name>InputTextBoxInstance1</Name>
+    <BaseType>InputTextBox</BaseType>
+    <DefinedByBase>false</DefinedByBase>
+  </Instance>
+  <Instance>
+    <Name>InputTextBoxInstance</Name>
+    <BaseType>InputTextBox</BaseType>
     <DefinedByBase>false</DefinedByBase>
   </Instance>
   <Behaviors />
