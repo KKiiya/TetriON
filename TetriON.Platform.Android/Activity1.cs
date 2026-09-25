@@ -15,11 +15,13 @@ namespace TetriON.Platform.Android;
     ScreenOrientation = ScreenOrientation.FullUser,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenSize
 )]
-public class Activity1 : Activity {
+public class Activity1 : AndroidGameActivity {
     private Game1 _game;
     private View _view;
 
     protected override void OnCreate(Bundle bundle) {
+        // base.OnCreate wires Game.Activity internally; AndroidGamePlatform..ctor
+        // dereferences it on its first instruction, so this must stay first.
         base.OnCreate(bundle);
 
         _game = new Game1(this);

@@ -26,7 +26,7 @@ public class Game1 : Game {
 
     protected override void LoadContent() {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        //_controller.Initialize();
+        _controller.Initialize();
         // TODO: use this.Content to load your game content here
     }
 
