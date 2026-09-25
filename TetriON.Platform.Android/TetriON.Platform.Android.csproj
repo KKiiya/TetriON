@@ -1,15 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net10.0-android</TargetFramework>
-        <!-- Must stay >= the MonoGame package's android34.0, or NuGet silently
-             drops the Android framework and you compile against DesktopGL. -->
         <SupportedOSPlatformVersion>34</SupportedOSPlatformVersion>
         <OutputType>Exe</OutputType>
         <ApplicationId>com.companyname.TetriON.Platform.Android</ApplicationId>
         <ApplicationVersion>1</ApplicationVersion>
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-        <!-- Provisioned by: dotnet build -t:InstallAndroidDependencies. Machine-specific,
-             so only default when that location exists; override with -p:AndroidSdkDirectory=... -->
         <AndroidSdkDirectory Condition="Exists('$(LOCALAPPDATA)\Android\Sdk')">$(LOCALAPPDATA)\Android\Sdk</AndroidSdkDirectory>
     </PropertyGroup>
     <ItemGroup>
