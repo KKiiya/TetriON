@@ -32,6 +32,7 @@ public class GameInput {
         set => _sdfInterval = value > 0 ? 1f / value : 0f;
     } // Soft Drop Factor - drops per second (converted to time interval internally)
     private float _softDropTimer = 0f;
+    private DateTime _lastTwoFingerTap = DateTime.MinValue;
 
     public GameInput(IController controller) {
         _inputManager = new InputManager(controller) {
@@ -277,29 +278,37 @@ public class GameInput {
     }
 
     private void OnTouchGesture(object? sender, GestureEventArgs e) {
-        Console.WriteLine($"Touch gesture: {e.Type} with {e.FingerCount} fingers at {e.Position}");
+        // Touch controls (v1): discrete gestures only, no on-screen buttons yet.
+        // Fired on finger lift; _game is null while in menus.
+        if (_game == null) return;
 
-        if (e.Type == GestureType.Swipe) {
-            Console.WriteLine($"Swipe direction: {e.Direction}");
-
-            // Handle swipe gestures
-            switch (e.Direction) {
-                case SwipeDirection.Left:
-                    // SwipeLeft();
-                    break;
-                case SwipeDirection.Right:
-                    // SwipeRight();
-                    break;
-                case SwipeDirection.Down:
-                    // SwipeDown();
-                    break;
+        if (e.Type == GestureType.Tap) {
+            if (e.FingerCount == 2) {
+                _game.HoldTetromino();
+                // A two-finger tap lifts one finger at a time; the second
+                // lift reports a single-finger tap. Suppress it briefly so
+                // hold isn't followed by a spurious rotation.
+                _lastTwoFingerTap = DateTime.UtcNow;
+            } else if (e.FingerCount == 1
+                && (DateTime.UtcNow - _lastTwoFingerTap).TotalSeconds > 0.5) {
+                _game.RotateTetromino(Core.Pieces.Tetromino.RotationDirection.CW);
             }
+            return;
         }
 
-        if (e.Type == GestureType.Hold && e.FingerCount == 2) {
-            Console.WriteLine("Two-finger hold detected!");
-            // OpenSpecialMenu();
+        if (e.Type != GestureType.Swipe) return;
+
+        // Fold diagonals to the dominant axis so flicks are forgiving.
+        var d = e.Delta;
+        if (Math.Abs(d.X) >= Math.Abs(d.Y)) {
+            _game.MoveTetromino(d.X < 0
+                ? Core.Pieces.Tetromino.MoveDirection.LEFT
+                : Core.Pieces.Tetromino.MoveDirection.RIGHT);
+        } else if (d.Y > 0) {
+            // Screen Y grows downward: swipe down = hard drop.
+            _game.HardDrop();
         }
+        // Swipe up: unmapped for now.
     }
 
     private void OnMouseGesture(object? sender, MouseGestureEventArgs e) {

@@ -211,11 +211,11 @@ public class TouchInput : IInputProvider, ITouchInput {
             _detectedGestures.Add(new DetectedGesture {
                 Type = GestureType.Tap,
                 Position = touchState.Position,
-                FingerCount = _activeTouches.Count + 1, // Include the finger that just ended
+                FingerCount = _activeTouches.Count, // ending finger still indexed: this IS the finger count
                 Timestamp = touchState.HoldTime
             });
 
-            GestureDetected?.Invoke(this, new GestureEventArgs(GestureType.Tap, touchState.Position, _activeTouches.Count + 1));
+            GestureDetected?.Invoke(this, new GestureEventArgs(GestureType.Tap, touchState.Position, _activeTouches.Count));
         }
 
         // Check for swipe
@@ -226,12 +226,12 @@ public class TouchInput : IInputProvider, ITouchInput {
                 Type = GestureType.Swipe,
                 Position = touchState.Position,
                 Direction = direction,
-                FingerCount = _activeTouches.Count + 1,
+                FingerCount = _activeTouches.Count, // ending finger still indexed: this IS the finger count
                 Timestamp = touchState.HoldTime,
                 Delta = swipeDelta
             });
 
-            GestureDetected?.Invoke(this, new GestureEventArgs(GestureType.Swipe, touchState.Position, _activeTouches.Count + 1) {
+            GestureDetected?.Invoke(this, new GestureEventArgs(GestureType.Swipe, touchState.Position, _activeTouches.Count) {
                 Direction = direction,
                 Delta = swipeDelta
             });

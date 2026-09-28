@@ -46,6 +46,32 @@ partial class MainMenu {
             }
         };
 
+        var touch = inputManager.Touch;
+        touch.TouchBegan += (s, e) => {
+            if (!AllowInput) return;
+            var pos = e.Touch.Position;
+            foreach (var button in buttons) {
+                button.CheckHover(pos.X, pos.Y);
+            }
+        };
+
+        touch.TouchMoved += (s, e) => {
+            if (!AllowInput) return;
+            var pos = e.Touch.Position;
+            foreach (var button in buttons) {
+                button.CheckHover(pos.X, pos.Y);
+            }
+        };
+
+        touch.GestureDetected += (s, e) => {
+            if (!AllowInput) return;
+            if (e.Type != GestureType.Tap || e.FingerCount != 1) return;
+            foreach (var button in buttons) {
+                button.CheckHover(e.Position.X, e.Position.Y);
+                button.CheckClick(e.Position.X, e.Position.Y);
+            }
+        };
+
         foreach (var button in buttons) {
             button.Hovered += (s, e) => {
                 if (!AllowInput) return;
