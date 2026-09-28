@@ -12,7 +12,7 @@ namespace TetriON.Platform.Android;
     Icon = "@drawable/icon",
     AlwaysRetainTaskState = true,
     LaunchMode = LaunchMode.SingleInstance,
-    ScreenOrientation = ScreenOrientation.FullUser,
+    ScreenOrientation = ScreenOrientation.SensorLandscape,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenSize
 )]
 public class Activity1 : AndroidGameActivity {
@@ -29,6 +29,35 @@ public class Activity1 : AndroidGameActivity {
 
         SetContentView(_view);
         _game.Run();
+    }
+
+    public override void OnWindowFocusChanged(bool hasFocus) {
+        base.OnWindowFocusChanged(hasFocus);
+        if (hasFocus) HideSystemUi();
+    }
+
+    private void HideSystemUi() {
+        Window.AddFlags(WindowManagerFlags.Fullscreen);
+        Window.ClearFlags(WindowManagerFlags.ForceNotFullscreen);
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.R) {
+            Window.SetDecorFitsSystemWindows(false);
+            var controller = Window.InsetsController;
+            if (controller != null) {
+                controller.Hide(WindowInsets.Type.StatusBars() | WindowInsets.Type.NavigationBars());
+                controller.SystemBarsBehavior =
+                    (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
+            }
+        } else {
+            var decor = Window.DecorView;
+            var flags = (int)decor.SystemUiVisibility;
+            flags |= (int)(SystemUiFlags.Fullscreen
+                | SystemUiFlags.HideNavigation
+                | SystemUiFlags.ImmersiveSticky
+                | SystemUiFlags.LayoutFullscreen
+                | SystemUiFlags.LayoutHideNavigation
+                | SystemUiFlags.LayoutStable);
+            decor.SystemUiVisibility = (StatusBarVisibility)flags;
+        }
     }
 }
 
