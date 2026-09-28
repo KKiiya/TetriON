@@ -93,6 +93,40 @@ public sealed class SkinCatalog {
     private readonly Dictionary<string, HashSet<string>> _sounds = [];
     private readonly Dictionary<string, HashSet<string>> _songs = [];
 
+    // All known bundled relative paths (manifest or enumeration), normalized to '/'.
+    private readonly HashSet<string> _bundledPaths = [];
+
+    /// <summary>
+    /// All known bundled relative paths (manifest or enumeration).
+    /// </summary>
+    public IReadOnlyList<string> BundledPaths => [.. _bundledPaths];
+
+    /// <summary>
+    /// Copy bundled files under destRoot (once; existing files win so user
+    /// customs are never overwritten). Lets file-based consumers (Gum)
+    /// work where packages aren't a filesystem (mobile).
+    /// Returns files copied.
+    /// </summary>
+    public int CopyBundledTo(string destRoot) {
+        int copied = 0;
+        foreach (var relative in _bundledPaths) {
+            try {
+                var dest = Path.Combine(destRoot, relative);
+                if (File.Exists(dest)) continue;
+                Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+                using var source = Bundled.Open(relative);
+                if (source == null) continue;
+                using var target = File.Create(dest);
+                source.CopyTo(target);
+                copied++;
+            } catch (Exception ex) {
+                Logger.Log($"SkinCatalog: Failed to stage '{relative}': {ex.Message}", Logger.LogLevel.Warning);
+            }
+        }
+        if (copied > 0) Logger.Log($"SkinCatalog: Staged {copied} bundled files to sandbox", Logger.LogLevel.Info);
+        return copied;
+    }
+
     // Base song name -> variant file names (e.g., "gameplay" -> ["gameplay1", "gameplay_tetris"])
     private readonly Dictionary<string, Dictionary<string, List<string>>> _songVariants = [];
 
@@ -138,14 +172,19 @@ public sealed class SkinCatalog {
             }
         }
 
-        // Bundled skins: derive folder names from packaged files
-        // (TitleContainer has no directory listing on mobile).
-        foreach (var file in Bundled.Enumerate("skins", "*.png")) {
-            var skin = SkinFromRelativePath(file);
-            if (skin != null) RegisterSkin(skin);
+        // Bundled skins: prefer the build-generated manifest (TitleContainer
+        // has no directory listing on mobile), else enumerate (desktop).
+        if (!IndexFromManifest()) {
+            foreach (var file in Bundled.Enumerate("skins", "*.*")) {
+                var skin = SkinFromRelativePath(file);
+                if (skin == null) continue;
+                RegisterSkin(skin);
+                _bundledPaths.Add(NormalizeSeparators(file));
+                IndexFile(skin, Path.GetFileName(file));
+            }
         }
         foreach (var skin in _skins) {
-            IndexSkin(skin);
+            IndexUserFiles(skin);
         }
 
         Logger.Log($"SkinCatalog: Scan complete. Skins: [{string.Join(", ", _skins)}]", Logger.LogLevel.Info);
@@ -160,6 +199,7 @@ public sealed class SkinCatalog {
         _sounds.Clear();
         _songs.Clear();
         _songVariants.Clear();
+        _bundledPaths.Clear();
         Scan();
         Logger.Log($"SkinCatalog: Reload complete. Skins: {before.Item1}→{_skins.Count}, " +
             $"Textures: {before.Item2}→{_textures.Values.Sum(s => s.Count)}, " +
@@ -176,48 +216,69 @@ public sealed class SkinCatalog {
         return parts.Length >= 3 && parts[0] == "skins" ? parts[1] : null;
     }
 
-    private void IndexSkin(string skinName) {
-        IndexNames(skinName, _textures, ValidTextureNames, UserFileNames(skinName, "*.png").Concat(BundledFileNames(skinName, "*.png")));
-        IndexNames(skinName, _sounds, ValidSoundNames,
-            _audioExtensions.SelectMany(ext => UserFileNames(skinName, $"*{ext}").Concat(BundledFileNames(skinName, $"*{ext}"))));
-        IndexSongs(skinName);
+    /// <summary>
+    /// Index bundled files from the build-generated skins/manifest.txt.
+    /// Returns false when absent (desktop falls back to enumeration).
+    /// </summary>
+    private bool IndexFromManifest() {
+        string[] lines;
+        try {
+            using var stream = Bundled.Open("skins/manifest.txt");
+            if (stream == null) return false;
+            using var reader = new StreamReader(stream);
+            lines = reader.ReadToEnd().Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+        } catch {
+            return false;
+        }
+        foreach (var line in lines) {
+            var skin = SkinFromRelativePath(line.Trim());
+            if (skin == null) continue;
+            RegisterSkin(skin);
+            _bundledPaths.Add(NormalizeSeparators(line.Trim()));
+            IndexFile(skin, Path.GetFileName(line.Trim()));
+        }
+        Logger.Log($"SkinCatalog: Indexed {lines.Length} bundled files from manifest", Logger.LogLevel.Info);
+        return true;
     }
 
-    private static void IndexNames(string skinName, Dictionary<string, HashSet<string>> index, HashSet<string> valid, IEnumerable<string> fileNames) {
-        if (!index.ContainsKey(skinName)) index[skinName] = [];
-        foreach (var file in fileNames) {
-            var name = Path.GetFileNameWithoutExtension(file);
-            if (valid.Contains(name)) index[skinName].Add(name);
+    /// <summary>
+    /// Index user-sandbox files for one skin (real filesystem).
+    /// </summary>
+    private void IndexUserFiles(string skinName) {
+        var folder = Path.Combine(UserRoot, skinName);
+        if (!Directory.Exists(folder)) return;
+        foreach (var file in Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)) {
+            IndexFile(skinName, Path.GetFileName(file));
         }
     }
 
-    private IEnumerable<string> UserFileNames(string skinName, string pattern) {
-        var folder = Path.Combine(UserRoot, skinName);
-        return Directory.Exists(folder) ? Directory.GetFiles(folder, pattern, SearchOption.AllDirectories) : [];
-    }
-
-    private IEnumerable<string> BundledFileNames(string skinName, string pattern) =>
-        Bundled.Enumerate(Path.Combine("skins", skinName), pattern);
-
     /// <summary>
-    /// Song files match by prefix: "gameplay1" is a variant of base "gameplay".
-    /// The identifier is always the file name itself.
+    /// Single validation/index rule for every file, both layers.
+    /// Textures match exactly; songs match by prefix (variants).
     /// </summary>
-    private void IndexSongs(string skinName) {
-        if (!_songs.ContainsKey(skinName)) _songs[skinName] = [];
-        if (!_songVariants.ContainsKey(skinName)) _songVariants[skinName] = [];
+    private void IndexFile(string skinName, string fileName) {
+        var name = Path.GetFileNameWithoutExtension(fileName);
+        var ext = Path.GetExtension(fileName).ToLowerInvariant();
 
-        var candidates = _audioExtensions
-            .SelectMany(ext => UserFileNames(skinName, $"*{ext}").Concat(BundledFileNames(skinName, $"*{ext}")))
-            .Select(Path.GetFileNameWithoutExtension);
-
-        foreach (var songName in candidates) {
-            var matchedBase = ValidSongNames.FirstOrDefault(valid =>
-                songName.StartsWith(valid, StringComparison.OrdinalIgnoreCase));
-            if (matchedBase == null) continue;
-            _songs[skinName].Add(songName);
+        if (ext == TextureExtension && ValidTextureNames.Contains(name)) {
+            if (!_textures.ContainsKey(skinName)) _textures[skinName] = [];
+            _textures[skinName].Add(name);
+            return;
+        }
+        if (!_audioExtensions.Contains(ext)) return;
+        if (ValidSoundNames.Contains(name)) {
+            if (!_sounds.ContainsKey(skinName)) _sounds[skinName] = [];
+            _sounds[skinName].Add(name);
+            return;
+        }
+        var matchedBase = ValidSongNames.FirstOrDefault(valid =>
+            name.StartsWith(valid, StringComparison.OrdinalIgnoreCase));
+        if (matchedBase != null) {
+            if (!_songs.ContainsKey(skinName)) _songs[skinName] = [];
+            _songs[skinName].Add(name);
+            if (!_songVariants.ContainsKey(skinName)) _songVariants[skinName] = [];
             if (!_songVariants[skinName].ContainsKey(matchedBase)) _songVariants[skinName][matchedBase] = [];
-            if (!_songVariants[skinName][matchedBase].Contains(songName)) _songVariants[skinName][matchedBase].Add(songName);
+            if (!_songVariants[skinName][matchedBase].Contains(name)) _songVariants[skinName][matchedBase].Add(name);
         }
     }
 
@@ -271,9 +332,10 @@ public sealed class SkinCatalog {
                 var matches = Directory.GetFiles(userFolder, fileName, SearchOption.AllDirectories);
                 if (matches.Length > 0) return new SkinFile(skin, matches[0], Bundled: false);
             }
-            // Bundled package: relative path via the platform asset source.
-            var bundled = Bundled.Enumerate(Path.Combine("skins", skin), fileName)
-                .Select(NormalizeSeparators).FirstOrDefault();
+            // Bundled package: exact indexed path (TitleContainer has no listing).
+            var bundled = _bundledPaths.FirstOrDefault(p =>
+                p.StartsWith($"skins/{skin}/", StringComparison.OrdinalIgnoreCase) &&
+                p.EndsWith("/" + fileName, StringComparison.OrdinalIgnoreCase));
             if (bundled != null) return new SkinFile(skin, bundled, Bundled: true);
         }
         return null;

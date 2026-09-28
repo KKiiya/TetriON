@@ -34,8 +34,12 @@ public class AudioManager(IController controller) : IAudioManager {
         _soundEffects.Clear();
 
         foreach (var soundName in SkinManager.GetValidSoundNames()) {
-            var sound = SkinManager.GetAudioAsset(soundName);
-            if (sound != null) _soundEffects[soundName] = sound;
+            try {
+                var sound = SkinManager.GetAudioAsset(soundName);
+                if (sound != null) _soundEffects[soundName] = sound;
+            } catch (KeyNotFoundException) {
+                // Absent for this skin/platform: silent by design, mixing uses bus defaults.
+            }
         }
     }
 

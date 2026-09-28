@@ -1,33 +1,45 @@
+using System;
+using System.IO;
 using Android.App;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using TetriON.Client;
 using TetriON.Client.Abstraction;
+using TetriON.Client.Abstraction.Platform;
+using TetriON.Platform.Android.Platform;
 
 namespace TetriON.Platform.Android;
 
 public class Game1 : Game {
+
+    private readonly IPlatformServices _platform = new AndroidPlatformServices();
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private IController _controller;
 
     public Game1(Activity activity) {
-        _graphics = new GraphicsDeviceManager(this);
+        _graphics = new GraphicsDeviceManager(this) {
+            SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight
+        };
+        _graphics.ApplyChanges();
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
         Services.AddService(typeof(Activity), activity);
     }
 
     protected override void Initialize() {
-        // TODO: Add your initialization logic here
-        //_controller = new ClientController(this);
+        _controller = new ClientController(this, _platform);
         base.Initialize();
     }
 
     protected override void LoadContent() {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
+        // Sandbox mirrors the desktop layout (Content/ + skins/); Gum resolves
+        // SourceFileName entries like Content/../skins/... against this.
+        ToolsUtilities.FileManager.RelativeDirectory =
+            Path.Combine(_platform.Storage.UserDataDirectory, "Content") + "/";
         _controller.Initialize();
-        // TODO: use this.Content to load your game content here
     }
 
     protected override void Update(GameTime gameTime) {

@@ -48,11 +48,24 @@ public class SkinManager : ISkinManager {
     }
 
     /// <summary>
+    /// Mirror bundled skins into the writable sandbox (missing files only)
+    /// plus a Content/ anchor dir, so file-based consumers (Gum, whose
+    /// sources resolve like Content/../skins/...) work where the package
+    /// is not a filesystem. Safe to call every launch; no-op when staged.
+    /// </summary>
+    public void EnsureSandboxMirror() {
+        var root = _controller.Platform.Storage.UserDataDirectory;
+        Directory.CreateDirectory(Path.Combine(root, "Content"));
+        _catalog.CopyBundledTo(root);
+    }
+
+    /// <summary>
     /// Load textures, sounds, songs and fonts for the current skin.
     /// A corrupt file logs and skips; it never kills startup.
     /// </summary>
     public void LoadAllAssets() {
         Logger.Log($"SkinManager: Loading all assets for skin '{_catalog.CurrentSkin}'...", Logger.LogLevel.Info);
+        EnsureSandboxMirror();
         LoadTextureAssets();
         LoadAudioAssets();
         LoadSongAssets();
@@ -166,9 +179,11 @@ public class SkinManager : ISkinManager {
 
 
     #region Bulk preload (one shape for all four asset types)
-    public void LoadTextureAssets() =>
+    public void LoadTextureAssets() {
         Reload(_textures, "texture", SkinCatalog.ValidTextureNames,
             name => new TextureWrapper(_controller, LoadCustomTexture(name), true));
+        EnsureMissingTexture();
+    }
 
     public void LoadAudioAssets() =>
         Reload(_sounds, "sound", SkinCatalog.ValidSoundNames,
@@ -213,9 +228,24 @@ public class SkinManager : ISkinManager {
 
 
     #region Loaded-asset lookups
+    /// <summary>
+    /// Guarantees the missing_texture fallback exists, generating a 1x1
+    /// magenta pixel when no skin provides one (e.g. Android with no
+    /// bundled skins). Renderers must never receive a null texture.
+    /// </summary>
+    private void EnsureMissingTexture() {
+        if (_textures.Contains("missing_texture")) return;
+        if (_graphicsDevice == null) throw new InvalidOperationException("Skin system not initialized. Call Initialize() first.");
+        var pixel = new Texture2D(_graphicsDevice, 1, 1);
+        pixel.SetData([Color.Magenta]);
+        _textures["missing_texture"] = new TextureWrapper(_controller, pixel, true);
+        Logger.Log("SkinManager: No missing_texture in skin; generated magenta fallback", Logger.LogLevel.Warning);
+    }
+
     public (bool success, ITexture texture) GetTextureAsset(string textureName, bool debug = false) {
         if (!SkinCatalog.ValidTextureNames.Contains(textureName) || !_textures.TryGet(textureName, out var wrapper) || wrapper == null) {
             if (debug) Logger.Log($"SkinManager: Texture '{textureName}' unavailable, returning missing_texture", Logger.LogLevel.Error);
+            EnsureMissingTexture();
             _textures.TryGet("missing_texture", out var missing);
             return (false, missing!);
         }

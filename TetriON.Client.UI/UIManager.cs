@@ -20,6 +20,14 @@ public class UIManager(IController controller) : IUIManager {
     public void Initialize() {
         _gumService.Initialize(controller.Game, DefaultVisualsVersion.V3);
 
+        // GumService resets FileManager.RelativeDirectory to ./Content/.
+        // On mobile the APK is not a filesystem, so point Gum at the
+        // sandbox-staged copy (SkinManager already mirrored skins/ +
+        // Content/ there during LoadAllAssets).
+        var sandboxContent = Path.Combine(controller.Platform.Storage.UserDataDirectory, "Content") + Path.DirectorySeparatorChar;
+        Directory.CreateDirectory(sandboxContent);
+        ToolsUtilities.FileManager.RelativeDirectory = sandboxContent;
+
         MainMenu mainMenu = new();
         mainMenu.LoadSources(this);
         mainMenu.AddToRoot();
