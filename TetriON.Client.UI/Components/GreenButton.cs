@@ -68,7 +68,26 @@ partial class GreenButton {
 
     public void LoadSource(UIManager uIManager) {
         var currentSkin = uIManager.Controller.SkinManager.GetSkinPath();
-        SpriteInstance.SourceFileName = @"../" + currentSkin + @"/ButtonPress.achx";
+        try {
+            SpriteInstance.SourceFileName = @"../" + currentSkin + @"/ButtonPress.achx";
+        } catch {
+            // Mobile (APK assets are not files): Gum's FileManager can't
+            // resolve the staged sandbox copy via relative paths, so fall
+            // back to a static skin texture. Animation is skipped but the
+            // menu stays usable instead of crashing startup.
+            try {
+                SpriteInstance.Texture = uIManager.Controller.SkinManager.LoadCustomTexture("button");
+                SpriteInstance.TextureAddress = global::Gum.Managers.TextureAddress.Custom;
+                SpriteInstance.TextureLeft = 0;
+                SpriteInstance.TextureTop = 0;
+                SpriteInstance.TextureWidth = 320;
+                SpriteInstance.TextureHeight = 64;
+                SpriteInstance.Animate = false;
+            } catch {
+                // Last resort: leave the sprite textureless; UISpriteHandler
+                // already tolerates missing animation chains.
+            }
+        }
     }
 
     public void PlayHoverAnimation() {
