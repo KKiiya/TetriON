@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using Android.App;
 using Microsoft.Xna.Framework;
@@ -6,14 +5,13 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TetriON.Client;
 using TetriON.Client.Abstraction;
-using TetriON.Client.Abstraction.Platform;
 using TetriON.Platform.Android.Platform;
 
 namespace TetriON.Platform.Android;
 
 public class Game1 : Game {
 
-    private readonly IPlatformServices _platform = new AndroidPlatformServices();
+    private readonly AndroidPlatformServices _platform = new();
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private IController _controller;
@@ -43,8 +41,7 @@ public class Game1 : Game {
     }
 
     protected override void Update(GameTime gameTime) {
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-            Exit();
+        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
 
         // TODO: Add your update logic here
         _controller?.Update(gameTime);
